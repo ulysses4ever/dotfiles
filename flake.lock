@@ -1,0 +1,76 @@
+{
+  "nodes": {
+    "emacs-overlay": {
+      "locked": {
+        "lastModified": 1635849715,
+        "narHash": "sha256-gHbdX7nJOGZ9lZU9EwSPMh3hj7ojO8dlo8VyDH0Hpa0=",
+        "owner": "nix-community",
+        "repo": "emacs-overlay",
+        "rev": "8a408af9df1cd99b7f198136edc229071c1389d3",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nix-community",
+        "repo": "emacs-overlay",
+        "type": "github"
+      }
+    },
+    "home-manager": {
+      "inputs": {
+        "nixpkgs": "nixpkgs"
+      },
+      "locked": {
+        "lastModified": 1635808137,
+        "narHash": "sha256-UE/AYGHzp3PTvNjYaWaCmhRxkUJGUqh6vSQ7Yv8vNrs=",
+        "owner": "nix-community",
+        "repo": "home-manager",
+        "rev": "21590d40c1575ff77c96bbb0c7b151cfa788e100",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nix-community",
+        "repo": "home-manager",
+        "type": "github"
+      }
+    },
+    "nixpkgs": {
+      "locked": {
+        "lastModified": 1635812586,
+        "narHash": "sha256-6ET5LoSpb7gIFwzoFTQYXH+aXX0Zj2m375EyiXCqzwc=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "50029ed89ce5e38f0b893689762c7ead26c2f678",
+        "type": "github"
+      },
+      "original": {
+        "id": "nixpkgs",
+        "type": "indirect"
+      }
+    },
+    "nixpkgs_2": {
+      "locked": {
+        "lastModified": 1635702959,
+        "narHash": "sha256-ZKxX9DjJJGJqq20pE4dIj1G4ssCLVXXRFerM6lNuF0k=",
+        "owner": "nixos",
+        "repo": "nixpkgs",
+        "rev": "e544ee88fa4590df75e221e645a03fe157a99e5b",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nixos",
+        "ref": "nixos-unstable",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "root": {
+      "inputs": {
+        "emacs-overlay": "emacs-overlay",
+        "home-manager": "home-manager",
+        "nixpkgs": "nixpkgs_2"
+      }
+    }
+  },
+  "root": "root",
+  "version": 7
+}

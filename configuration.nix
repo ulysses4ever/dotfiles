@@ -2,7 +2,7 @@
 # your system.  Help is available in the configuration.nix(5) man page
 # and in the NixOS manual (accessible by running ‘nixos-help’).
 
-{ config, pkgs, lib, ... }:
+{ config, pkgs, lib, inputs, ... }:
 
 let
   nvidia-offload = pkgs.writeShellScriptBin "nvidia-offload" ''
@@ -426,7 +426,15 @@ in
     pkgs.emacs-all-the-icons-fonts
   ];
 
-  nix.trustedUsers = [ "root" "artem" ];
+  nix = {
+    trustedUsers = [ "root" "artem" ];
+
+    # enable flakes
+    package = pkgs.nixUnstable;
+    extraOptions = ''
+      experimental-features = nix-command flakes
+    '';
+  };
 
   nixpkgs.config = {
     allowUnfree = true;
@@ -453,9 +461,7 @@ in
   
   # all-hail Emacs overlays!
   nixpkgs.overlays = [
-    (import (builtins.fetchTarball {
-      url = https://github.com/nix-community/emacs-overlay/archive/master.tar.gz;
-    }))
+    (import inputs.emacs-overlay)
   ];
 
   security.sudo.wheelNeedsPassword = false;
