@@ -26,7 +26,11 @@
                                                           # for now
           }
         ];
-        specialArgs = { inherit inputs; };
+        specialArgs = {
+          inherit inputs;
+          inherit name;
+          mypkgs = (import ./packages) nixpkgs;
+        };
       };
 
     in nixpkgs.lib.genAttrs hosts mkHost;
