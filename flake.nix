@@ -8,19 +8,27 @@
   };
 
   outputs = { home-manager, nixpkgs, ... }@inputs: {
-    nixosConfigurations.lenovo-p14s = nixpkgs.lib.nixosSystem {
-        system = "x86_64-linux";
+
+    nixosConfigurations = with builtins; let
+
+      hosts = attrNames (readDir ./machines);
+
+      mkHost = name: nixpkgs.lib.nixosSystem {
+        system = "x86_64-linux"; # we only use x64, although we could make it a parameter
         modules = [
-          ./configuration.nix
+          (import (./machines + "/${name}"))
 
           home-manager.nixosModules.home-manager
           {
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
-            home-manager.users.artem = import ./home.nix;
+            home-manager.users.artem = import ./home.nix; # home-manager config is global,
+                                                          # for now
           }
         ];
         specialArgs = { inherit inputs; };
       };
-    };
+
+    in nixpkgs.lib.genAttrs hosts mkHost;
+  };
 }
