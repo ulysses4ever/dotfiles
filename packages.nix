@@ -14,7 +14,6 @@ with pkgs; [
     zlib
     which
     pciutils
-    nvidia-offload
     direnv
     htop
     gnupg

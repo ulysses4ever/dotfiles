@@ -5,9 +5,10 @@
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
     home-manager.url = "github:nix-community/home-manager";
     emacs-overlay.url = "github:nix-community/emacs-overlay";
+    nix-doom-emacs.url = "github:vlaci/nix-doom-emacs";
   };
 
-  outputs = { home-manager, nixpkgs, ... }@inputs: {
+  outputs = { home-manager, nixpkgs, nix-doom-emacs, ... }@inputs: {
 
     nixosConfigurations = with builtins; let
 
@@ -18,18 +19,19 @@
         modules = [
           (import (./machines + "/${name}"))
 
-          home-manager.nixosModules.home-manager
-          {
+          home-manager.nixosModules.home-manager {
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
-            home-manager.users.artem = import ./home.nix; # home-manager config is global,
-                                                          # for now
+            home-manager.users.artem = 
+              import ./home.nix; 
+            # home-manager config is global, for now
           }
         ];
         specialArgs = {
           inherit inputs;
+          inherit nix-doom-emacs;
           inherit name;
-          mypkgs = (import ./packages) nixpkgs;
+          mypkgs = (import ./packages.nix);
         };
       };
 

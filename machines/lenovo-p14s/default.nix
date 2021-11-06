@@ -4,6 +4,7 @@
 
 { config, pkgs, lib, inputs, name, mypkgs, ... }:
 
+
 let
   nvidia-offload = pkgs.writeShellScriptBin "nvidia-offload" ''
     export __NV_PRIME_RENDER_OFFLOAD=1
@@ -283,7 +284,9 @@ in
 
   # List packages installed in system profile. To search, run:
   # $ nix search wget
-  environment.systemPackages = mypkgs;
+  environment.systemPackages = mypkgs pkgs ++ [
+    nvidia-offload
+  ];
 
   environment.gnome.excludePackages = with pkgs.gnome3; [
   ];
@@ -380,4 +383,3 @@ in
   system.stateVersion = "20.09"; # Did you read the comment?
 
 }
-

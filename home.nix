@@ -1,4 +1,4 @@
-{ config, pkgs, ... }:
+{ config, pkgs, nix-doom-emacs, ... }:
 
 let
 #  emacs-overlay = builtins.fetchTarball "https://github.com/nix-community/emacs-overlay/archive/master.tar.gz";
@@ -37,9 +37,11 @@ in {
     #pkgs.emacsPgtkGcc
   ];
 
-#  home.file.".emacs.d/init.el".text = ''
-#      (load "default.el")
-#  '';
+  imports = [ nix-doom-emacs.hmModule ];
+  programs.doom-emacs = {
+    enable = true;
+    doomPrivateDir = ./doom.d;
+  };
 
  # NEOVIM CONFIG
  programs.neovim = {
