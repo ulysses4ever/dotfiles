@@ -37,22 +37,6 @@ in {
     #pkgs.emacsPgtkGcc
   ];
 
-  imports = [ inputs.nix-doom-emacs.hmModule ];
-# error: infinite recursion encountered
-# 
-#        at /nix/store/nhk3x1x82kvskm2isgyfy315ps46i594-source/lib/modules.nix:316:28:
-# 
-#           315|         builtins.addErrorContext (context name)
-#           316|           (args.${name} or config._module.args.${name})
-#              |                            ^
-#           317|       ) (lib.functionArgs f);
-# (use '--show-trace' to show detailed location information)
-
-  programs.doom-emacs = {
-    enable = true;
-    doomPrivateDir = ./doom.d;
-  };
-
  # NEOVIM CONFIG
  programs.neovim = {
 	  enable = true;

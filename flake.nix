@@ -22,7 +22,13 @@
           home-manager.nixosModules.home-manager {
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
-            home-manager.users.artem = import ./home.nix;
+            home-manager.users.artem = { pkgs, ... }: {
+              imports = [ nix-doom-emacs.hmModule ./home.nix ];
+              programs.doom-emacs = {
+                enable = true;
+                doomPrivateDir = ./doom.d;
+              };
+            };
           }
         ];
         specialArgs = {
