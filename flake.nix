@@ -22,14 +22,11 @@
           home-manager.nixosModules.home-manager {
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
-            home-manager.users.artem = 
-              import ./home.nix; 
-            # home-manager config is global, for now
+            home-manager.users.artem = import ./home.nix;
           }
         ];
         specialArgs = {
           inherit inputs;
-          inherit nix-doom-emacs;
           inherit name;
           mypkgs = (import ./packages.nix);
         };

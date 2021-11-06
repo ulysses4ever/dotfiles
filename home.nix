@@ -1,4 +1,4 @@
-{ config, pkgs, nix-doom-emacs, ... }:
+{ config, pkgs, inputs, ... }:
 
 let
 #  emacs-overlay = builtins.fetchTarball "https://github.com/nix-community/emacs-overlay/archive/master.tar.gz";
@@ -37,7 +37,17 @@ in {
     #pkgs.emacsPgtkGcc
   ];
 
-  imports = [ nix-doom-emacs.hmModule ];
+  imports = [ inputs.nix-doom-emacs.hmModule ];
+# error: infinite recursion encountered
+# 
+#        at /nix/store/nhk3x1x82kvskm2isgyfy315ps46i594-source/lib/modules.nix:316:28:
+# 
+#           315|         builtins.addErrorContext (context name)
+#           316|           (args.${name} or config._module.args.${name})
+#              |                            ^
+#           317|       ) (lib.functionArgs f);
+# (use '--show-trace' to show detailed location information)
+
   programs.doom-emacs = {
     enable = true;
     doomPrivateDir = ./doom.d;
