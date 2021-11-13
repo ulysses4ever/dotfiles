@@ -6,9 +6,9 @@
     home-manager.url = "github:nix-community/home-manager";
     emacs-overlay.url = "github:nix-community/emacs-overlay/ac5385f1b6304137f104fc409b5aa17f5def67c7";
 
-    doom-emacs.url = "github:hlissner/doom-emacs/develop";
+    doom-emacs.url = "github:hlissner/doom-emacs/0869d28483b5d81b818b110af351fd5c4dc04dd9";
     doom-emacs.flake = false;
-    nix-doom-emacs.url = "github:he-la/nix-doom-emacs/develop";
+    nix-doom-emacs.url = "github:he-la/nix-doom-emacs/e74b5547aac7ce60de312b6433114614e52c692c";
     nix-doom-emacs.inputs.doom-emacs.follows = "doom-emacs";
     nix-doom-emacs.inputs.nixpkgs.follows = "nixpkgs";
     nix-doom-emacs.inputs.emacs-overlay.follows = "emacs-overlay";
@@ -33,7 +33,7 @@
               programs.doom-emacs = {
                 enable = true;
                 doomPrivateDir = ./doom.d;
-                emacsPackage = pkgs.emacsPgtkGcc;
+                emacsPackage = pkgs.emacsPgtk;
               };
             };
           }

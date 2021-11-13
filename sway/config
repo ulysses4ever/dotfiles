@@ -269,7 +269,7 @@ client.focused            #f2b596 #aaaaaa #000000 #2e9ef4   #f2b596
 # Keybindings
 
 # Emacs
-bindsym $mod+m exec emacsclient -c
+bindsym $mod+m exec emacsclient -c -a 'emacs'
 
 # Web
 bindsym $mod+o exec firefox

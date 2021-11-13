@@ -87,3 +87,16 @@ nothing happens."
 
 ;; relative numbers for evil
 ;; (setq display-line-numbers-type 'relative)
+
+;; Set local leader to comma instead of SPC m (all hail Spacemacs!)
+(add-hook! 'org-mode-hook #'+org-init-keybinds-h)
+(setq evil-snipe-override-evil-repeat-keys nil)
+(setq doom-localleader-key ",")
+(setq doom-localleader-alt-key "M-,")
+
+;; Agda mode doesn't auto-load in lagda.md files although it should!
+(setq auto-mode-alist
+   (append
+     '(("\\.agda\\'" . agda2-mode)
+       ("\\.lagda.md\\'" . agda2-mode))
+     auto-mode-alist))
