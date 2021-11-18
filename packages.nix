@@ -60,6 +60,7 @@ with pkgs; [
     aspellDicts.en enchant # helps with spell-checking in e.g. gEdit
 
     # Desktop
+    xdg-utils
     firefox-wayland brave
     zoom-us
     tdesktop
