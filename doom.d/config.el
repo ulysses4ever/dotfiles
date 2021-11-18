@@ -100,3 +100,9 @@ nothing happens."
      '(("\\.agda\\'" . agda2-mode)
        ("\\.lagda.md\\'" . agda2-mode))
      auto-mode-alist))
+
+;; scroll to center when search with / and n
+(advice-add 'evil-ex-search-next :after
+            (lambda (&rest x) (evil-scroll-line-to-center (line-number-at-pos))))
+(advice-add 'evil-ex-search-previous :after
+            (lambda (&rest x) (evil-scroll-line-to-center (line-number-at-pos))))
