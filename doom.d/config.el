@@ -106,3 +106,6 @@ nothing happens."
             (lambda (&rest x) (evil-scroll-line-to-center (line-number-at-pos))))
 (advice-add 'evil-ex-search-previous :after
             (lambda (&rest x) (evil-scroll-line-to-center (line-number-at-pos))))
+
+;; Put this bloody 80 chars limit in place!
+(add-hook 'text-mode-hook 'turn-on-auto-fill)
