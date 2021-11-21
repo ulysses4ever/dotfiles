@@ -109,3 +109,4 @@ nothing happens."
 
 ;; Put this bloody 80 chars limit in place!
 (add-hook 'text-mode-hook 'turn-on-auto-fill)
+
