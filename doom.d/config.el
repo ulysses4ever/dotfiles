@@ -110,3 +110,11 @@ nothing happens."
 ;; Put this bloody 80 chars limit in place!
 (add-hook 'text-mode-hook 'turn-on-auto-fill)
 
+;; Come to the evil side even in minibuffers
+(setq evil-want-minibuffer t)
+
+;; Sane motions when soft-wrap is on
+(use-package-hook! evil
+  :pre-init
+  (setq evil-respect-visual-line-mode t) ;; sane j and k behavior
+  t)

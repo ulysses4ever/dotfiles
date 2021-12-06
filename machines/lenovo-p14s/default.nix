@@ -46,21 +46,24 @@ in
   
   boot.supportedFilesystems = [ "ntfs" ];
 
-  networking.hostName = "${name}"; # Define your hostname.
+  networking = {
+    hostName = "${name}"; # Define your hostname.
 
-  # Either NetworkManager or wireless service -- not both! (they conflict)
-  #networking.networkmanager.enable = true;
-  #networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
+    # Either NetworkManager or wireless service -- not both! (they conflict)
+    networkmanager.enable = true;
+    #wireless.enable = true;  # Enables wireless support via wpa_supplicant.
+
+    #networkmanager.wifi.backend = "iwd";
+    #wireless.iwd.settings.General.UseDefaultInterface = true;
+
+    useDHCP = false; # blanket true is not allowed anymore (they say)
+    interfaces.enp0s31f6.useDHCP = true;
+    interfaces.wlan0.useDHCP = true; # fix iwd race
+    #interfaces.wlp0s20f3.useDHCP = false; # fix iwd race
+  };
 
   # Set your time zone.
   time.timeZone = "America/New_York";
-
-  # The global useDHCP flag is deprecated, therefore explicitly set to false here.
-  # Per-interface useDHCP will be mandatory in the future, so this generated config
-  # replicates the default behaviour.
-  networking.useDHCP = false;
-  networking.interfaces.enp0s31f6.useDHCP = true;
-  #networking.interfaces.wlp0s20f3.useDHCP = true;
 
   # Select internationalisation properties.
   i18n.defaultLocale = "en_US.UTF-8";
@@ -211,7 +214,7 @@ in
   users.users.artem = {
     isNormalUser = true;
     createHome = true;
-    extraGroups = [ "wheel" "docker" "vboxusers" ]; # Enable ‘sudo’ for the user.
+    extraGroups = [ "wheel" "docker" "vboxusers" "networkmanager" ]; # Enable ‘sudo’ for the user.
   };
 
   ############
