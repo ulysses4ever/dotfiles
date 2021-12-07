@@ -29,12 +29,12 @@
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
             home-manager.users.artem = { pkgs, ... }: {
-              imports = [ nix-doom-emacs.hmModule ./home.nix ];
-              programs.doom-emacs = {
-                enable = true;
-                doomPrivateDir = ./doom.d;
-                emacsPackage = pkgs.emacsPgtk;
-              };
+              imports = [ ./home.nix ]; # nix-doom-emacs.hmModule
+              # programs.doom-emacs = {
+              #   enable = true;
+              #   doomPrivateDir = ./doom.d;
+              #   emacsPackage = pkgs.emacsPgtk;
+              # };
             };
           }
           { 

@@ -37,6 +37,11 @@ in {
     #pkgs.emacsPgtkGcc
   ];
 
+  # emacs
+  programs.emacs.enable = true;
+  programs.emacs.package = pkgs.emacsPgtk;
+  services.emacs.enable = true;
+
  # NEOVIM CONFIG
  programs.neovim = {
 	  enable = true;
