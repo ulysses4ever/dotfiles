@@ -39,7 +39,7 @@ in {
 
   # emacs
   programs.emacs.enable = true;
-  programs.emacs.package = pkgs.emacsPgtk;
+  programs.emacs.package = pkgs.emacsPgtkGcc;
   services.emacs.enable = true;
 
  # NEOVIM CONFIG
