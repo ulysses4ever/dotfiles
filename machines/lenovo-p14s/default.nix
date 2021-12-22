@@ -93,7 +93,7 @@ in
       };
 
       displayManager = {
-        defaultSession = "none+i3"; # "xfce";
+        defaultSession = "xfce"; # "none+i3";
 
         autoLogin = {
           #enable = true;
@@ -112,7 +112,7 @@ in
       };
 
       windowManager.i3 = {
-        enable = true;
+        enable = false;
         extraPackages = with pkgs; [
           dmenu #application launcher most people use
           i3status # gives you the default i3 status bar
