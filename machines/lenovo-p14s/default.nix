@@ -86,14 +86,14 @@ in
   '';
   services = {
     xserver = {
-      enable = false;
+      enable = true;
 
       desktopManager = {
         xterm.enable = false;
       };
 
       displayManager = {
-        defaultSession = "sway"; # gnome"; # "none+i3"; # "xfce";
+        defaultSession = "none+i3"; # "xfce";
 
         autoLogin = {
           #enable = true;
@@ -101,7 +101,7 @@ in
         };
 
         lightdm = {
-          enable = false;
+          enable = true;
           #autoLogin.timeout = 0;
           #greeter.enable = false; # uncomment if autologin is on
         };
@@ -112,7 +112,7 @@ in
       };
 
       windowManager.i3 = {
-        enable = false;
+        enable = true;
         extraPackages = with pkgs; [
           dmenu #application launcher most people use
           i3status # gives you the default i3 status bar
@@ -124,7 +124,7 @@ in
       desktopManager.xfce.enable = true;
         
       desktopManager.gnome = {
-        enable = true;
+        enable = false;
         extraGSettingsOverrides = ''
       [ org/gnome/desktop/peripherals/mouse ]
       natural-scroll=true
