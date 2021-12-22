@@ -91,7 +91,7 @@ with pkgs; [
 
     gcc git
     jdk ant maven
-    python2Minimal python3Minimal
+    python2 python3Minimal
     julia-stable-bin
 
     # *** Experimental ***
