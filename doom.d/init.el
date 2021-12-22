@@ -174,6 +174,7 @@
        ;;(wanderlust +gmail)
 
        :app
+       ;; everywhere       ; A: I wish it had Wayland support, cf. https://github.com/psibi/emacs-everywhere/issues/2
        ;;calendar
        ;;irc               ; how neckbeards socialize
        ;;(rss +org)        ; emacs as an RSS reader
