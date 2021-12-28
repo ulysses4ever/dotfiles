@@ -2,8 +2,8 @@
 
 with pkgs; [
     # Command-Line Tools
-    wget mc file patchelf bc
-    silver-searcher ripgrep
+    wget mc file bc
+    patchelf
     lshw
     lynx
     openvpn openssl
@@ -28,6 +28,7 @@ with pkgs; [
 
     # Modern Unix
     fd exa procs tldr bat
+    silver-searcher ripgrep
     fish
     starship
     kitty
@@ -51,6 +52,7 @@ with pkgs; [
     # Text
     #emacs # -- using Doom Emacs through Home Manager # -- not anymore
     emacsPgtkGcc
+    libtool libvterm # emacs vterm
     emacs-all-the-icons-fonts
     geany
     texlive.combined.scheme-full pplatex
@@ -89,7 +91,7 @@ with pkgs; [
     coq_8_12
     (agda.withPackages (p: [p.standard-library]))
 
-    gcc git
+    gcc git cmake
     jdk ant maven
     python2 python3Minimal
     julia-stable-bin
