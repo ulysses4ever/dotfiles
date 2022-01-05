@@ -66,7 +66,6 @@ with pkgs; [
     firefox-wayland brave
     zoom-us
     tdesktop
-    dropbox dropbox-cli
     steam
 
     # A/V

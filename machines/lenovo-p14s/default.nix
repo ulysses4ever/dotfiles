@@ -2,7 +2,7 @@
 # your system.  Help is available in the configuration.nix(5) man page
 # and in the NixOS manual (accessible by running ‘nixos-help’).
 
-{ config, pkgs, lib, inputs, name, mypkgs, ... }:
+{ config, pkgs, lib, inputs, mname, mypkgs, ... }:
 
 
 let
@@ -47,7 +47,7 @@ in
   boot.supportedFilesystems = [ "ntfs" ];
 
   networking = {
-    hostName = "${name}"; # Define your hostname.
+    hostName = "${mname}"; # Define your hostname.
 
     # Either NetworkManager or wireless service -- not both! (they conflict)
     networkmanager.enable = true;

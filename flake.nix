@@ -20,10 +20,10 @@
 
       hosts = attrNames (readDir ./machines);
 
-      mkHost = name: nixpkgs.lib.nixosSystem {
+      mkHost = mname: nixpkgs.lib.nixosSystem {
         system = "x86_64-linux"; # we only use x64, although we could make it a parameter
         modules = [
-          (import (./machines + "/${name}"))
+          (import (./machines + "/${mname}"))
 
           home-manager.nixosModules.home-manager {
             home-manager.useGlobalPkgs = true;
@@ -44,7 +44,7 @@
         ];
         specialArgs = {
           inherit inputs;
-          inherit name;
+          inherit mname;
           mypkgs = (import ./packages.nix);
         };
       };

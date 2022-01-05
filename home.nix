@@ -37,10 +37,110 @@ in {
     #pkgs.emacsPgtkGcc
   ];
 
+  home.file.".ghci".source = ./.ghci;
+
   # emacs
   programs.emacs.enable = true;
   programs.emacs.package = pkgs.emacsPgtkGcc;
   services.emacs.enable = true;
+
+  # Dropbox
+  services.dropbox.enable = true;
+
+  # Sway
+  xdg.configFile."sway/config".source = ./sway/config;
+  xdg.configFile."sway/machine-dependent".source =
+    ./machines/lenovo-p14s/sway/machine-dependent;      # TODO: how to parametrize with
+                                                        #       machine name?
+  xdg.configFile.waybar.source = ./waybar;
+
+  # Fish
+  programs.fish = {
+    enable = true;
+    shellInit = ''
+      starship init fish | source
+      fish_vi_key_bindings
+      set GPG_TTY (tty)
+      gpg-connect-agent updatestartuptty /bye >/dev/null
+    '';
+    shellAliases = {
+      mkdir  = "mkdir -p";
+      l      = "exa";
+      l1     = "exa -1";
+      ll     = "exa -l";
+      ".."   = "cd ..";
+      "..."  = "cd ../..";
+      "...." = "cd ../../..";
+      p      = "ssh prl-julia";
+    };
+    shellAbbrs = {
+      g = "git";
+      m = "make";
+      j = "julia";
+    };
+    functions = {
+      fish_greeting = {
+        description = "Greeting to show when starting a fish shell";
+        body = "";
+      };
+      mkdcd = {
+        description = "Make a directory tree and enter it";
+        body = "mkdir -p $argv[1]; and cd $argv[1]";
+      };
+      cd = {
+        description = "cd and ll (list files)";
+        body = ''
+            if count $argv > /dev/null
+              builtin cd "$argv"; and ll
+            else
+              builtin cd ~
+            end
+        '';
+      };
+      cdc = {
+        description = "cd and clear screen";
+        body = "cd \"$argv\"; and clear";
+      };
+    };
+  };
+
+  # Git
+  programs.git = {
+    enable = true;
+    userName  = "Artem Pelenitsyn";
+    userEmail = "a.pelenitsyn@gmail.com";
+    delta = {
+      enable = true;
+      options = {
+        navigate = true;
+        line-numbers = true;
+      };
+    };
+    extraConfig = {
+      push = { default = "upstream"; };
+      branch = { autosetuprebase = "always"; };
+      core = { editor = "vi"; };
+    };
+    aliases = {
+      aa   = "add --all";
+      cam  = "commit -am";
+      cnn  = "commit --amend --no-edit";
+      cann = "commit -a --amend --no-edit";
+      c    = "clone";
+      co   = "checkout";
+      df   = "diff -w --color-words=.";
+      hist = "log --pretty=format:\"%h %ad | %s%d [%an]\" --graph --date=short";
+      l    = "log";
+      l1   = "log --oneline";
+      ph   = "push";
+      pl   = "pull";
+      rh   = "reset --hard";
+      s    = "status";
+      st   = "stash";
+      sta  = "stash apply";
+    };
+  };
+
 
  # NEOVIM CONFIG
  programs.neovim = {
