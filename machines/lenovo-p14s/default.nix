@@ -67,10 +67,6 @@ in
 
   # Select internationalisation properties.
   i18n.defaultLocale = "en_US.UTF-8";
-  console = {
-    font = "Lat2-Terminus16";
-    keyMap = "us";
-  };
 
   # Login and Desktop Management
   environment.loginShellInit = ''
@@ -81,6 +77,8 @@ in
         export MOZ_WEBRENDER=1
         export XDG_SESSION_TYPE=wayland
         export XDG_CURRENT_DESKTOP=sway
+        export XCURSOR_THEME='Adwaita'
+        export XCURSOR_SIZE=26
         exec sway --my-next-gpu-wont-be-nvidia
     fi
   '';
@@ -214,6 +212,7 @@ in
   users.users.artem = {
     isNormalUser = true;
     createHome = true;
+    shell = pkgs.fish;
     extraGroups = [ "wheel" "docker" "vboxusers" "networkmanager" ]; # Enable ‘sudo’ for the user.
   };
 
@@ -224,6 +223,7 @@ in
 
   # Lorri -- didn't work
   # services.lorri.enable = true;
+  programs.fish.enable = true;
   
   # Nano
   programs.nano.nanorc = ''
@@ -299,28 +299,35 @@ in
   # Fonts 
   #
 
-  fonts.fonts = with pkgs; [
-    nerdfonts
-    noto-fonts
-    noto-fonts-cjk
-    noto-fonts-emoji
-    liberation_ttf
-    libertine
-    fira-code
-    fira-code-symbols
-    mplus-outline-fonts
-    dina-font
-    paratype-pt-mono
-    paratype-pt-serif
-    paratype-pt-sans
-    inconsolata
-    ubuntu_font_family
-    iosevka
-    hasklig
-    jetbrains-mono
-    monoid
-    pkgs.emacs-all-the-icons-fonts
-  ];
+  fonts = { 
+    enableDefaultFonts = true;
+    fonts = with pkgs; [
+      (nerdfonts.override { fonts = [ "FiraCode" "Ubuntu" ]; })
+      noto-fonts
+      noto-fonts-emoji
+      liberation_ttf
+      libertine
+      fira-code
+      fira-code-symbols
+      mplus-outline-fonts
+      paratype-pt-mono
+      paratype-pt-serif
+      paratype-pt-sans
+      inconsolata
+      ubuntu_font_family
+      iosevka
+      hasklig
+      pkgs.emacs-all-the-icons-fonts
+    ];
+
+    fontconfig = {
+      defaultFonts = {
+        serif = [ "Noto Serif Regular" ];
+        sansSerif = [ "Ubuntu Nerd Font Book" ];
+        monospace = [ "FiraCode Nerd Font" ];
+      };
+    };
+  };
 
   nix = {
     trustedUsers = [ "root" "artem" ];

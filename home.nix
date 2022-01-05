@@ -1,17 +1,6 @@
 { config, pkgs, inputs, ... }:
 
-let
-#  emacs-overlay = builtins.fetchTarball "https://github.com/nix-community/emacs-overlay/archive/master.tar.gz";
-#  pkgs = import <nixpkgs> { overlays = [ (import emacs-overlay) ]; };
-#  doom-emacs = pkgs.callPackage (builtins.fetchTarball {
-#    url = https://github.com/vlaci/nix-doom-emacs/archive/develop.tar.gz;
-#  }) {
-#    doomPrivateDir = /home/artem/Dropbox/config/doom.d;  # Directory containing your config.el init.el
-#    emacsPackages = pkgs.emacsPackagesFor pkgs.emacsPgtkGcc;
-#  };
-in {
-
-
+{
   # AUTO GENERATED
   # Let Home Manager install and manage itself.
   programs.home-manager.enable = true;
@@ -32,16 +21,25 @@ in {
   home.stateVersion = "21.03";
   # ENF OF AUTO GENERATED
 
-  home.packages = with pkgs; [ 
-    #doom-emacs
-    #pkgs.emacsPgtkGcc
-  ];
+  home.packages = with pkgs; [ ];
 
   home.file.".ghci".source = ./.ghci;
 
+  # foot
+  programs.foot = {
+    enable = true;
+    server.enable = true;
+    settings = {
+      main = {
+        shell = "fish";
+        font = "monospace:size=9";
+      };
+    };
+  };
+
   # emacs
   programs.emacs.enable = true;
-  programs.emacs.package = pkgs.emacsPgtkGcc;
+  #programs.emacs.package = pkgs.emacsPgtkGcc; # see nix-doom-emacs in flakes.nix
   services.emacs.enable = true;
 
   # Dropbox

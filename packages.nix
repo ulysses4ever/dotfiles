@@ -52,7 +52,7 @@ with pkgs; [
 
     # Text
     #emacs # -- using Doom Emacs through Home Manager # -- not anymore
-    emacsPgtkGcc
+    #emacsPgtkGcc
     libtool libvterm # emacs vterm
     emacs-all-the-icons-fonts
     geany
