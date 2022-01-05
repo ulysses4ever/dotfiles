@@ -302,28 +302,27 @@ in
   fonts = { 
     enableDefaultFonts = true;
     fonts = with pkgs; [
+      # main:
       (nerdfonts.override { fonts = [ "FiraCode" "Ubuntu" ]; })
+      fira-code
+      ubuntu_font_family
       noto-fonts
+
+      # misc:
+      paratype-pt-mono paratype-pt-serif paratype-pt-sans
+      inconsolata iosevka hasklig
       noto-fonts-emoji
       liberation_ttf
       libertine
-      fira-code
       fira-code-symbols
       mplus-outline-fonts
-      paratype-pt-mono
-      paratype-pt-serif
-      paratype-pt-sans
-      inconsolata
-      ubuntu_font_family
-      iosevka
-      hasklig
       pkgs.emacs-all-the-icons-fonts
     ];
 
     fontconfig = {
       defaultFonts = {
-        serif = [ "Noto Serif Regular" ];
-        sansSerif = [ "Ubuntu Nerd Font Book" ];
+        serif =     [ "Noto Serif Regular" ];
+        sansSerif = [ "Ubuntu Regular"     ];
         monospace = [ "FiraCode Nerd Font" ];
       };
     };
@@ -349,10 +348,6 @@ in
       "libgit2-0.27.10"
     ];
     
-    # chromium.enablePepperFlash = false;
-
-    # firefox.enableAdobeFlash = true;
-
     packageOverrides = pkgs: rec {
       unstable = import <unstable> {
         # pass the nixpkgs config to the unstable alias
