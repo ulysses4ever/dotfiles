@@ -38,6 +38,7 @@ with pkgs; [
     # docker
 
     # Gnome Desktop apps
+    gnome3.nautilus
     gnome3.gedit
     gnome3.gnome-terminal
     gnome3.eog
