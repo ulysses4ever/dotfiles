@@ -49,6 +49,7 @@ with pkgs; [
     gnomeExtensions.appindicator
     gnomeExtensions.dash-to-dock
     transmission-gtk
+    baobab
 
     # Text
     #emacs # -- using Doom Emacs through Home Manager # -- not anymore

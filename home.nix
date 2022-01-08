@@ -92,6 +92,7 @@
       ".."   = "cd ..";
       "..."  = "cd ../..";
       "...." = "cd ../../..";
+      cat    = "bat";
       p      = "ssh prl-julia";
     };
     shellAbbrs = {

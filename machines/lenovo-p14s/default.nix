@@ -25,6 +25,7 @@ in
   boot.initrd.checkJournalingFS = false;
   hardware.enableAllFirmware = true;
   hardware.enableRedistributableFirmware = false;
+  services.fwupd.enable = true;
   powerManagement.enable = true;
 
   system.autoUpgrade.enable = true;
