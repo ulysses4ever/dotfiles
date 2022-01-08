@@ -302,12 +302,6 @@ exec wlsunset -l 42.4 -L -71.1
 # seem to help with screensharing:
 exec systemctl --user restart xdg-desktop-portal-wlr
 
-# all-hail emacs
-exec emacs --daemon
-
-# Dropbox
-# exec dropbox # cf. machine-dependent
-
 # Brightness
 bindsym --locked XF86MonBrightnessUp exec light -T 1.4
 bindsym --locked XF86MonBrightnessDown exec light -T 0.72
@@ -319,3 +313,4 @@ exec mako --default-timeout=10000
 exec systemctl --user import-environment DISPLAY WAYLAND_DISPLAY SWAYSOCK
 exec hash dbus-update-activation-environment 2>/dev/null && \
      dbus-update-activation-environment --systemd DISPLAY WAYLAND_DISPLAY SWAYSOCK
+
