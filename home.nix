@@ -136,12 +136,14 @@
       options = {
         navigate = true;
         line-numbers = true;
+        theme = "Coldark-Dark";
       };
     };
     extraConfig = {
-      push = { default = "upstream"; };
       branch = { autosetuprebase = "always"; };
-      core = { editor = "vi"; };
+      core   = { editor = "vi"; };
+      merge  = { conflictstyle = "diff3"; };
+      diff   = { colorMoved = "default"; }; github = { user = "ulysses4ever"; };
     };
     aliases = {
       aa   = "add --all";
@@ -159,6 +161,7 @@
       rh   = "reset --hard";
       s    = "status";
       st   = "stash";
+      stp  = "stash pop";
       sta  = "stash apply";
     };
   };
