@@ -32,7 +32,9 @@ include ./machine-dependent
 ### Output configuration
 #
 # Default wallpaper
-output * bg ~/Dropbox/nix-wallpaper-simple-dark-gray.png stretch
+#output * bg ~/Dropbox/nix-wallpaper-simple-dark-gray.png stretch
+output * bg ~/Dropbox/nix-wallpaper-nineish-dark-gray.png stretch
+#output * bg ~/Dropbox/nix-wallpaper-simple-blue.png stretch
 #
 # Example configuration:
 #
@@ -43,7 +45,6 @@ output * bg ~/Dropbox/nix-wallpaper-simple-dark-gray.png stretch
 ### Idle configuration
 exec swayidle -w \
          timeout 600 'swaymsg "output * dpms off"' resume 'swaymsg "output * dpms on"'
-for_window [app_id="brave"] inhibit_idle open
 
 #
 # Example configuration:

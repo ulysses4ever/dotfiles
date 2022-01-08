@@ -51,6 +51,12 @@ with pkgs; [
     transmission-gtk
     baobab
 
+    # Xfce desktop
+    xfce.thunar
+    xfce.thunar-volman
+    xfce.thunar-dropbox-plugin
+    xfce.thunar-archive-plugin
+
     # Text
     #emacs # -- using Doom Emacs through Home Manager # -- not anymore
     #emacsPgtkGcc

@@ -214,7 +214,7 @@ in
     isNormalUser = true;
     createHome = true;
     shell = pkgs.fish;
-    extraGroups = [ "wheel" "docker" "vboxusers" "networkmanager" ]; # Enable ‘sudo’ for the user.
+    extraGroups = [ "wheel" "docker" "vboxusers" "networkmanager" "blue" ];
   };
 
   ############
