@@ -21,8 +21,10 @@
 ;; font string. You generally only need these two:
 ;; (setq doom-font (font-spec :family "monospace" :size 12 :weight 'semi-light)
 ;;       doom-variable-pitch-font (font-spec :family "sans" :size 13))
-(setq doom-font (font-spec :family "monospace" :size 14 :weight 'medium)
-      doom-variable-pitch-font (font-spec :family "sans" :size 13))
+(setq doom-font
+        (font-spec :family "monospace" :size 14 :weight 'medium)
+      doom-variable-pitch-font
+        (font-spec :family "Roboto" :size 13))
 
 ;; There are two ways to load a theme. Both assume the theme is installed and
 ;; available. You can either set `doom-theme' or manually load a theme with the
@@ -130,3 +132,9 @@ nothing happens."
 (after! evil
   (setq evil-ex-substitute-global t     ; I like my s/../.. to be global by default
         evil-kill-on-visual-paste nil)) ; Don't put overwritten text in the kill ring
+
+;; Mark the whole buffer using SPC b w
+(map! :leader
+      (:prefix "b"
+       :desc "Mark the whole buffer" "w" #'mark-whole-buffer))
+
