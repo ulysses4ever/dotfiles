@@ -34,7 +34,6 @@
 ;; If you use `org' and don't want your org files in the default location below,
 ;; change `org-directory'. It must be set before org loads!
 (setq org-directory "~/Dropbox/Notes")
-(setq org-directory "~/Dropbox/Notes/roam")
 
 ;; This determines the style of line numbers in effect. If set to `nil', line
 ;; numbers are disabled. For relative line numbers, set this to `relative'.
@@ -117,7 +116,7 @@ nothing happens."
 ;; Come to the evil side even in minibuffers
 (setq evil-want-minibuffer t)
 
-;; Sane motions when soft-wrap is on
+;; Sane motions when soft-wrap is on (don't really work)
 (use-package-hook! evil
   :pre-init
   (setq evil-respect-visual-line-mode t) ;; sane j and k behavior
@@ -138,3 +137,10 @@ nothing happens."
       (:prefix "b"
        :desc "Mark the whole buffer" "w" #'mark-whole-buffer))
 
+;; Julia: use our language server
+(setq lsp-julia-package-dir nil)
+(after! lsp-julia
+  (setq lsp-julia-default-environment "~/.julia/environments/v1.7"))
+;;; https://github.com/gdkrmr/lsp-julia/issues/23:
+(setq lsp-enable-folding t)
+(setq lsp-folding-range-limit 100)
