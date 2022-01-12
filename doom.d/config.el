@@ -120,3 +120,13 @@ nothing happens."
   :pre-init
   (setq evil-respect-visual-line-mode t) ;; sane j and k behavior
   t)
+
+;; too fast completion popup is annoying; Doom's default is 0.2
+(after! company
+  (setq company-idle-delay 0.8))
+
+;; saner defaults for evil, thanks to:
+;; https://tecosaur.github.io/emacs-config/config.html
+(after! evil
+  (setq evil-ex-substitute-global t     ; I like my s/../.. to be global by default
+        evil-kill-on-visual-paste nil)) ; Don't put overwritten text in the kill ring
