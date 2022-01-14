@@ -308,6 +308,7 @@ in
       fira-code
       ubuntu_font_family
       noto-fonts
+      roboto
 
       # misc:
       paratype-pt-mono paratype-pt-serif paratype-pt-sans
