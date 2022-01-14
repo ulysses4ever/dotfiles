@@ -62,7 +62,7 @@
 
   # emacs
   programs.emacs.enable = true;
-  #programs.emacs.package = pkgs.emacsPgtkGcc; # see nix-doom-emacs in flakes.nix
+  programs.emacs.package = pkgs.emacsPgtkGcc; # remove if controlled by nix-doom-emacs; cf. in flakes.nix
   services.emacs.enable = true;
 
   # Dropbox
@@ -173,10 +173,10 @@
 	  enable = true;
 	  extraConfig = ''
       colorscheme deep-space
-		  set colorcolumn=90
-		  let g:context_nvim_no_redraw = 1
-		  set mouse=a
-		  set number                              " Turn on line numbers
+      set colorcolumn=90
+      let g:context_nvim_no_redraw = 1
+      set mouse=a
+      set number                              " Turn on line numbers
       set termguicolors
       nnoremap <CR> :noh<CR><CR>              " Hit Enter to clear search highlight
 
@@ -323,6 +323,7 @@
       #doom-one
       vim-surround vim-repeat
       vim-easymotion
+      vim-sneak
       vim-numbertoggle
       coc-nvim coc-git coc-highlight coc-python coc-vimtex coc-yaml coc-html coc-json # auto completion
       vim-airline
