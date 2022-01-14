@@ -6,17 +6,15 @@
     home-manager.url = "github:nix-community/home-manager";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
     emacs-overlay.url = "github:nix-community/emacs-overlay/5e7af7d4bda485bb65a353d16a1ca38d9b73b178"; 
-    nix-doom-emacs.url = "github:nix-community/nix-doom-emacs";
 
-    # doom-emacs.url = "github:hlissner/doom-emacs"; #0869d28483b5d81b818b110af351fd5c4dc04dd9
-    # doom-emacs.flake = false;
-    # nix-doom-emacs.url = "github:he-la/nix-doom-emacs/e74b5547aac7ce60de312b6433114614e52c692c";
-    # nix-doom-emacs.inputs.doom-emacs.follows = "doom-emacs";
-    nix-doom-emacs.inputs.nixpkgs.follows = "nixpkgs";
-    nix-doom-emacs.inputs.emacs-overlay.follows = "emacs-overlay";
+    # nix-doom-emacs.url = "github:nix-community/nix-doom-emacs";
+    # nix-doom-emacs.inputs = {
+    #   nixpkgs.follows = "nixpkgs";
+    #   emacs-overlay.follows = "emacs-overlay";
+    # };
   };
 
-  outputs = { home-manager, nixpkgs, nix-doom-emacs, ... }@inputs: {
+  outputs = { home-manager, nixpkgs, ... }@inputs: { # nix-doom-emacs,
 
     nixosConfigurations = with builtins; let
 
@@ -31,12 +29,12 @@
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
             home-manager.users.artem = { pkgs, ... }: {
-              imports = [ ./home.nix nix-doom-emacs.hmModule ];
-              programs.doom-emacs = {
-                enable = true;
-                doomPrivateDir = ./doom.d;
-                emacsPackage = pkgs.emacsPgtkGcc;
-              };
+              imports = [ ./home.nix ]; # nix-doom-emacs.hmModule
+              # programs.doom-emacs = {
+              #   enable = true;
+              #   doomPrivateDir = ./doom.d;
+              #   emacsPackage = pkgs.emacsPgtkGcc;
+              # };
             };
           }
           { 
