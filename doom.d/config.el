@@ -144,3 +144,7 @@ nothing happens."
 ;;; https://github.com/gdkrmr/lsp-julia/issues/23:
 (setq lsp-enable-folding t)
 (setq lsp-folding-range-limit 100)
+
+;; ob-haskell (Org Babel for Haskell) breaks on custom prompts that I put in my .ghci
+(after! haskell
+        (setq! haskell-process-args-ghci '("-ferror-spans" "-ignore-dot-ghci")))

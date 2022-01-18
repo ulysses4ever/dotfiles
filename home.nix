@@ -145,6 +145,7 @@
       core   = { editor = "vi"; };
       merge  = { conflictstyle = "diff3"; };
       diff   = { colorMoved = "default"; }; github = { user = "ulysses4ever"; };
+      init   = { defaultBranch = "main"; };
     };
     aliases = {
       aa   = "add --all";
@@ -178,7 +179,7 @@
       set mouse=a
       set number                              " Turn on line numbers
       set termguicolors
-      nnoremap <CR> :noh<CR><CR>              " Hit Enter to clear search highlight
+      nnoremap <ESC> :noh<CR><CR>              " Hit Enter to clear search highlight
 
       set textwidth=90
       set spell spelllang=en_us
@@ -275,8 +276,11 @@
       vnoremap > >gv
 
       " Better window navigation
+      nnoremap <Leader>ws <C-w>s
+      nnoremap <Leader>wv <C-w>v
+
       nnoremap <Leader>ww <C-w>w
-      nnoremap <Leader>wc <C-w>c
+      nnoremap <Leader>wc <C-w>d
       nnoremap <Leader>wo <C-w>o
 
       nnoremap <Leader>wh <C-w>h
@@ -324,7 +328,7 @@
       vim-surround vim-repeat
       vim-easymotion
       vim-sneak
-      vim-numbertoggle
+      #vim-numbertoggle
       coc-nvim coc-git coc-highlight coc-python coc-vimtex coc-yaml coc-html coc-json # auto completion
       vim-airline
       vim-nix
