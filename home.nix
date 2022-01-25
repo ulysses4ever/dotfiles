@@ -34,6 +34,9 @@
         shell = "fish";
         font = "monospace:size=9";
       };
+      scrollback = {
+        lines = "50000";
+      };
       colors = { 
         foreground = "839496";
         background = "002B36";
