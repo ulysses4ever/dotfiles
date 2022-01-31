@@ -28,7 +28,6 @@ in
   services.fwupd.enable = true;
   powerManagement.enable = true;
 
-  system.autoUpgrade.enable = true;
   boot.kernelPackages = pkgs.linuxPackages_latest;
   boot.extraModulePackages = with config.boot.kernelPackages; [ v4l2loopback ];
 
