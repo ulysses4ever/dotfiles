@@ -254,6 +254,7 @@ in
     wrapperFeatures.gtk = true;
     extraPackages = with pkgs; [ 
       swaylock swayidle xwayland
+      swaykbdd
       kitty
       bemenu dmenu-wayland wofi # launchers: which one is bettter?
       waybar
