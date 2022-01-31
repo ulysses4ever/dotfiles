@@ -44,7 +44,7 @@ with pkgs; [
     gnome3.eog
     gnome3.evince
     #gnome3.shotwell
-    gnome3.gnome-tweak-tool
+    gnome3.gnome-tweaks
     gnome3.dconf-editor
     gnomeExtensions.appindicator
     gnomeExtensions.dash-to-dock
