@@ -22,6 +22,7 @@ with pkgs; [
     aumix # cli sound control
     imagemagick
     cachix
+    comma # run soft w/o install
 
     # Temperature (and other) diagnostics
     psensor lm_sensors hddtemp
