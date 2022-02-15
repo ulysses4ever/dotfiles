@@ -153,3 +153,8 @@ nothing happens."
 (after! org
   (setq org-tags-column -80)
 )
+
+;; forge authentification
+(after! forge
+  (setq auth-sources '("~/.authinfo"))
+)
