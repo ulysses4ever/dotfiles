@@ -94,6 +94,7 @@ with pkgs; [
 
     ghc cabal-install
     haskellPackages.hpack ghcid
+    haskellPackages.hasktags
     haskell-language-server
 
     coq_8_12
