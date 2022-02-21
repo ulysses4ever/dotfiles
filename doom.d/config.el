@@ -157,7 +157,7 @@ nothing happens."
 
 ;; org mode: align tags to the right margin
 (after! org
-  (setq org-tags-column -80)
+  (setq org-tags-column -100)
 )
 
 ;; forge authentification
