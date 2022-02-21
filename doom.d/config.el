@@ -164,3 +164,6 @@ nothing happens."
 (after! forge
   (setq auth-sources '("~/.authinfo"))
 )
+
+;; Moving over camelCase graciously
+(global-subword-mode 1)
