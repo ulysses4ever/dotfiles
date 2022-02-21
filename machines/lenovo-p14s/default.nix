@@ -79,7 +79,7 @@ in
         export XDG_CURRENT_DESKTOP=sway
         export XCURSOR_THEME='Adwaita'
         export XCURSOR_SIZE=26
-        exec sway --my-next-gpu-wont-be-nvidia
+        exec sway --unsupported-gpu
     fi
   '';
   services = {
@@ -255,7 +255,6 @@ in
     extraPackages = with pkgs; [ 
       swaylock swayidle xwayland
       swaykbdd
-      kitty
       bemenu dmenu-wayland wofi # launchers: which one is bettter?
       waybar
       grim slurp
@@ -312,7 +311,7 @@ in
 
       # misc:
       paratype-pt-mono paratype-pt-serif paratype-pt-sans
-      inconsolata iosevka hasklig
+      inconsolata hasklig # iosevka 
       noto-fonts-emoji
       liberation_ttf
       libertine
@@ -331,7 +330,7 @@ in
   };
 
   nix = {
-    trustedUsers = [ "root" "artem" ];
+    settings.trusted-users = [ "root" "artem" ];
 
     # enable flakes
     package = pkgs.nixUnstable;

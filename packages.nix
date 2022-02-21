@@ -32,7 +32,7 @@ with pkgs; [
     silver-searcher ripgrep
     fish
     starship
-    kitty
+    # kitty
     neofetch # beautiful splash screen for terminal
 
     # Virtualization
