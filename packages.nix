@@ -11,7 +11,7 @@ with pkgs; [
     sudo
     xorg.xbacklight
     zip unzip
-    zlib
+    zlib zlib.dev
     which
     pciutils
     direnv
