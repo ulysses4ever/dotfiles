@@ -316,7 +316,7 @@ in
       liberation_ttf
       libertine
       fira-code-symbols
-      mplus-outline-fonts
+      #mplus-outline-fonts
       pkgs.emacs-all-the-icons-fonts
     ];
 
