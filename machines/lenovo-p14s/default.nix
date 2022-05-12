@@ -334,6 +334,9 @@ in
   nix = {
     settings.trusted-users = [ "root" "artem" ];
 
+    nixPath = [ "nixpkgs=${inputs.nixpkgs}" ];
+    registry.nixpkgs.flake = inputs.nixpkgs;
+
     # enable flakes
     package = pkgs.nixUnstable;
     extraOptions = ''
