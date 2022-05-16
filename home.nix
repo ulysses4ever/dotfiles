@@ -96,7 +96,8 @@
       "..."  = "cd ../..";
       "...." = "cd ../../..";
       cat    = "bat";
-      p      = "ssh prl-julia -t fish";
+      p      = "ssh prl-julia";
+      pf     = "ssh prl-julia -t fish";
       c      = "clear";
     };
     shellAbbrs = {
