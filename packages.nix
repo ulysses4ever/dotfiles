@@ -34,6 +34,7 @@ with pkgs; [
     starship
     # kitty
     neofetch # beautiful splash screen for terminal
+    tmux # the ultimate terminal manager
 
     # Virtualization
     # docker
@@ -44,7 +45,6 @@ with pkgs; [
     gnome3.gnome-terminal
     gnome3.eog
     gnome3.evince
-    #gnome3.shotwell
     gnome3.gnome-tweaks
     gnome3.dconf-editor
     gnomeExtensions.appindicator
@@ -76,6 +76,7 @@ with pkgs; [
     zoom-us
     tdesktop
     steam
+    shotwell
 
     # A/V
     ffmpeg
