@@ -94,8 +94,10 @@ with pkgs; [
     binutils gnumake gdb
     nodejs # neovim wants it
 
-    ghc cabal-install
-    haskellPackages.hpack ghcid
+    ghc cabal-install ghcid
+    haskellPackages.hpack 
+    haskellPackages.alex 
+    haskellPackages.happy 
     haskellPackages.hasktags
     haskell-language-server
 
