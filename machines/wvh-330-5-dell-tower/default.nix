@@ -2,7 +2,7 @@
 # your system.  Help is available in the configuration.nix(5) man page
 # and in the NixOS manual (accessible by running ‘nixos-help’).
 
-{ config, pkgs, lib, inputs, name, mypkgs, ... }:
+{ config, pkgs, lib, inputs, mname, mypkgs, ... }:
 
 
 let
@@ -25,9 +25,9 @@ in
   boot.initrd.checkJournalingFS = false;
   hardware.enableAllFirmware = true;
   hardware.enableRedistributableFirmware = false;
+  services.fwupd.enable = true;
   powerManagement.enable = true;
 
-  system.autoUpgrade.enable = true;
   boot.kernelPackages = pkgs.linuxPackages_latest;
   boot.extraModulePackages = with config.boot.kernelPackages; [ v4l2loopback ];
 
@@ -43,32 +43,30 @@ in
   # Use the systemd-boot EFI boot loader.
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
-  boot.loader.grub.useOSProber = true;
   
   boot.supportedFilesystems = [ "ntfs" ];
 
-  networking.hostName = "${name}"; # Define your hostname.
+  networking = {
+    hostName = "${mname}"; # Define your hostname.
 
-  # Either NetworkManager or wireless service -- not both! (they conflict)
-  #networking.networkmanager.enable = true;
-  #networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
+    # Either NetworkManager or wireless service -- not both! (they conflict)
+    networkmanager.enable = true;
+    networkmanager.umanaged = [ "eno1" ];
+    #wireless.enable = true;  # Enables wireless support via wpa_supplicant.
+
+    #networkmanager.wifi.backend = "iwd";
+    #wireless.iwd.settings.General.UseDefaultInterface = true;
+
+    useDHCP = false; # blanket true is not allowed anymore (they say)
+    interfaces.eno1.useDHCP = true;
+    #interfaces.wlp0s20f3.useDHCP = false; # fix iwd race
+  };
 
   # Set your time zone.
   time.timeZone = "America/New_York";
 
-  # The global useDHCP flag is deprecated, therefore explicitly set to false here.
-  # Per-interface useDHCP will be mandatory in the future, so this generated config
-  # replicates the default behaviour.
-  networking.useDHCP = false;
-  networking.interfaces.eno1.useDHCP = true;
-  #networking.interfaces.wlp0s20f3.useDHCP = true;
-
   # Select internationalisation properties.
   i18n.defaultLocale = "en_US.UTF-8";
-  console = {
-    font = "Lat2-Terminus16";
-    keyMap = "us";
-  };
 
   # Login and Desktop Management
   environment.loginShellInit = ''
@@ -79,19 +77,21 @@ in
         export MOZ_WEBRENDER=1
         export XDG_SESSION_TYPE=wayland
         export XDG_CURRENT_DESKTOP=sway
-        exec sway --my-next-gpu-wont-be-nvidia
+        export XCURSOR_THEME='Adwaita'
+        export XCURSOR_SIZE=26
+        exec sway --unsupported-gpu
     fi
   '';
   services = {
     xserver = {
-      enable = false;
+      enable = true;
 
       desktopManager = {
         xterm.enable = false;
       };
 
       displayManager = {
-        defaultSession = "sway"; # gnome"; # "none+i3"; # "xfce";
+        defaultSession = "xfce"; # "none+i3";
 
         autoLogin = {
           #enable = true;
@@ -99,7 +99,7 @@ in
         };
 
         lightdm = {
-          enable = false;
+          enable = true;
           #autoLogin.timeout = 0;
           #greeter.enable = false; # uncomment if autologin is on
         };
@@ -122,7 +122,7 @@ in
       desktopManager.xfce.enable = true;
         
       desktopManager.gnome = {
-        enable = true;
+        enable = false;
         extraGSettingsOverrides = ''
       [ org/gnome/desktop/peripherals/mouse ]
       natural-scroll=true
@@ -208,11 +208,14 @@ in
     };
   };
 
+  services.globalprotect.enable = true;
+
   # Define a user account. Don't forget to set a password with ‘passwd’.
   users.users.artem = {
     isNormalUser = true;
     createHome = true;
-    extraGroups = [ "wheel" "docker" "vboxusers" ]; # Enable ‘sudo’ for the user.
+    shell = pkgs.fish;
+    extraGroups = [ "wheel" "docker" "vboxusers" "networkmanager" "blue" ];
   };
 
   ############
@@ -222,6 +225,7 @@ in
 
   # Lorri -- didn't work
   # services.lorri.enable = true;
+  programs.fish.enable = true;
   
   # Nano
   programs.nano.nanorc = ''
@@ -252,7 +256,7 @@ in
     wrapperFeatures.gtk = true;
     extraPackages = with pkgs; [ 
       swaylock swayidle xwayland
-      kitty
+      swaykbdd
       bemenu dmenu-wayland wofi # launchers: which one is bettter?
       waybar
       grim slurp
@@ -297,31 +301,41 @@ in
   # Fonts 
   #
 
-  fonts.fonts = with pkgs; [
-    nerdfonts
-    noto-fonts
-    noto-fonts-cjk
-    noto-fonts-emoji
-    liberation_ttf
-    libertine
-    fira-code
-    fira-code-symbols
-    mplus-outline-fonts
-    dina-font
-    paratype-pt-mono
-    paratype-pt-serif
-    paratype-pt-sans
-    inconsolata
-    ubuntu_font_family
-    iosevka
-    hasklig
-    jetbrains-mono
-    monoid
-    pkgs.emacs-all-the-icons-fonts
-  ];
+  fonts = { 
+    enableDefaultFonts = true;
+    fonts = with pkgs; [
+      # main:
+      (nerdfonts.override { fonts = [ "FiraCode" "Ubuntu" ]; })
+      fira-code
+      ubuntu_font_family
+      noto-fonts
+      roboto
+
+      # misc:
+      paratype-pt-mono paratype-pt-serif paratype-pt-sans
+      inconsolata hasklig # iosevka 
+      noto-fonts-emoji
+      liberation_ttf
+      libertine
+      fira-code-symbols
+      #mplus-outline-fonts
+      pkgs.emacs-all-the-icons-fonts
+    ];
+
+    fontconfig = {
+      defaultFonts = {
+        serif =     [ "Noto Serif Regular" ];
+        sansSerif = [ "Ubuntu Regular"     ];
+        monospace = [ "FiraCode Nerd Font" ];
+      };
+    };
+  };
 
   nix = {
-    trustedUsers = [ "root" "artem" ];
+    settings.trusted-users = [ "root" "artem" ];
+
+    nixPath = [ "nixpkgs=${inputs.nixpkgs}" ];
+    registry.nixpkgs.flake = inputs.nixpkgs;
 
     # enable flakes
     package = pkgs.nixUnstable;
@@ -340,10 +354,6 @@ in
       "libgit2-0.27.10"
     ];
     
-    # chromium.enablePepperFlash = false;
-
-    # firefox.enableAdobeFlash = true;
-
     packageOverrides = pkgs: rec {
       unstable = import <unstable> {
         # pass the nixpkgs config to the unstable alias
@@ -363,7 +373,7 @@ in
   # List services that you want to enable:
 
   # Enable the OpenSSH daemon.
-  services.openssh.enable = true;
+  # services.openssh.enable = true;
 
   #virtualisation.docker.enable = true;
   #virtualisation.virtualbox.host.enable = true;
