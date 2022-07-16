@@ -33,7 +33,7 @@ include ./machine-dependent
 #
 # Default wallpaper
 #output * bg ~/Dropbox/nix-wallpaper-simple-dark-gray.png stretch
-output * bg ~/Dropbox/nix-wallpaper-nineish-dark-gray.png stretch
+output * bg ~/dotfiles/nix-wallpaper-nineish-dark-gray.png stretch
 #output * bg ~/Dropbox/nix-wallpaper-simple-blue.png stretch
 #
 # Example configuration:

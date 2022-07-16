@@ -51,7 +51,7 @@ in
 
     # Either NetworkManager or wireless service -- not both! (they conflict)
     networkmanager.enable = true;
-    networkmanager.umanaged = [ "eno1" ];
+    #networkmanager.umanaged = [ "eno1" ];
     #wireless.enable = true;  # Enables wireless support via wpa_supplicant.
 
     #networkmanager.wifi.backend = "iwd";
@@ -84,7 +84,7 @@ in
   '';
   services = {
     xserver = {
-      enable = true;
+      enable = false;
 
       desktopManager = {
         xterm.enable = false;
@@ -99,7 +99,7 @@ in
         };
 
         lightdm = {
-          enable = true;
+          enable = false;
           #autoLogin.timeout = 0;
           #greeter.enable = false; # uncomment if autologin is on
         };
