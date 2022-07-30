@@ -23,7 +23,7 @@ with pkgs; [
     imagemagick
     cachix
     comma # run soft w/o install
-    mlocate # findutils # locate
+    findutils.locate # plocate # locate
 
     # Temperature (and other) diagnostics
     psensor lm_sensors hddtemp
