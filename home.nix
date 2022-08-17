@@ -191,6 +191,7 @@
       hist = "log --pretty=format:\"%h %ad | %s%d [%an]\" --graph --date=short";
       l    = "log";
       l1   = "log --oneline";
+      lgb  = "log --graph --pretty=oneline --abbrev-commit --branches";
       ph   = "push";
       pl   = "pull";
       rh   = "reset --hard";
