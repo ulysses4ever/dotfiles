@@ -105,6 +105,12 @@
                                                         #       machine name?
   xdg.configFile.waybar.source = ./waybar;
 
+  # bat
+  programs.bat = {
+    enable = true;
+    config.theme = "GitHub";
+  };
+
   # Fish
   programs.fish = {
     enable = true;
@@ -207,7 +213,7 @@
  programs.neovim = {
 	  enable = true;
 	  extraConfig = ''
-      colorscheme deep-space
+      colorscheme flattened_light
       set colorcolumn=90
       let g:context_nvim_no_redraw = 1
       set mouse=a
