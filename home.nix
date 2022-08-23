@@ -128,9 +128,8 @@
       ".."   = "cd ..";
       "..."  = "cd ../..";
       "...." = "cd ../../..";
-      cat    = "bat";
+      b      = "bat";
       p      = "ssh prl-julia";
-      pf     = "ssh prl-julia -t fish";
       c      = "clear";
     };
     shellAbbrs = {
