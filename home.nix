@@ -119,6 +119,10 @@
       fish_vi_key_bindings
       set GPG_TTY (tty)
       gpg-connect-agent updatestartuptty /bye >/dev/null
+      if status is-interactive
+      and not set -q TMUX
+          exec tmux
+      end
     '';
     shellAliases = {
       mkdir  = "mkdir -p";
