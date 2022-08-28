@@ -33,7 +33,7 @@ with pkgs; [
     silver-searcher ripgrep
     fish
     starship
-    # kitty
+    kitty
     neofetch # beautiful splash screen for terminal
     tmux # the ultimate terminal manager
 
@@ -41,13 +41,14 @@ with pkgs; [
     # docker
 
     # Gnome Desktop apps
-    gnome3.nautilus
-    gnome3.gedit
-    gnome3.gnome-terminal
-    gnome3.eog
-    gnome3.evince
-    gnome3.gnome-tweaks
-    gnome3.dconf-editor
+    gnome.nautilus
+    gnome.gedit
+    gnome.gnome-terminal
+    gnome.eog
+    gnome.evince
+    gnome.gnome-tweaks
+    gnome.dconf-editor
+    gnome.file-roller
     gnomeExtensions.appindicator
     gnomeExtensions.dash-to-dock
     transmission-gtk
