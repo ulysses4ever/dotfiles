@@ -47,24 +47,24 @@
         ## Themes
 
         # Solarized dark
-        # foreground = "839496";
-        # background = "002B36";
-        # regular0 = "171421";
-        # regular1 = "C01C28";
-        # regular2 = "26A269";
-        # regular3 = "A2734C";
-        # regular4 = "12488B";
-        # regular5 = "A347BA";
-        # regular6 = "2AA1B3";
-        # regular7 = "D0CFCC";
-        # bright0  = "5E5C64";
-        # bright1  = "F66151";
-        # bright2  = "33D17A";
-        # bright3  = "E9AD0C";
-        # bright4  = "2A7BDE";
-        # bright5  = "C061CB";
-        # bright6  = "33C7DE";
-        # bright7  = "FFFFFF";
+       # foreground = "839496";
+       # background = "002B36";
+       # regular0 = "171421";
+       # regular1 = "C01C28";
+       # regular2 = "26A269";
+       # regular3 = "A2734C";
+       # regular4 = "12488B";
+       # regular5 = "A347BA";
+       # regular6 = "2AA1B3";
+       # regular7 = "D0CFCC";
+       # bright0  = "5E5C64";
+       # bright1  = "F66151";
+       # bright2  = "33D17A";
+       # bright3  = "E9AD0C";
+       # bright4  = "2A7BDE";
+       # bright5  = "C061CB";
+       # bright6  = "33C7DE";
+       # bright7  = "FFFFFF";
 
         # Solarized light
         background = "fdf6e3";
@@ -111,6 +111,11 @@
     config.theme = "GitHub";
   };
 
+  programs.tmux = {
+    enable = true;
+    shortcut = "a";
+  };
+
   # Fish
   programs.fish = {
     enable = true;
@@ -119,10 +124,6 @@
       fish_vi_key_bindings
       set GPG_TTY (tty)
       gpg-connect-agent updatestartuptty /bye >/dev/null
-      if status is-interactive
-      and not set -q TMUX
-          exec tmux
-      end
     '';
     shellAliases = {
       mkdir  = "mkdir -p";
@@ -133,13 +134,12 @@
       "..."  = "cd ../..";
       "...." = "cd ../../..";
       b      = "bat";
-      p      = "ssh prl-julia";
       c      = "clear";
-    };
-    shellAbbrs = {
-      g = "git";
-      m = "make";
-      j = "julia";
+      g      = "git";
+      j      = "julia";
+      m      = "make";
+      p      = "ssh prl-julia";
+      t      = "tmux";
     };
     functions = {
       fish_greeting = {
@@ -172,6 +172,7 @@
     enable = true;
     userName  = "Artem Pelenitsyn";
     userEmail = "a.pelenitsyn@gmail.com";
+    signing.key = "A31C1BFA09B1F47D";
     delta = {
       enable = true;
       options = {
@@ -313,7 +314,7 @@
       " Use control-c instead of escape
       nnoremap <C-c> <Esc>
       " <TAB>: completion.
-      inoremap <expr><TAB> pumvisible() ? "\<C-n>" : "\<TAB>"
+      " inoremap <expr><TAB> pumvisible() ? "\<C-n>" : "\<TAB>"
 
       " Better tabbing
       vnoremap < <gv
