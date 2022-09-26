@@ -5,7 +5,7 @@
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
     home-manager.url = "github:nix-community/home-manager";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
-    emacs-overlay.url = "github:nix-community/emacs-overlay/5e7af7d4bda485bb65a353d16a1ca38d9b73b178"; 
+    emacs-overlay.url = "github:nix-community/emacs-overlay"; 
 
     # nix-doom-emacs.url = "github:nix-community/nix-doom-emacs";
     # nix-doom-emacs.inputs = {
