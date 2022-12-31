@@ -138,7 +138,7 @@ nothing happens."
   (setq evil-ex-substitute-global t     ; I like my s/../.. to be global by default
         evil-kill-on-visual-paste nil)) ; Don't put overwritten text in the kill ring
 
-;; Mark the whole buffer using SPC b w
+; Mark the whole buffer using SPC b w
 (map! :leader
       (:prefix "b"
        :desc "Mark the whole buffer" "w" #'mark-whole-buffer))
