@@ -91,7 +91,7 @@
 
   # emacs
   programs.emacs.enable = true;
-  programs.emacs.package = pkgs.emacsPgtkNativeComp; # remove if controlled by nix-doom-emacs; cf. in flakes.nix
+  programs.emacs.package = pkgs.emacsPgtk; # remove if controlled by nix-doom-emacs; cf. in flakes.nix
   programs.emacs.extraPackages = epkgs: [ epkgs.vterm ];
   services.emacs.enable = true;
 
