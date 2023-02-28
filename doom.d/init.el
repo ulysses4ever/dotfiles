@@ -14,6 +14,9 @@
 ;;      Alternatively, press 'gd' (or 'C-c c d') on a module to browse its
 ;;      directory (for easy access to its source code).
 
+;; workaround for https://github.com/doomemacs/doomemacs/issues/5682
+(defvar native-comp-deferred-compilation-deny-list nil)
+
 (doom! :input
        ;;chinese
        ;;japanese
