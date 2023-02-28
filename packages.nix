@@ -107,7 +107,7 @@ with pkgs; [
 
     gcc git cmake
     jdk ant maven
-    python2 python3Minimal
+    python3Minimal
     julia-stable-bin
 
     # *** Experimental ***
