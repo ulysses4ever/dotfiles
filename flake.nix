@@ -7,14 +7,14 @@
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
     emacs-overlay.url = "github:nix-community/emacs-overlay"; 
 
-    # nix-doom-emacs.url = "github:nix-community/nix-doom-emacs";
-    # nix-doom-emacs.inputs = {
-    #   nixpkgs.follows = "nixpkgs";
-    #   emacs-overlay.follows = "emacs-overlay";
-    # };
+    nix-doom-emacs.url = "github:nix-community/nix-doom-emacs";
+    nix-doom-emacs.inputs = {
+      nixpkgs.follows = "nixpkgs";
+      emacs-overlay.follows = "emacs-overlay";
+    };
   };
 
-  outputs = { home-manager, nixpkgs, ... }@inputs: { # nix-doom-emacs,
+  outputs = { home-manager, nixpkgs, nix-doom-emacs,... }@inputs: {
 
     nixosConfigurations = with builtins; let
 
@@ -29,12 +29,12 @@
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
             home-manager.users.artem = { pkgs, ... }: {
-              imports = [ ./home.nix ]; # nix-doom-emacs.hmModule
-              # programs.doom-emacs = {
-              #   enable = true;
-              #   doomPrivateDir = ./doom.d;
-              #   emacsPackage = pkgs.emacsPgtkGcc;
-              # };
+              imports = [ ./home.nix nix-doom-emacs.hmModule ];
+              programs.doom-emacs = {
+                enable = true;
+                doomPrivateDir = ./doom.d;
+                emacsPackage = pkgs.emacsPgtkGcc;
+              };
             };
           }
           { 
