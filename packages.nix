@@ -14,7 +14,6 @@ with pkgs; [
     zlib zlib.dev
     which
     pciutils
-    direnv
     htop
     gnupg
     inetutils
@@ -109,6 +108,8 @@ with pkgs; [
     jdk ant maven
     python3Minimal
     julia-stable-bin
+
+    # direnv
 
     # *** Experimental ***
 
