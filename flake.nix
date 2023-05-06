@@ -23,6 +23,7 @@
 
       mkHost = mname: nixpkgs.lib.nixosSystem {
         system = "x86_64-linux"; # we only use x64, although we could make it a parameter
+        pkgs = nixpkgs.legacyPackages.${system};
         modules = [
           (import (./machines + "/${mname}"))
 
@@ -30,7 +31,7 @@
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
             home-manager.users.artem = { pkgs, ... }: {
-              imports = [ ./home.nix nix-doom-emacs.hmModule ];
+              imports = [ ./home.nix ./home-desktop.nix nix-doom-emacs.hmModule ];
               programs.doom-emacs = {
                 enable = true;
                 doomPrivateDir = ./doom.d;
@@ -41,12 +42,14 @@
           { 
             nixpkgs.overlays = [ inputs.emacs-overlay.overlay ];
             nixpkgs.config.allowBroken = true;
+            nixpkgs.config.allowUnfree = true;
           }
         ];
         specialArgs = {
           inherit inputs;
           inherit mname;
-          mypkgs = (import ./packages.nix);
+         mypkgs = (import ./packages.nix) pkgs
+                   ++ (import ./packages-desktop.nix) pkgs;
         };
       };
 
