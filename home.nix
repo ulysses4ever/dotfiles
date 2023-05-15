@@ -21,7 +21,9 @@
   home.stateVersion = "21.03";
   # ENF OF AUTO GENERATED
 
-  home.packages = mypkgs;
+  fonts.fontconfig.enable = true;
+
+  home.packages = mypkgs ++ [ pkgs.fira-code ];
 
   home.file.".ghci".source = ./.ghci;
 
