@@ -17,7 +17,7 @@
         inherit pkgs;
 
         modules = [
-          ./${host}
+          ./machines/${host}
           {
              nixpkgs.config.allowUnfreePredicate = (pkg: true);
           }

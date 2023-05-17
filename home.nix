@@ -1,4 +1,4 @@
-{ config, pkgs, inputs, mypkgs, ... }:
+{ config, pkgs, inputs, ... }:
 
 {
   # AUTO GENERATED
@@ -23,7 +23,9 @@
 
   fonts.fontconfig.enable = true;
 
-  home.packages = mypkgs ++ [ pkgs.fira-code ];
+#  home.packages = 
+#    (import packages.nix) pkgs ++ 
+#    (import packages-desktop.nix) pkgs;
 
   home.file.".ghci".source = ./.ghci;
 
