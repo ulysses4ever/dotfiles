@@ -65,7 +65,10 @@ with pkgs; [
     libtool libvterm # emacs vterm
     emacs-all-the-icons-fonts
     geany
-    texlive.combined.scheme-full pplatex
+    texlive.combine {
+      inherit (texlive) scheme-small collection-langkorean algorithms cm-super;
+    }
+    pplatex
     ott
     libreoffice-fresh
     aspell
