@@ -15,26 +15,28 @@
     let
       pkgs = nixpkgs.legacyPackages.x86_64-linux;
 
-      mkUser = host: home-manager.lib.homeManagerConfiguration {
-        inherit pkgs;
+      mkUser = host: user:
+        home-manager.lib.homeManagerConfiguration {
+          inherit pkgs;
 
-        modules = [
-          ./home.nix
-          ./machines/${host}
-          {
-             nixpkgs.config.allowUnfreePredicate = (pkg: true);
-          }
-        ];
+          modules = [
+            ./home.nix
+            ./machines/${host}
+            {
+              nixpkgs.config.allowUnfreePredicate = (pkg: true);
+            }
+          ];
 
-        # Optionally use extraSpecialArgs to pass through arguments to home.nix
-        extraSpecialArgs = {
-          mypkgs = (import ../packages.nix) pkgs;
-        };
-    };
+          # Optionally use extraSpecialArgs to pass through arguments to home.nix
+          extraSpecialArgs = {
+            inherit host;
+            inherit user;
+          };
+      };
     in {
       homeConfigurations = {
-        artem = mkUser "default";
-        "artem@hp-julia" = mkUser "hp-julia";
+        artem = mkUser "default" "default";
+        "artem@hp-julia" = mkUser "hp-julia" "artem";
       };
     };
 }

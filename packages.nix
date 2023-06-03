@@ -43,8 +43,8 @@ with pkgs; [
     #emacs # -- using Doom Emacs through Home Manager # -- not anymore
     #emacsPgtkGcc
     libtool libvterm # emacs vterm
-    emacs-all-the-icons-fonts
-    texlive.combined.scheme-full pplatex
+    texlive.combined.scheme-small
+    pplatex
     ott
     aspell
     aspellDicts.en enchant # helps with spell-checking in e.g. gEdit
