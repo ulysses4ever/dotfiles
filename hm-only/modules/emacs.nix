@@ -3,11 +3,11 @@
 {
   # emacs
   services.emacs.enable = true;
-  # remove if controlled by nix-doom-emacs; cf. in flakes.nix
+  # remove everything below if controlled by nix-doom-emacs; cf. in flakes.nix
   programs.emacs = {
     enable = true;
-    package = pkgs.emacs29-pgtk;
+    # package = pkgs.emacs; -- should be parameter
     extraPackages = epkgs: [ epkgs.vterm ];
   };
-  home.file.".doom.d".source = ../../../doom.d;
+  home.file.".doom.d".source = ../../doom.d;
 }
