@@ -9,5 +9,5 @@
   fonts.fontconfig.enable = true;
 
   # Dropbox
-  services.dropbox.enable = true;
+  # services.dropbox.enable = true;
 }
