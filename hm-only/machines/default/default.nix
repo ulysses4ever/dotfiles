@@ -1,3 +1,5 @@
 {
-  imports = [ ../../../home.nix];
+  imports = [
+    ../../modules/meta-cli.nix
+  ];
 }

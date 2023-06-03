@@ -1,7 +1,6 @@
 { config, lib, pkgs, ... }:
 
 {
-
   # vscode
   programs.vscode = {
     enable = true;
@@ -19,12 +18,4 @@
       }
     ];
   };
-
-  # Sway
-  xdg.configFile."sway/config".source = ./sway/config;
-  xdg.configFile."sway/machine-dependent".source =
-    ./machines/lenovo-p14s/sway/machine-dependent;      # TODO: how to parametrize with
-                                                        #       machine name?
-  xdg.configFile.waybar.source = ./waybar;
-
 }

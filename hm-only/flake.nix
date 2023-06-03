@@ -1,3 +1,5 @@
+# build it with
+# ❯ nix run home-manager/master -- switch --flake ~/dotfiles/hm-only
 {
   description = "Standalone (Non-NixOS) Home Manager configuration of Artem";
 
@@ -17,6 +19,7 @@
         inherit pkgs;
 
         modules = [
+          ./home.nix
           ./machines/${host}
           {
              nixpkgs.config.allowUnfreePredicate = (pkg: true);
