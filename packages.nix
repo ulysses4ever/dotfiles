@@ -110,7 +110,7 @@ with pkgs; [
     gcc git cmake
     jdk ant maven
     python3Minimal
-    julia-stable-bin
+    julia_18-bin
 
     # direnv
 
