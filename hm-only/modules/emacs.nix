@@ -10,6 +10,9 @@
     extraPackages = epkgs: [ epkgs.vterm ];
   };
   home.file.".doom.d".source = ../../doom.d;
-  home.packages = [ pkgs.emacs-all-the-icons-fonts ];
-
+  home.packages = with pkgs; [
+    emacs-all-the-icons-fonts
+    pkgs.fira-code pkgs.roboto
+    # libtool libvterm
+  ];
 }

@@ -2,6 +2,7 @@
 
 {
   imports = [
+    ./packages-cli.nix
     ./git.nix
     ./fish.nix
     ./neovim.nix
@@ -18,4 +19,5 @@
   };
 
   home.file.".ghci".source = ../../.ghci;
+
 }

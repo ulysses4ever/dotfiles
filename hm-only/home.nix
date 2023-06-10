@@ -21,9 +21,7 @@
   home.stateVersion = "21.03";
   # ENF OF AUTO GENERATED
 
-#  home.packages = 
-#    (import packages.nix) pkgs ++ 
-#    (import packages-desktop.nix) pkgs;
-
-
+  imports = [
+    modules/meta-cli.nix
+  ];
 }

@@ -3,8 +3,9 @@
   imports = [
     ../default
     ../../modules/emacs.nix
+    ../../modules/haskell.nix
     ../../modules/meta-desktop.nix
   ];
 
-  home.packages = (import ../../../packages.nix) pkgs ++ [ pkgs.fira-code pkgs.roboto ];
+  home.packages = [ pkgs.julia_18 ];
 }
