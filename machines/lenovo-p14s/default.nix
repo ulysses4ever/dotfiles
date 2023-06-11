@@ -20,16 +20,29 @@ in
       ./hardware-configuration.nix
     ];
 
-  # [1]: https://github.com/fooblahblah/nixos/blob/master/configuration.nix
+  # Bootloader, firmware
+  # https://github.com/fooblahblah/nixos/blob/master/configuration.nix
   boot.tmp.cleanOnBoot = true;
   boot.initrd.checkJournalingFS = false;
   hardware.enableAllFirmware = true;
   hardware.enableRedistributableFirmware = false;
   services.fwupd.enable = true;
   powerManagement.enable = true;
+  # Use the systemd-boot EFI boot loader.
+  boot.loader.systemd-boot.enable = true;
+  boot.loader.efi.canTouchEfiVariables = true;
+  boot.supportedFilesystems = [ "ntfs" ];
 
+  # Kernel
   boot.kernelPackages = pkgs.linuxPackages_latest;
   boot.extraModulePackages = with config.boot.kernelPackages; [ v4l2loopback ];
+
+  # OpenGL
+  hardware.opengl.enable = true;
+  # Needed by Steam (or so I heard)
+  hardware.opengl.driSupport32Bit = true;
+  hardware.opengl.extraPackages32 = with pkgs.pkgsi686Linux; [ libva ];
+  hardware.pulseaudio.support32Bit = true;
 
   # Bluetooth
   hardware.bluetooth.enable = true;
@@ -40,12 +53,10 @@ in
 	  };
   };
 
-  # Use the systemd-boot EFI boot loader.
-  boot.loader.systemd-boot.enable = true;
-  boot.loader.efi.canTouchEfiVariables = true;
-  
-  boot.supportedFilesystems = [ "ntfs" ];
+  # Laptop power button to suspend
+  services.logind.extraConfig = "HandlePowerKey=suspend";
 
+  # Networking
   networking = {
     hostName = "${mname}"; # Define your hostname.
 
@@ -62,13 +73,12 @@ in
     #interfaces.wlp0s20f3.useDHCP = false; # fix iwd race
   };
 
-  # Set your time zone.
+  # Time zone, locale, keymap
   time.timeZone = "America/New_York";
-
-  # Select internationalisation properties.
   i18n.defaultLocale = "en_US.UTF-8";
 
-  # Login and Desktop Management
+  # Sway: env vars
+  # TODO: Should be done in a more flexible way (e.g. Sway options in home-manager)
   environment.loginShellInit = ''
     if [ "$(tty)" = "/dev/tty1" ] ; then
         # Your environment variables
@@ -82,6 +92,11 @@ in
         exec sway --unsupported-gpu
     fi
   '';
+  environment.sessionVariables = {
+     MOZ_ENABLE_WAYLAND = "1";
+  };
+
+  # Graphical session via a desktop environment
   services = {
     xserver = {
       enable = true;
@@ -124,17 +139,19 @@ in
       desktopManager.gnome = {
         enable = false;
         extraGSettingsOverrides = ''
-      [ org/gnome/desktop/peripherals/mouse ]
-      natural-scroll=true
-      
-      [org.gnome.desktop.peripherals.touchpad]
-      tap-to-click=true
-      click-method='default'
+          [ org/gnome/desktop/peripherals/mouse ]
+          natural-scroll=true
+          
+          [org.gnome.desktop.peripherals.touchpad]
+          tap-to-click=true
+          click-method='default'
 
-      [org/gnome/shell]
-      disable-user-extensions=false
-        '';
+          [org/gnome/shell]
+          disable-user-extensions=false
+          '';
       };
+
+      layout = "us,ru";
     };
   };
 
@@ -161,12 +178,6 @@ in
     intelBusId = "PCI:0:2:0";
   };
 
-  # Configure keymap in X11
-  services.xserver.layout = "us,ru";
-
-  # Laptop power button to suspend
-  services.logind.extraConfig = "HandlePowerKey=suspend";
-
   # Enable CUPS to print documents
   #services.printing.enable = true;
   # due to a BUG soon to be fixed
@@ -188,15 +199,6 @@ in
       #gtkUsePortal = true;
     };
   };
-  environment.sessionVariables = {
-     MOZ_ENABLE_WAYLAND = "1";
-  };
-
-  hardware.opengl.enable = true;
-  # Needed by Steam (or so I heard)
-  hardware.opengl.driSupport32Bit = true;
-  hardware.opengl.extraPackages32 = with pkgs.pkgsi686Linux; [ libva ];
-  hardware.pulseaudio.support32Bit = true;
 
   # Enable touchpad support (enabled by default in most desktopManager).
   services.xserver.libinput = {
@@ -331,6 +333,9 @@ in
     };
   };
 
+  #
+  #   Meta: Nix & Nixpkgs Config
+  #
   nix = {
     settings.trusted-users = [ "root" "artem" ];
 
