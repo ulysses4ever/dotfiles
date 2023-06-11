@@ -15,10 +15,10 @@ let
   '';
 in
 {
-  imports =
-    [ # Include the results of the hardware scan.
-      ./hardware-configuration.nix
-    ];
+  #######################################################################################
+  #
+  #    Boot, kernel
+  #
 
   # Bootloader, firmware
   # https://github.com/fooblahblah/nixos/blob/master/configuration.nix
@@ -37,12 +37,15 @@ in
   boot.kernelPackages = pkgs.linuxPackages_latest;
   boot.extraModulePackages = with config.boot.kernelPackages; [ v4l2loopback ];
 
-  # OpenGL
-  hardware.opengl.enable = true;
-  # Needed by Steam (or so I heard)
-  hardware.opengl.driSupport32Bit = true;
-  hardware.opengl.extraPackages32 = with pkgs.pkgsi686Linux; [ libva ];
-  hardware.pulseaudio.support32Bit = true;
+  #######################################################################################
+  #
+  #   Misc Hardware-related
+  #
+
+  imports =
+    [ # Include the results of the hardware scan.
+      ./hardware-configuration.nix
+    ];
 
   # Bluetooth
   hardware.bluetooth.enable = true;
@@ -56,7 +59,21 @@ in
   # Laptop power button to suspend
   services.logind.extraConfig = "HandlePowerKey=suspend";
 
-  # Networking
+  # Enable CUPS to print documents
+  #services.printing.enable = true;
+  # due to a BUG soon to be fixed
+
+  # Enable sound
+  sound.enable = true;
+  hardware.pulseaudio.enable = true;
+  hardware.pulseaudio.package = pkgs.pulseaudioFull;
+
+
+  #######################################################################################
+  #
+  #   Networking
+  #
+
   networking = {
     hostName = "${mname}"; # Define your hostname.
 
@@ -72,6 +89,86 @@ in
     interfaces.wlan0.useDHCP = true; # fix iwd race
     #interfaces.wlp0s20f3.useDHCP = false; # fix iwd race
   };
+
+  # Open ports in the firewall.
+  # networking.firewall.allowedTCPPorts = [ ... ];
+  # networking.firewall.allowedUDPPorts = [ ... ];
+  # Or disable the firewall altogether.
+  networking.firewall.enable = false;
+
+  # Announce myself as $hostname.local in a local network and help others to do the same
+  # https://github.com/NixOS/nixpkgs/issues/98050#issuecomment-1471678276
+  services.resolved.enable = true; 
+  networking.networkmanager.connectionConfig."connection.mdns" = 2;
+  services.avahi.enable = true; 
+
+  # Enable the OpenSSH daemon.
+  services.openssh.enable = true;
+
+
+  #######################################################################################
+  #
+  #   Graphics
+  #
+
+  # OpenGL
+  hardware.opengl.enable = true;
+  # Needed by Steam (or so I heard)
+  hardware.opengl.driSupport32Bit = true;
+  hardware.opengl.extraPackages32 = with pkgs.pkgsi686Linux; [ libva ];
+  hardware.pulseaudio.support32Bit = true;
+
+  # Wayland with Nvidia drivers is complicated
+  #services.xserver.displayManager.gdm.wayland = false; # true didn't make any difference to me
+  # services.xserver.displayManager.gdm.nvidiaWayland = true;
+  #hardware.nvidia.modesetting.enable = true; # ?
+  #hardware.nvidia.nvidiaPersistenced = true; # ?
+
+  # NVIDIA card drivers onfig
+  services.xserver.videoDrivers = [ "nvidia" ];
+  # --- or on certain laptops ---
+  #services.xserver.videoDrivers = [ "modesetting" "nvidia" ];
+  #hardware.nvidia.package = config.boot.kernelPackages.nvidiaPackages.beta;
+  hardware.nvidia.prime = {
+    # sync.enable = true;
+    offload.enable = true; # -- fancier alternative: enable per app by running:
+    # $ nvidia-offload app
+
+    # Bus ID of the NVIDIA GPU. You can find it using lspci, either under 3D or VGA
+    nvidiaBusId = "PCI:45:0:0";
+
+    # Bus ID of the Intel GPU. You can find it using lspci, either under 3D or VGA
+    intelBusId = "PCI:0:2:0";
+  };
+
+  # Hopefully helps to screen-share under Wayland
+  services.pipewire.enable = true;
+  xdg = {
+    portal = {
+      enable = true;
+      extraPortals = with pkgs; [
+        xdg-desktop-portal-wlr
+        #xdg-desktop-portal-gtk
+      ];
+      #gtkUsePortal = true;
+    };
+  };
+
+
+  #######################################################################################
+  #
+  #   User account and interface, desktop, X server
+  #
+
+  # Define a user account. Don't forget to set a password with ‘passwd’.
+  # Also, user-management related stuff
+  users.users.artem = {
+    isNormalUser = true;
+    createHome = true;
+    shell = pkgs.fish;
+    extraGroups = [ "wheel" "docker" "vboxusers" "networkmanager" "blue" ];
+  };
+  security.sudo.wheelNeedsPassword = false;
 
   # Time zone, locale, keymap
   time.timeZone = "America/New_York";
@@ -96,47 +193,16 @@ in
      MOZ_ENABLE_WAYLAND = "1";
   };
 
-  # Graphical session via a desktop environment
-  services = {
-    xserver = {
-      enable = true;
+  # X Server
+  services.xserver = {
+    enable = true;
 
-      desktopManager = {
-        xterm.enable = false;
-      };
+    desktopManager = {
+      xterm.enable = false;
 
-      displayManager = {
-        defaultSession = "xfce"; # "none+i3";
-
-        autoLogin = {
-          #enable = true;
-          #user = "artem";
-        };
-
-        lightdm = {
-          enable = true;
-          #autoLogin.timeout = 0;
-          #greeter.enable = false; # uncomment if autologin is on
-        };
-        gdm = {
-          enable = false;
-          autoLogin.delay = 0;
-        };
-      };
-
-      windowManager.i3 = {
-        enable = false;
-        extraPackages = with pkgs; [
-          dmenu #application launcher most people use
-          i3status # gives you the default i3 status bar
-          i3lock #default i3 screen locker
-          # i3blocks #if you are planning on using i3blocks over i3status
-       ];
-      };
-
-      desktopManager.xfce.enable = true;
+      xfce.enable = true;
         
-      desktopManager.gnome = {
+      gnome = {
         enable = false;
         extraGSettingsOverrides = ''
           [ org/gnome/desktop/peripherals/mouse ]
@@ -151,82 +217,101 @@ in
           '';
       };
 
-      layout = "us,ru";
     };
-  };
 
-  # Wayland with Nvidia drivers is complicated
-  #services.xserver.displayManager.gdm.wayland = false; # true didn't make any difference to me
-  # services.xserver.displayManager.gdm.nvidiaWayland = true;
-  #hardware.nvidia.modesetting.enable = true; # ?
-  #hardware.nvidia.nvidiaPersistenced = true; # ?
+    displayManager = {
+      defaultSession = "xfce"; # "none+i3";
 
-  # NVIDIA Config
-  services.xserver.videoDrivers = [ "nvidia" ];
-  # --- or on certain laptops ---
-  #services.xserver.videoDrivers = [ "modesetting" "nvidia" ];
-  #hardware.nvidia.package = config.boot.kernelPackages.nvidiaPackages.beta;
-  hardware.nvidia.prime = {
-    # sync.enable = true;
-    offload.enable = true; # -- fancier alternative: enable per app by running:
-    # $ nvidia-offload app
+      autoLogin = {
+        #enable = true;
+        #user = "artem";
+      };
 
-    # Bus ID of the NVIDIA GPU. You can find it using lspci, either under 3D or VGA
-    nvidiaBusId = "PCI:45:0:0";
+      lightdm = {
+        enable = true;
+        #autoLogin.timeout = 0;
+        #greeter.enable = false; # uncomment if autologin is on
+      };
+      gdm = {
+        enable = false;
+        autoLogin.delay = 0;
+      };
+    };
 
-    # Bus ID of the Intel GPU. You can find it using lspci, either under 3D or VGA
-    intelBusId = "PCI:0:2:0";
-  };
+    windowManager.i3 = {
+      enable = false;
+      extraPackages = with pkgs; [
+        dmenu #application launcher most people use
+        i3status # gives you the default i3 status bar
+        i3lock #default i3 screen locker
+        # i3blocks #if you are planning on using i3blocks over i3status
+     ];
+    };
 
-  # Enable CUPS to print documents
-  #services.printing.enable = true;
-  # due to a BUG soon to be fixed
+    layout = "us,ru";
 
-  # Enable sound
-  sound.enable = true;
-  hardware.pulseaudio.enable = true;
-  hardware.pulseaudio.package = pkgs.pulseaudioFull;
-  
-  # Hopefully helps to screen-share under Wayland
-  services.pipewire.enable = true;
-  xdg = {
-    portal = {
+    # Enable touchpad support (enabled by default in most desktopManager).
+    libinput = {
       enable = true;
-      extraPortals = with pkgs; [
-        xdg-desktop-portal-wlr
-        #xdg-desktop-portal-gtk
-      ];
-      #gtkUsePortal = true;
+      touchpad = {
+        naturalScrolling = false;
+        tapping = true;
+        middleEmulation = true;
+      };
     };
   };
 
-  # Enable touchpad support (enabled by default in most desktopManager).
-  services.xserver.libinput = {
-    enable = true;
-    touchpad = {
-      naturalScrolling = false;
-      tapping = true;
-      middleEmulation = true;
+  # Fonts 
+  fonts = { 
+    enableDefaultFonts = true;
+    fonts = with pkgs; [
+      # main:
+      (nerdfonts.override { fonts = [ "FiraCode" "Ubuntu" ]; })
+      fira-code
+      ubuntu_font_family
+      noto-fonts
+      roboto
+
+      # misc:
+      paratype-pt-mono paratype-pt-serif paratype-pt-sans
+      inconsolata hasklig # iosevka 
+      noto-fonts-emoji
+      liberation_ttf
+      libertine
+      fira-code-symbols
+      #mplus-outline-fonts
+      pkgs.emacs-all-the-icons-fonts
+    ];
+
+    fontconfig = {
+      defaultFonts = {
+        serif =     [ "Noto Serif Regular" ];
+        sansSerif = [ "Ubuntu Regular"     ];
+        monospace = [ "FiraCode Nerd Font" ];
+      };
     };
   };
 
+  #######################################################################################
+  #
+  #   Misc Services 
+  #
+
+  #virtualisation.docker.enable = true;
+  #virtualisation.virtualbox.host.enable = true;
+  #virtualisation.virtualbox.host.enableExtensionPack = true;
+
+  # Northeastern loves it... Kill it asa I leave NEU...
   services.globalprotect.enable = true;
-
-  # Define a user account. Don't forget to set a password with ‘passwd’.
-  users.users.artem = {
-    isNormalUser = true;
-    createHome = true;
-    shell = pkgs.fish;
-    extraGroups = [ "wheel" "docker" "vboxusers" "networkmanager" "blue" ];
-  };
-
-  ############
-  #
-  # Programs
-  #
 
   # Lorri -- didn't work
   # services.lorri.enable = true;
+
+  #######################################################################################
+  #
+  #    Programs
+  #
+
   programs.fish.enable = true;
   
   # Nano
@@ -244,8 +329,6 @@ in
   environment.variables.EDITOR = "vim";
 
   # Neovim
-  # fails: https://github.com/NixOS/nixpkgs/issues/132389
-  # fix submitted: https://nixpk.gs/pr-tracker.html?pr=132522
   programs.neovim = {
     enable = true;
     viAlias = true;
@@ -284,9 +367,9 @@ in
   };
 
 
-  ############
+  #######################################################################################
   #
-  # Packages 
+  #   System Packages 
   #
 
   # List packages installed in system profile. To search, run:
@@ -298,41 +381,7 @@ in
   environment.gnome.excludePackages = with pkgs.gnome3; [
   ];
 
-    ############
-  #
-  # Fonts 
-  #
-
-  fonts = { 
-    enableDefaultFonts = true;
-    fonts = with pkgs; [
-      # main:
-      (nerdfonts.override { fonts = [ "FiraCode" "Ubuntu" ]; })
-      fira-code
-      ubuntu_font_family
-      noto-fonts
-      roboto
-
-      # misc:
-      paratype-pt-mono paratype-pt-serif paratype-pt-sans
-      inconsolata hasklig # iosevka 
-      noto-fonts-emoji
-      liberation_ttf
-      libertine
-      fira-code-symbols
-      #mplus-outline-fonts
-      pkgs.emacs-all-the-icons-fonts
-    ];
-
-    fontconfig = {
-      defaultFonts = {
-        serif =     [ "Noto Serif Regular" ];
-        sansSerif = [ "Ubuntu Regular"     ];
-        monospace = [ "FiraCode Nerd Font" ];
-      };
-    };
-  };
-
+  #######################################################################################
   #
   #   Meta: Nix & Nixpkgs Config
   #
@@ -372,23 +421,6 @@ in
   nixpkgs.overlays = [
     (import inputs.emacs-overlay)
   ];
-
-  security.sudo.wheelNeedsPassword = false;
-
-  # List services that you want to enable:
-
-  # Enable the OpenSSH daemon.
-  # services.openssh.enable = true;
-
-  #virtualisation.docker.enable = true;
-  #virtualisation.virtualbox.host.enable = true;
-  #virtualisation.virtualbox.host.enableExtensionPack = true;
-   
-  # Open ports in the firewall.
-  # networking.firewall.allowedTCPPorts = [ ... ];
-  # networking.firewall.allowedUDPPorts = [ ... ];
-  # Or disable the firewall altogether.
-  networking.firewall.enable = false;
 
   # This value determines the NixOS release from which the default
   # settings for stateful data, like file locations and database versions
