@@ -50,6 +50,7 @@ with pkgs; [
     gnome.file-roller
     gnomeExtensions.appindicator
     gnomeExtensions.dash-to-dock
+    gnome.gnome-keyring
     transmission-gtk
     baobab
 
