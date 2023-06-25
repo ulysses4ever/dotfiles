@@ -157,6 +157,7 @@
       g      = "git";
       j      = "julia";
       m      = "make";
+      n      = "nix";
       p      = "ssh prl-julia";
       t      = "tmux";
     };

@@ -50,6 +50,7 @@ with pkgs; [
     gnome.file-roller
     gnomeExtensions.appindicator
     gnomeExtensions.dash-to-dock
+    gnome.gnome-keyring
     transmission-gtk
     baobab
 
@@ -65,7 +66,10 @@ with pkgs; [
     libtool libvterm # emacs vterm
     emacs-all-the-icons-fonts
     geany
-    texlive.combined.scheme-full pplatex
+    (texlive.combine {
+      inherit (texlive) scheme-small algorithms cm-super;
+    })
+    pplatex
     ott
     libreoffice-fresh
     aspell
@@ -107,7 +111,9 @@ with pkgs; [
     gcc git cmake
     jdk ant maven
     python3Minimal
-    julia-stable-bin
+    julia_18-bin
+
+    # direnv
 
     # direnv
 
