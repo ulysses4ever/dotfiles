@@ -44,7 +44,11 @@ with pkgs; [
     #emacsPgtkGcc
     libtool libvterm # emacs vterm
     emacs-all-the-icons-fonts
-    texlive.combined.scheme-full pplatex
+    geany
+    (texlive.combine {
+      inherit (texlive) scheme-small algorithms cm-super;
+    })
+    pplatex
     ott
     aspell
     aspellDicts.en enchant # helps with spell-checking in e.g. gEdit
@@ -66,7 +70,9 @@ with pkgs; [
     gcc git cmake
     jdk ant maven
     python3Minimal
-    julia-stable-bin
+    julia_18-bin
+
+    # direnv
 
     # direnv
 
