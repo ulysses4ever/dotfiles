@@ -5,17 +5,10 @@
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
     home-manager.url = "github:nix-community/home-manager";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
-    emacs-overlay.url = "github:nix-community/emacs-overlay"; 
-    emacs-overlay.inputs.nixpkgs.follows = "nixpkgs";
 
-    nix-doom-emacs.url = "github:nix-community/nix-doom-emacs";
-    nix-doom-emacs.inputs = {
-      nixpkgs.follows = "nixpkgs";
-      emacs-overlay.follows = "emacs-overlay";
-    };
   };
 
-  outputs = { home-manager, nixpkgs, nix-doom-emacs,... }@inputs: {
+  outputs = { home-manager, nixpkgs, ... }@inputs: {
 
     nixosConfigurations = with builtins; let
 
@@ -30,17 +23,12 @@
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
             home-manager.users.artem = { pkgs, ... }: {
-              imports = [ ./home.nix nix-doom-emacs.hmModule ];
-              programs.doom-emacs = {
-                enable = true;
-                doomPrivateDir = ./doom.d;
-                emacsPackage = pkgs.emacsPgtk;
-              };
+              imports = [ ./home.nix ];
             };
           }
           { 
-            nixpkgs.overlays = [ inputs.emacs-overlay.overlay ];
             nixpkgs.config.allowBroken = true;
+            nixpkgs.config.allowUnfree = true;
           }
         ];
         specialArgs = {

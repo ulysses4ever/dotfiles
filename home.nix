@@ -110,9 +110,9 @@
   # emacs
   services.emacs.enable = true;
   # remove if controlled by nix-doom-emacs; cf. in flakes.nix
-  # programs.emacs.enable = true;
-  # programs.emacs.package = pkgs.emacsPgtk;
-  # programs.emacs.extraPackages = epkgs: [ epkgs.vterm ];
+  programs.emacs.enable = true;
+  programs.emacs.package = pkgs.emacs29-pgtk;
+  programs.emacs.extraPackages = epkgs: [ epkgs.vterm ];
 
   # Dropbox
   services.dropbox.enable = true;

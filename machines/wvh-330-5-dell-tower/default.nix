@@ -362,11 +362,6 @@ in
       };
     };
   };
-  
-  # all-hail Emacs overlays!
-  nixpkgs.overlays = [
-    (import inputs.emacs-overlay)
-  ];
 
   security.sudo.wheelNeedsPassword = false;
 
