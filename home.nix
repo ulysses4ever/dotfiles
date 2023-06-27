@@ -101,7 +101,7 @@
   # programs.emacs.extraPackages = epkgs: [ epkgs.vterm ];
 
   # Dropbox
-  services.dropbox.enable = true;
+  # services.dropbox.enable = true; # TODO: find out how to unblock unfree packages
 
   # bat
   programs.bat = {
