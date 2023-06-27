@@ -13,7 +13,7 @@
 
       hosts = attrNames (readDir ./machines);
 
-      mkHost = mname: nixpkgs.lib.nixosSystem {
+      mkHost = mname: nixpkgs.lib.nixosSystem rec {
         system = "x86_64-linux"; # we only use x64, although we could make it a parameter
         pkgs = nixpkgs.legacyPackages.${system};
         modules = [

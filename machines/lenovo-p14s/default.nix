@@ -415,12 +415,8 @@ in
         config = config.nixpkgs.config;
       };
     };
+
   };
-  
-  # all-hail Emacs overlays!
-  nixpkgs.overlays = [
-    (import inputs.emacs-overlay)
-  ];
 
   # This value determines the NixOS release from which the default
   # settings for stateful data, like file locations and database versions
