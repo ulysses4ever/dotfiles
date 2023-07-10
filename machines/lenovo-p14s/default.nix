@@ -15,21 +15,37 @@ let
   '';
 in
 {
-  imports =
-    [ # Include the results of the hardware scan.
-      ./hardware-configuration.nix
-    ];
+  #######################################################################################
+  #
+  #    Boot, kernel
+  #
 
-  # [1]: https://github.com/fooblahblah/nixos/blob/master/configuration.nix
-  boot.cleanTmpDir = true;
+  # Bootloader, firmware
+  # https://github.com/fooblahblah/nixos/blob/master/configuration.nix
+  boot.tmp.cleanOnBoot = true;
   boot.initrd.checkJournalingFS = false;
   hardware.enableAllFirmware = true;
   hardware.enableRedistributableFirmware = false;
   services.fwupd.enable = true;
   powerManagement.enable = true;
+  # Use the systemd-boot EFI boot loader.
+  boot.loader.systemd-boot.enable = true;
+  boot.loader.efi.canTouchEfiVariables = true;
+  boot.supportedFilesystems = [ "ntfs" ];
 
+  # Kernel
   boot.kernelPackages = pkgs.linuxPackages_latest;
   boot.extraModulePackages = with config.boot.kernelPackages; [ v4l2loopback ];
+
+  #######################################################################################
+  #
+  #   Misc Hardware-related
+  #
+
+  imports =
+    [ # Include the results of the hardware scan.
+      ./hardware-configuration.nix
+    ];
 
   # Bluetooth
   hardware.bluetooth.enable = true;
@@ -40,11 +56,23 @@ in
 	  };
   };
 
-  # Use the systemd-boot EFI boot loader.
-  boot.loader.systemd-boot.enable = true;
-  boot.loader.efi.canTouchEfiVariables = true;
-  
-  boot.supportedFilesystems = [ "ntfs" ];
+  # Laptop power button to suspend
+  services.logind.extraConfig = "HandlePowerKey=suspend";
+
+  # Enable CUPS to print documents
+  #services.printing.enable = true;
+  # due to a BUG soon to be fixed
+
+  # Enable sound
+  sound.enable = true;
+  hardware.pulseaudio.enable = true;
+  hardware.pulseaudio.package = pkgs.pulseaudioFull;
+
+
+  #######################################################################################
+  #
+  #   Networking
+  #
 
   networking = {
     hostName = "${mname}"; # Define your hostname.
@@ -62,81 +90,33 @@ in
     #interfaces.wlp0s20f3.useDHCP = false; # fix iwd race
   };
 
-  # Set your time zone.
-  time.timeZone = "America/New_York";
+  # Open ports in the firewall.
+  # networking.firewall.allowedTCPPorts = [ ... ];
+  # networking.firewall.allowedUDPPorts = [ ... ];
+  # Or disable the firewall altogether.
+  networking.firewall.enable = false;
 
-  # Select internationalisation properties.
-  i18n.defaultLocale = "en_US.UTF-8";
+  # Announce myself as $hostname.local in a local network and help others to do the same
+  # https://github.com/NixOS/nixpkgs/issues/98050#issuecomment-1471678276
+  services.resolved.enable = true; 
+  networking.networkmanager.connectionConfig."connection.mdns" = 2;
+  services.avahi.enable = true; 
 
-  # Login and Desktop Management
-  environment.loginShellInit = ''
-    if [ "$(tty)" = "/dev/tty1" ] ; then
-        # Your environment variables
-        export QT_QPA_PLATFORM=wayland
-        export MOZ_ENABLE_WAYLAND=1
-        export MOZ_WEBRENDER=1
-        export XDG_SESSION_TYPE=wayland
-        export XDG_CURRENT_DESKTOP=sway
-        export XCURSOR_THEME='Adwaita'
-        export XCURSOR_SIZE=26
-        exec sway --unsupported-gpu
-    fi
-  '';
-  services = {
-    xserver = {
-      enable = true;
+  # Enable the OpenSSH daemon.
+  services.openssh.enable = true;
 
-      desktopManager = {
-        xterm.enable = false;
-      };
 
-      displayManager = {
-        defaultSession = "xfce"; # "none+i3";
+  #######################################################################################
+  #
+  #   Graphics
+  #
 
-        autoLogin = {
-          #enable = true;
-          #user = "artem";
-        };
-
-        lightdm = {
-          enable = true;
-          #autoLogin.timeout = 0;
-          #greeter.enable = false; # uncomment if autologin is on
-        };
-        gdm = {
-          enable = false;
-          autoLogin.delay = 0;
-        };
-      };
-
-      windowManager.i3 = {
-        enable = false;
-        extraPackages = with pkgs; [
-          dmenu #application launcher most people use
-          i3status # gives you the default i3 status bar
-          i3lock #default i3 screen locker
-          # i3blocks #if you are planning on using i3blocks over i3status
-       ];
-      };
-
-      desktopManager.xfce.enable = true;
-        
-      desktopManager.gnome = {
-        enable = false;
-        extraGSettingsOverrides = ''
-      [ org/gnome/desktop/peripherals/mouse ]
-      natural-scroll=true
-      
-      [org.gnome.desktop.peripherals.touchpad]
-      tap-to-click=true
-      click-method='default'
-
-      [org/gnome/shell]
-      disable-user-extensions=false
-        '';
-      };
-    };
-  };
+  # OpenGL
+  hardware.opengl.enable = true;
+  # Needed by Steam (or so I heard)
+  hardware.opengl.driSupport32Bit = true;
+  hardware.opengl.extraPackages32 = with pkgs.pkgsi686Linux; [ libva ];
+  hardware.pulseaudio.support32Bit = true;
 
   # Wayland with Nvidia drivers is complicated
   #services.xserver.displayManager.gdm.wayland = false; # true didn't make any difference to me
@@ -144,7 +124,7 @@ in
   #hardware.nvidia.modesetting.enable = true; # ?
   #hardware.nvidia.nvidiaPersistenced = true; # ?
 
-  # NVIDIA Config
+  # NVIDIA card drivers onfig
   services.xserver.videoDrivers = [ "nvidia" ];
   # --- or on certain laptops ---
   #services.xserver.videoDrivers = [ "modesetting" "nvidia" ];
@@ -161,21 +141,6 @@ in
     intelBusId = "PCI:0:2:0";
   };
 
-  # Configure keymap in X11
-  services.xserver.layout = "us,ru";
-
-  # Laptop power button to suspend
-  services.logind.extraConfig = "HandlePowerKey=suspend";
-
-  # Enable CUPS to print documents
-  #services.printing.enable = true;
-  # due to a BUG soon to be fixed
-
-  # Enable sound
-  sound.enable = true;
-  hardware.pulseaudio.enable = true;
-  hardware.pulseaudio.package = pkgs.pulseaudioFull;
-  
   # Hopefully helps to screen-share under Wayland
   services.pipewire.enable = true;
   xdg = {
@@ -188,43 +153,165 @@ in
       #gtkUsePortal = true;
     };
   };
-  environment.sessionVariables = {
-     MOZ_ENABLE_WAYLAND = "1";
-  };
 
-  hardware.opengl.enable = true;
-  # Needed by Steam (or so I heard)
-  hardware.opengl.driSupport32Bit = true;
-  hardware.opengl.extraPackages32 = with pkgs.pkgsi686Linux; [ libva ];
-  hardware.pulseaudio.support32Bit = true;
 
-  # Enable touchpad support (enabled by default in most desktopManager).
-  services.xserver.libinput = {
-    enable = true;
-    touchpad = {
-      naturalScrolling = false;
-      tapping = true;
-      middleEmulation = true;
-    };
-  };
-
-  services.globalprotect.enable = true;
+  #######################################################################################
+  #
+  #   User account and interface, desktop, X server
+  #
 
   # Define a user account. Don't forget to set a password with ‘passwd’.
+  # Also, user-management related stuff
   users.users.artem = {
     isNormalUser = true;
     createHome = true;
     shell = pkgs.fish;
     extraGroups = [ "wheel" "docker" "vboxusers" "networkmanager" "blue" ];
   };
+  security.sudo.wheelNeedsPassword = false;
 
-  ############
+  # Time zone, locale, keymap
+  time.timeZone = "America/New_York";
+  i18n.defaultLocale = "en_US.UTF-8";
+
+  # Sway: env vars
+  # TODO: Should be done in a more flexible way (e.g. Sway options in home-manager)
+  environment.loginShellInit = ''
+    if [ "$(tty)" = "/dev/tty1" ] ; then
+        # Your environment variables
+        export QT_QPA_PLATFORM=wayland
+        export MOZ_ENABLE_WAYLAND=1
+        export MOZ_WEBRENDER=1
+        export XDG_SESSION_TYPE=wayland
+        export XDG_CURRENT_DESKTOP=sway
+        export XCURSOR_THEME='Adwaita'
+        export XCURSOR_SIZE=26
+        exec sway --unsupported-gpu
+    fi
+  '';
+  environment.sessionVariables = {
+     MOZ_ENABLE_WAYLAND = "1";
+  };
+
+  # X Server
+  services.xserver = {
+    enable = true;
+
+    desktopManager = {
+      xterm.enable = false;
+
+      xfce.enable = true;
+        
+      gnome = {
+        enable = false;
+        extraGSettingsOverrides = ''
+          [ org/gnome/desktop/peripherals/mouse ]
+          natural-scroll=true
+          
+          [org.gnome.desktop.peripherals.touchpad]
+          tap-to-click=true
+          click-method='default'
+
+          [org/gnome/shell]
+          disable-user-extensions=false
+          '';
+      };
+
+    };
+
+    displayManager = {
+      defaultSession = "xfce"; # "none+i3";
+
+      autoLogin = {
+        #enable = true;
+        #user = "artem";
+      };
+
+      lightdm = {
+        enable = true;
+        #autoLogin.timeout = 0;
+        #greeter.enable = false; # uncomment if autologin is on
+      };
+      gdm = {
+        enable = false;
+        autoLogin.delay = 0;
+      };
+    };
+
+    windowManager.i3 = {
+      enable = false;
+      extraPackages = with pkgs; [
+        dmenu #application launcher most people use
+        i3status # gives you the default i3 status bar
+        i3lock #default i3 screen locker
+        # i3blocks #if you are planning on using i3blocks over i3status
+     ];
+    };
+
+    layout = "us,ru";
+
+    # Enable touchpad support (enabled by default in most desktopManager).
+    libinput = {
+      enable = true;
+      touchpad = {
+        naturalScrolling = false;
+        tapping = true;
+        middleEmulation = true;
+      };
+    };
+  };
+
+  # Fonts 
+  fonts = { 
+    enableDefaultFonts = true;
+    fonts = with pkgs; [
+      # main:
+      (nerdfonts.override { fonts = [ "FiraCode" "Ubuntu" ]; })
+      fira-code
+      ubuntu_font_family
+      noto-fonts
+      roboto
+
+      # misc:
+      paratype-pt-mono paratype-pt-serif paratype-pt-sans
+      inconsolata hasklig # iosevka 
+      noto-fonts-emoji
+      liberation_ttf
+      libertine
+      fira-code-symbols
+      #mplus-outline-fonts
+      pkgs.emacs-all-the-icons-fonts
+    ];
+
+    fontconfig = {
+      defaultFonts = {
+        serif =     [ "Noto Serif Regular" ];
+        sansSerif = [ "Ubuntu Regular"     ];
+        monospace = [ "FiraCode Nerd Font" ];
+      };
+    };
+  };
+
+  #######################################################################################
   #
-  # Programs
+  #   Misc Services 
   #
+
+  #virtualisation.docker.enable = true;
+  #virtualisation.virtualbox.host.enable = true;
+  #virtualisation.virtualbox.host.enableExtensionPack = true;
+
+  # Northeastern loves it... Kill it asa I leave NEU...
+  services.globalprotect.enable = true;
 
   # Lorri -- didn't work
   # services.lorri.enable = true;
+
+  #######################################################################################
+  #
+  #    Programs
+  #
+
   programs.fish.enable = true;
   
   # Nano
@@ -242,8 +329,6 @@ in
   environment.variables.EDITOR = "vim";
 
   # Neovim
-  # fails: https://github.com/NixOS/nixpkgs/issues/132389
-  # fix submitted: https://nixpk.gs/pr-tracker.html?pr=132522
   programs.neovim = {
     enable = true;
     viAlias = true;
@@ -282,9 +367,9 @@ in
   };
 
 
-  ############
+  #######################################################################################
   #
-  # Packages 
+  #   System Packages 
   #
 
   # List packages installed in system profile. To search, run:
@@ -296,41 +381,10 @@ in
   environment.gnome.excludePackages = with pkgs.gnome3; [
   ];
 
-    ############
+  #######################################################################################
   #
-  # Fonts 
+  #   Meta: Nix & Nixpkgs Config
   #
-
-  fonts = { 
-    enableDefaultFonts = true;
-    fonts = with pkgs; [
-      # main:
-      (nerdfonts.override { fonts = [ "FiraCode" "Ubuntu" ]; })
-      fira-code
-      ubuntu_font_family
-      noto-fonts
-      roboto
-
-      # misc:
-      paratype-pt-mono paratype-pt-serif paratype-pt-sans
-      inconsolata hasklig # iosevka 
-      noto-fonts-emoji
-      liberation_ttf
-      libertine
-      fira-code-symbols
-      #mplus-outline-fonts
-      pkgs.emacs-all-the-icons-fonts
-    ];
-
-    fontconfig = {
-      defaultFonts = {
-        serif =     [ "Noto Serif Regular" ];
-        sansSerif = [ "Ubuntu Regular"     ];
-        monospace = [ "FiraCode Nerd Font" ];
-      };
-    };
-  };
-
   nix = {
     settings.trusted-users = [ "root" "artem" ];
 
@@ -361,29 +415,8 @@ in
         config = config.nixpkgs.config;
       };
     };
+
   };
-  
-  # all-hail Emacs overlays!
-  nixpkgs.overlays = [
-    (import inputs.emacs-overlay)
-  ];
-
-  security.sudo.wheelNeedsPassword = false;
-
-  # List services that you want to enable:
-
-  # Enable the OpenSSH daemon.
-  # services.openssh.enable = true;
-
-  #virtualisation.docker.enable = true;
-  #virtualisation.virtualbox.host.enable = true;
-  #virtualisation.virtualbox.host.enableExtensionPack = true;
-   
-  # Open ports in the firewall.
-  # networking.firewall.allowedTCPPorts = [ ... ];
-  # networking.firewall.allowedUDPPorts = [ ... ];
-  # Or disable the firewall altogether.
-  networking.firewall.enable = false;
 
   # This value determines the NixOS release from which the default
   # settings for stateful data, like file locations and database versions

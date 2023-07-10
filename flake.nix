@@ -5,23 +5,15 @@
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
     home-manager.url = "github:nix-community/home-manager";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
-    emacs-overlay.url = "github:nix-community/emacs-overlay"; 
-    emacs-overlay.inputs.nixpkgs.follows = "nixpkgs";
-
-    # nix-doom-emacs.url = "github:nix-community/nix-doom-emacs";
-    # nix-doom-emacs.inputs = {
-    #   nixpkgs.follows = "nixpkgs";
-    #   emacs-overlay.follows = "emacs-overlay";
-    # };
   };
 
-  outputs = { home-manager, nixpkgs, ... }@inputs: { # nix-doom-emacs,
+  outputs = { home-manager, nixpkgs, ... }@inputs: {
 
     nixosConfigurations = with builtins; let
 
       hosts = attrNames (readDir ./machines);
 
-      mkHost = mname: nixpkgs.lib.nixosSystem {
+      mkHost = mname: nixpkgs.lib.nixosSystem rec {
         system = "x86_64-linux"; # we only use x64, although we could make it a parameter
         pkgs = nixpkgs.legacyPackages.${system};
         modules = [
@@ -31,16 +23,10 @@
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
             home-manager.users.artem = { pkgs, ... }: {
-              imports = [ ./hm-only/home.nix ]; # nix-doom-emacs.hmModule ];
-              # programs.doom-emacs = {
-              #   enable = true;
-              #   doomPrivateDir = ./doom.d;
-              #   emacsPackage = pkgs.emacsPgtk;
-              # };
+              imports = [ ./hm-only/home.nix ];
             };
           }
           { 
-            nixpkgs.overlays = [ inputs.emacs-overlay.overlay ];
             nixpkgs.config.allowBroken = true;
             nixpkgs.config.allowUnfree = true;
           }
@@ -48,8 +34,8 @@
         specialArgs = {
           inherit inputs;
           inherit mname;
-         mypkgs = (import ./packages.nix) pkgs
-                   ++ (import ./packages-desktop.nix) pkgs;
+          mypkgs = (import ./packages.nix) pkgs
+                    ++ (import ./packages-desktop.nix) pkgs;
         };
       };
 

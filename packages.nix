@@ -6,8 +6,15 @@ with pkgs; [
     # Virtualization
     # docker
 
-    # TeX
-    texlive.combined.scheme-small
+    # Text
+    #emacs # -- using Doom Emacs through Home Manager # -- not anymore
+    #emacsPgtkGcc
+    libtool libvterm # emacs vterm
+    emacs-all-the-icons-fonts
+    geany
+    (texlive.combine {
+      inherit (texlive) scheme-small algorithms cm-super;
+    })
     pplatex
     ott
 
@@ -21,7 +28,9 @@ with pkgs; [
     gcc cmake
     jdk ant maven
     python3Minimal
-    julia-stable-bin
+    julia_18-bin
+
+    # direnv
 
     # direnv
 

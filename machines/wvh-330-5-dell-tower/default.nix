@@ -21,7 +21,7 @@ in
     ];
 
   # [1]: https://github.com/fooblahblah/nixos/blob/master/configuration.nix
-  boot.cleanTmpDir = true;
+  boot.tmp.cleanOnBoot = true;
   boot.initrd.checkJournalingFS = false;
   hardware.enableAllFirmware = true;
   hardware.enableRedistributableFirmware = false;
@@ -362,11 +362,6 @@ in
       };
     };
   };
-  
-  # all-hail Emacs overlays!
-  nixpkgs.overlays = [
-    (import inputs.emacs-overlay)
-  ];
 
   security.sudo.wheelNeedsPassword = false;
 
