@@ -31,7 +31,4 @@ with pkgs; [
     julia_18-bin
 
     # direnv
-
-    # direnv
-
 ]
