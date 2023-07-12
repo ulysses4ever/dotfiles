@@ -67,7 +67,16 @@ with pkgs; [
     emacs-all-the-icons-fonts
     geany
     (texlive.combine {
-      inherit (texlive) scheme-small algorithms cm-super;
+        inherit (texlive)
+            scheme-medium
+            collection-langcyrillic
+            collection-latex
+            collection-latexrecommended
+            collection-latexextra
+            collection-fontsextra
+            collection-fontutils
+            collection-fontsrecommended
+        ;
     })
     pplatex
     ott
