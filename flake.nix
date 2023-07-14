@@ -15,7 +15,7 @@
 
       mkHost = mname: nixpkgs.lib.nixosSystem rec {
         system = "x86_64-linux"; # we only use x64, although we could make it a parameter
-        pkgs = nixpkgs.legacyPackages.${system};
+        pkgs = import nixpkgs { inherit system; config.allowUnfree = true; };
         modules = [
           (import (./machines + "/${mname}"))
 
