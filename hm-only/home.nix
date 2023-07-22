@@ -1,4 +1,4 @@
-{ config, pkgs, inputs, ... }:
+{ config, pkgs, inputs, user, ... }:
 
 {
   # AUTO GENERATED
@@ -7,8 +7,8 @@
 
   # Home Manager needs a bit of information about you and the
   # paths it should manage.
-  home.username = "artem";
-  home.homeDirectory = "/home/artem";
+  home.username = "${user}";
+  home.homeDirectory = "/home/${user}";
 
   # This value determines the Home Manager release that your
   # configuration is compatible with. This helps avoid breakage

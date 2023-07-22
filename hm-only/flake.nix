@@ -35,7 +35,8 @@
       };
     in {
       homeConfigurations = {
-        artem = mkUser "default" "default";
+        artem = mkUser "default" "artem";
+        julia = mkUser "default" "julia";
         "artem@hp-julia" = mkUser "hp-julia" "artem";
       };
     };
