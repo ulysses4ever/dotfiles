@@ -1,64 +1,10 @@
 { pkgs, ... }:
 
 with pkgs; [
-    # Command-Line Tools
-    wget mc file bc
-    patchelf
-    lshw
-    lynx
-    openvpn openssl
-    parted
     sudo
-    xorg.xbacklight
-    zip unzip
-    zlib zlib.dev
-    which
-    pciutils
-    htop
-    gnupg
-    inetutils
-    killall
-    aumix # cli sound control
-    imagemagick
-    cachix
-    comma # run soft w/o install
-    findutils.locate # plocate # locate
-
-    # Temperature (and other) diagnostics
-    psensor lm_sensors hddtemp
-
-    # Modern Unix
-    fd exa procs tldr bat
-    silver-searcher ripgrep
-    fish
-    starship
-    kitty
-    neofetch # beautiful splash screen for terminal
-    tmux # the ultimate terminal manager
 
     # Virtualization
     # docker
-
-    # Gnome Desktop apps
-    gnome.nautilus
-    gnome.gedit
-    gnome.gnome-terminal
-    gnome.eog
-    gnome.evince
-    gnome.gnome-tweaks
-    gnome.dconf-editor
-    gnome.file-roller
-    gnomeExtensions.appindicator
-    gnomeExtensions.dash-to-dock
-    gnome.gnome-keyring
-    transmission-gtk
-    baobab
-
-    # Xfce desktop
-    xfce.thunar
-    xfce.thunar-volman
-    xfce.thunar-dropbox-plugin
-    xfce.thunar-archive-plugin
 
     # Text
     #emacs # -- using Doom Emacs through Home Manager # -- not anymore
@@ -80,66 +26,18 @@ with pkgs; [
     })
     pplatex
     ott
-    libreoffice-fresh
-    aspell
-    aspellDicts.en enchant # helps with spell-checking in e.g. gEdit
-
-    # Desktop
-    xdg-utils
-    firefox-wayland brave
-    zoom-us
-    tdesktop
-    steam
-    shotwell
-
-    # A/V
-    ffmpeg
-    vlc # don't support pure Wayland
-    mpv # do support it
-    #clapper # new kid on the block: supports Wayland but unpolished/buggy
-    droidcam
-    pamixer
-    glxinfo
-    obs-studio obs-studio-plugins.wlrobs
-    wf-recorder v4l-utils
 
     # Develpoment
-    binutils gnumake gdb
     nodejs # neovim wants it
 
-    ghc cabal-install ghcid
-    haskellPackages.hpack 
-    haskellPackages.alex 
-    haskellPackages.happy 
-    haskellPackages.hasktags
-    haskell-language-server
+    # Coq & Agda
+    # coq_8_12
+    # (agda.withPackages (p: [p.standard-library]))
 
-    coq_8_12
-    (agda.withPackages (p: [p.standard-library]))
-
-    gcc git cmake
+    gcc cmake
     jdk ant maven
     python3Minimal
     julia_18-bin
 
     # direnv
-
-    # direnv
-
-    # *** Experimental ***
-
-    # Lighter Desktop apps
-    spaceFM # file manager
-
-    # styling for gtk apps
-    #lxappearance # don't work on pure Wayland, instead:
-    xfce.xfce4-settings # use xfce4-appearance-settings from here
-
-    # NVIDIA+Wayland experiments
-    #egl-wayland
-    #xorg.libxcb
-    #mesa
-    #libglvnd
-    #libdrm
-
 ]

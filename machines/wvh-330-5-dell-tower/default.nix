@@ -21,7 +21,7 @@ in
     ];
 
   # [1]: https://github.com/fooblahblah/nixos/blob/master/configuration.nix
-  boot.tmp.clenOnBoot = true;
+  boot.tmp.cleanOnBoot = true;
   boot.initrd.checkJournalingFS = false;
   hardware.enableAllFirmware = true;
   hardware.enableRedistributableFirmware = false;
