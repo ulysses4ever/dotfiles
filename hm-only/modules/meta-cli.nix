@@ -20,4 +20,5 @@
 
   home.file.".ghci".source = ../../.ghci;
 
+  home.packages = [ pkgs.julia_18 ];
 }
