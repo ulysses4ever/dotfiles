@@ -1,6 +1,7 @@
 { config, lib, pkgs, ... }:
 
 {
+ home.packages = [ pkgs.nodejs-slim ]; # somehow, nvim is complaining when it doesn't see node
  programs.neovim = {
 	  enable = true;
 	  extraConfig = builtins.readFile ./neovim.rc;
