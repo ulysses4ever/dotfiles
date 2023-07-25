@@ -38,6 +38,7 @@
         artem = mkUser "default" "artem";
         julia = mkUser "default" "julia";
         "artem@hp-julia" = mkUser "hp-julia" "artem";
+        "artem@prl-julia" = mkUser "prl-julia" "artem";
       };
     };
 }
