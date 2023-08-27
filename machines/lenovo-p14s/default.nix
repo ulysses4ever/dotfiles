@@ -343,6 +343,7 @@ in
       swaylock swayidle xwayland
       swaykbdd
       bemenu dmenu-wayland wofi # launchers: which one is bettter?
+      brillo # control brightness
       waybar
       grim slurp
       wlsunset
