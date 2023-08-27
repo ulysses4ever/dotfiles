@@ -68,7 +68,7 @@ with pkgs; [
     geany
     (texlive.combine {
         inherit (texlive)
-            scheme-medium
+            scheme-full
             collection-langcyrillic
             collection-latex
             collection-latexrecommended
@@ -76,9 +76,11 @@ with pkgs; [
             collection-fontsextra
             collection-fontutils
             collection-fontsrecommended
+            collection-publishers
         ;
     })
     pplatex
+    biber
     ott
     libreoffice-fresh
     aspell
@@ -91,6 +93,7 @@ with pkgs; [
     tdesktop
     steam
     shotwell
+    bluejeans-gui
 
     # A/V
     ffmpeg
