@@ -344,6 +344,7 @@ in
       swaykbdd
       bemenu dmenu-wayland wofi # launchers: which one is bettter?
       brillo # control brightness
+      theme-sh # control color scheme in foot
       waybar
       grim slurp
       wlsunset
