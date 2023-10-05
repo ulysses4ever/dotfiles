@@ -263,8 +263,8 @@ in
 
   # Fonts 
   fonts = { 
-    enableDefaultFonts = true;
-    fonts = with pkgs; [
+    enableDefaultPackages = true;
+    packages = with pkgs; [
       # main:
       (nerdfonts.override { fonts = [ "FiraCode" "Ubuntu" ]; })
       fira-code
