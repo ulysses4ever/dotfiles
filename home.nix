@@ -50,7 +50,7 @@
     settings = {
       main = {
         shell = "fish";
-        font = "monospace:size=10";
+        font = "monospace:size=14";
       };
       scrollback = {
         lines = "50000";
