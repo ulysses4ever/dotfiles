@@ -2,6 +2,7 @@
   networking = {
     useDHCP = false;
     usePredictableInterfaceNames = false;
+    nameservers = [ "1.1.1.1" "9.9.9.9" ];
     interfaces.eth0 = {
       useDHCP = false;
       ipv4.addresses = [{
