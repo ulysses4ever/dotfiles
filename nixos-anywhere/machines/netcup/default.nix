@@ -11,12 +11,15 @@
   security.acme.acceptTerms = true;
 
   # Nginx config
-  # services.nginx = {
-  #   enable = true;
-  #   virtualHosts."www.pelenitsyn.top" = {
-  #     enableACME = true;
-  #     forceSSL = true;
-  #     root = "/var/www";
-  #   };
-  # };
+  services.nginx = {
+    enable = true;
+    virtualHosts."web.pelenitsyn.top" = {
+      enableACME = true;
+      forceSSL = true;
+      root = "/var/www";
+    };
+  };
+  security.acme.certs = {
+    "web.pelenitsyn.top".email = "a@pelenitsyn.top";
+  };
 }
