@@ -68,7 +68,7 @@ with pkgs; [
     geany
     (texlive.combine {
         inherit (texlive)
-            scheme-full
+            scheme-medium
             collection-langcyrillic
             collection-latex
             collection-latexrecommended

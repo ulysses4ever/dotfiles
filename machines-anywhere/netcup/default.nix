@@ -1,6 +1,6 @@
-{ pkgs, ... }: {
+{ pkgs, config, ... }: {
   # Local network configuration for netcup servers
-  imports = [ ../../../machines/netcup/networking.nix ];
+  imports = [ ./networking.nix ];
 
   # Disks
   boot.loader.grub.devices = [ "/dev/vda" ];
@@ -25,6 +25,13 @@
       forceSSL = true;
       root = "/var/www";
     };
+
+    virtualHosts."cloud.pelenitsyn.top" = {
+#      enableACME = true;
+#      forceSSL = true;
+#      root = "/var/www";
+    };
+
   };
 
   # Artem, 2023-11-01:
@@ -65,21 +72,20 @@
   # Nextcloud with PSQL
   services.nextcloud = {
       enable = true;
-      package = pkgs.nextcloud27;
+#      package = pkgs.nextcloud27;
       hostName = "cloud.pelenitsyn.top";
       # Enable built-in virtual host management
       # Takes care of somewhat complicated setup
       # See here: https://github.com/NixOS/nixpkgs/blob/master/nixos/modules/services/web-apps/nextcloud.nix#L529
-      nginx.enable = true;
       configureRedis = true;
 
       # Use HTTPS for links
-      https = true;
+#      https = true;
 
-      extraApps = with config.services.nextcloud.package.packages.apps; {
-        inherit onlyoffice;
-      };
-      extraAppsEnable = true; 
+#      extraApps = with config.services.nextcloud.package.packages.apps; {
+#        inherit onlyoffice;
+#      };
+#      extraAppsEnable = true; 
 
       # Auto-update Nextcloud Apps
       # autoUpdateApps.enable = true;
@@ -88,35 +94,35 @@
 
       config = {
         # Further forces Nextcloud to use HTTPS
-        overwriteProtocol = "https";
+#        overwriteProtocol = "https";
 
         # Nextcloud PostegreSQL database configuration, recommended over using SQLite
-        dbtype = "pgsql";
-        dbuser = "nextcloud";
-        dbhost = "/run/postgresql"; # nextcloud will add /.s.PGSQL.5432 by itself
-        dbname = "nextcloud";
-        dbpassFile = "/etc/nextcloud-db-pass";
+#        dbtype = "pgsql";
+#        dbuser = "nextcloud";
+#        dbhost = "/run/postgresql"; # nextcloud will add /.s.PGSQL.5432 by itself
+#        dbname = "nextcloud";
+#        dbpassFile = "/etc/nextcloud-db-pass";
 
         adminpassFile = "/etc/nextcloud-pass";
         adminuser = "admin";
    };
   };
 
-  services.postgresql = {
-      enable = true;
-
-      # Ensure the database, user, and permissions always exist
-      ensureDatabases = [ "nextcloud" ];
-      ensureUsers = [
-       { name = "nextcloud";
-         ensurePermissions."DATABASE nextcloud" = "ALL PRIVILEGES";
-       }
-      ];
-  };
-
-  systemd.services."nextcloud-setup" = {
-      requires = ["postgresql.service"];
-      after = ["postgresql.service"];
-  };
+#  services.postgresql = {
+#      enable = true;
+#
+#      # Ensure the database, user, and permissions always exist
+#      ensureDatabases = [ "nextcloud" ];
+#      ensureUsers = [
+#       { name = "nextcloud";
+#         ensurePermissions."DATABASE nextcloud" = "ALL PRIVILEGES";
+#       }
+#      ];
+#  };
+#
+#  systemd.services."nextcloud-setup" = {
+#      requires = ["postgresql.service"];
+#      after = ["postgresql.service"];
+#  };
 
 }
