@@ -68,7 +68,7 @@ with pkgs; [
     geany
     (texlive.combine {
         inherit (texlive)
-            scheme-full
+            scheme-medium
             collection-langcyrillic
             collection-latex
             collection-latexrecommended
@@ -93,7 +93,7 @@ with pkgs; [
     tdesktop
     steam
     shotwell
-    bluejeans-gui
+#    bluejeans-gui
 
     # A/V
     ffmpeg
@@ -117,8 +117,8 @@ with pkgs; [
     haskellPackages.hasktags
     haskell-language-server
 
-    coq_8_12
-    (agda.withPackages (p: [p.standard-library]))
+#    coq_8_12
+#    (agda.withPackages (p: [p.standard-library]))
 
     gcc git cmake
     jdk ant maven
@@ -127,12 +127,10 @@ with pkgs; [
 
     # direnv
 
-    # direnv
-
     # *** Experimental ***
 
     # Lighter Desktop apps
-    spaceFM # file manager
+    # spaceFM # file manager
 
     # styling for gtk apps
     #lxappearance # don't work on pure Wayland, instead:
