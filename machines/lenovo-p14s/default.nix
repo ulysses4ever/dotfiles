@@ -232,8 +232,12 @@ in
         #autoLogin.timeout = 0;
         #greeter.enable = false; # uncomment if autologin is on
       };
-      gdm = {
+      sddm = {
         enable = true;
+        #autoLogin.delay = 0;
+      };
+      gdm = {
+        enable = false;
         #autoLogin.delay = 0;
       };
     };
