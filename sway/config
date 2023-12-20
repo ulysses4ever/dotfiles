@@ -295,7 +295,7 @@ bindsym $mod+p exec grim -g "$(slurp)" ~/Pictures/$(date +%Y-%m-%d_%H-%m-%s).png
 # Color temperature adjustment for surroundings (requires wlsunset)
 # (Boston)
 #
-exec wlsunset -l 42.4 -L -71.1
+exec wlsunset -l 40.44 -L -86.93
 
 # seem to help with screensharing:
 exec systemctl --user restart xdg-desktop-portal-wlr
@@ -303,6 +303,11 @@ exec systemctl --user restart xdg-desktop-portal-wlr
 # Brightness
 bindsym --locked XF86MonBrightnessUp exec light -T 1.4
 bindsym --locked XF86MonBrightnessDown exec light -T 0.72
+
+# Sound
+bindsym XF86AudioMute exec pactl set-sink-mute @DEFAULT_SINK@ toggle
+bindsym XF86AudioRaiseVolume exec pactl set-sink-volume @DEFAULT_SINK@ +10%
+bindsym XF86AudioLowerVolume exec pactl set-sink-volume @DEFAULT_SINK@ -10%
 
 # Pretty Desktop Notifications
 exec mako --default-timeout=10000
