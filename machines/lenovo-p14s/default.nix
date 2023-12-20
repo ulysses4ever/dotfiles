@@ -60,8 +60,10 @@ in
   services.logind.extraConfig = "HandlePowerKey=suspend";
 
   # Enable CUPS to print documents
-  #services.printing.enable = true;
-  # due to a BUG soon to be fixed
+  services.printing.enable = true;
+
+  # Brightness via Fn keys
+  services.illum.enable = true;
 
   # Enable sound
   sound.enable = true;
