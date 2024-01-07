@@ -96,6 +96,7 @@ with pkgs; [
     bluejeans-gui
 
     # A/V
+    pavucontrol
     ffmpeg
     vlc # don't support pure Wayland
     mpv # do support it
