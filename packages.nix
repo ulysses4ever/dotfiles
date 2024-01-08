@@ -57,7 +57,7 @@ with pkgs; [
     # Xfce desktop
     xfce.thunar
     xfce.thunar-volman
-    xfce.thunar-dropbox-plugin
+    # xfce.thunar-dropbox-plugin
     xfce.thunar-archive-plugin
 
     # Text

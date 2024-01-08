@@ -65,7 +65,7 @@ exec swayidle -w \
 input "type:touchpad" {
     tap enabled
     middle_emulation enabled
-    pointer_accel 0.7
+    pointer_accel 0.55
     natural_scroll disabled
     dwt enabled
     drag enabled

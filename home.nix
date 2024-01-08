@@ -115,7 +115,8 @@
   programs.emacs.extraPackages = epkgs: [ epkgs.vterm ];
 
   # Dropbox
-  services.dropbox.enable = true;
+  # defunct as of end of 2023
+  # services.dropbox.enable = true;
 
   # Sway
   xdg.configFile."sway/config".source = ./sway/config;
