@@ -127,6 +127,11 @@ nothing happens."
   :pre-init
   (setq evil-respect-visual-line-mode t) ;; sane j and k behavior
   t)
+;; another try that actually works (not sure if it breaks some things)
+(map! :n "j" #'evil-next-visual-line
+      :n "k" #'evil-previous-visual-line
+      :n "0" #'evil-beginning-of-visual-line
+      :n "$" #'evil-end-of-visual-line)
 
 ;; too fast completion popup is annoying; Doom's default is 0.2
 (after! company
