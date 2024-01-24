@@ -377,7 +377,7 @@ in
 
   #######################################################################################
   #
-  #   System Packages 
+  #   System Packages, Paths
   #
 
   # List packages installed in system profile. To search, run:
@@ -388,6 +388,8 @@ in
 
   environment.gnome.excludePackages = with pkgs.gnome3; [
   ];
+
+  environment.localBinInPath = true;
 
   #######################################################################################
   #
