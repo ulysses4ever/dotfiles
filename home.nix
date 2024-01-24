@@ -155,6 +155,7 @@
       "...." = "cd ../../..";
       b      = "bat";
       c      = "clear";
+      d      = "docker";
       g      = "git";
       j      = "julia";
       m      = "make";
