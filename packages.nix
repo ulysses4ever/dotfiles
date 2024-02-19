@@ -41,7 +41,7 @@ with pkgs; [
 
     # Gnome Desktop apps
     gnome.nautilus
-    gnome.gedit
+    gedit
     gnome.gnome-terminal
     gnome.eog
     gnome.evince
@@ -124,7 +124,7 @@ with pkgs; [
     gcc git cmake
     jdk ant maven
     python3Minimal
-    julia_18-bin
+    julia_19
 
     # direnv
 

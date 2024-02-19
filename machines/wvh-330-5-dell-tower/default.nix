@@ -162,14 +162,13 @@ in
   };
 
   # Configure keymap in X11
-  services.xserver.layout = "us,ru";
+  services.xserver.xkb.layout = "us,ru";
 
   # Laptop power button to suspend
   services.logind.extraConfig = "HandlePowerKey=suspend";
 
   # Enable CUPS to print documents
-  #services.printing.enable = true;
-  # due to a BUG soon to be fixed
+  services.printing.enable = true;
 
   # Enable sound
   sound.enable = true;

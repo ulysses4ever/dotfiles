@@ -254,7 +254,7 @@ in
 #     ];
 #    };
 
-    layout = "us,ru";
+    xkb.layout = "us,ru";
 
     # Enable touchpad support (enabled by default in most desktopManager).
     libinput = {
