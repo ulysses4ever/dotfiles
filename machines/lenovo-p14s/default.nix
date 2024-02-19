@@ -307,6 +307,7 @@ in
     enable = true;
     description = "Get cabal pre-release daily";
     path = with pkgs; [ wget gnutar gzip ];
+    requires = [ "network-online.target" ];
     script = ''
       set -eu
       cd "$HOME/.local/bin"
