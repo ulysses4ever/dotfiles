@@ -54,12 +54,6 @@ with pkgs; [
     transmission-gtk
     baobab
 
-    # Xfce desktop
-    xfce.thunar
-    xfce.thunar-volman
-    # xfce.thunar-dropbox-plugin
-    xfce.thunar-archive-plugin
-
     # Text
     #emacs # -- using Doom Emacs through Home Manager # -- not anymore
     #emacsPgtkGcc
@@ -112,10 +106,8 @@ with pkgs; [
     nodejs # neovim wants it
 
     ghc cabal-install ghcid
-    haskellPackages.hpack 
-    haskellPackages.alex 
-    haskellPackages.happy 
-    haskellPackages.hasktags
+    haskellPackages.alex
+    haskellPackages.happy
     haskell-language-server
 
 #    coq_8_12

@@ -112,7 +112,7 @@
   # remove if controlled by nix-doom-emacs; cf. in flakes.nix
   programs.emacs.enable = true;
   programs.emacs.package = pkgs.emacs29-pgtk;
-  programs.emacs.extraPackages = epkgs: [ epkgs.vterm ];
+  programs.emacs.extraPackages = epkgs: with epkgs; [ vterm pdf-tools ];
 
   # Dropbox
   # defunct as of end of 2023
