@@ -68,8 +68,39 @@
     vimAlias = true;
     defaultEditor = true;
   };
-##############################################
+
+
+  ##############################################
+  #
+  # Syncthing
+  #
+  services = {
+    syncthing = {
+      enable = true;
+      user = "artem";
+      overrideDevices = true;
+      overrideFolders = true;
+      configDir = "/home/artem/.config/syncthing";
+      settings = {
+        devices = {
+          "lenovo-p14s" = { id = "GFAZZKL-NSQ2B4A-EGNSRCO-UWFEYSL-3G2FSX2-I7KNPQ4-J2R5SH6-272BYA5"; };
+          "pixel7a" = { id = "B2UK2TS-WJQ224N-MZ6UUSL-AHRZ6Z5-VMJWTFV-KZGWIJD-T66PZAS-OFPHUA2"; };
+        };
+        folders = {
+          "Dropbox" = {
+            path = "/home/artem/Dropbox";
+            devices = [ "lenovo-p14s" "pixel7a" ];
+          };
+        };
+      };
+    };
+  };
+
+  ##############################################
+  #
   # Nextcloud with PSQL
+  #
+
   services.nextcloud = {
       enable = true;
 #      package = pkgs.nextcloud27;
