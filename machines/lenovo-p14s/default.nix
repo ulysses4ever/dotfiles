@@ -310,6 +310,9 @@ in
     requires = [ "network-online.target" ];
     script = ''
       set -eu
+      until ping -c1 github.com &>/dev/null; do
+          sleep 20
+      done
       cd "$HOME/.local/bin"
       wget https://github.com/haskell/cabal/releases/download/cabal-head/cabal-head-Linux-static-x86_64.tar.gz
       rm -f cabal
