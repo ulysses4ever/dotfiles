@@ -82,7 +82,7 @@ with pkgs; [
 
     # Desktop
     xdg-utils
-    firefox-wayland brave
+    firefox-wayland chromium
     zoom-us
     tdesktop
     steam
