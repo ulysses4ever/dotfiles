@@ -1,5 +1,6 @@
 { pkgs, ... }:
 
+{ environment.systemPackages = 
 with pkgs; [
     # Command-Line Tools
     wget mc file bc
@@ -37,7 +38,7 @@ with pkgs; [
     tmux # the ultimate terminal manager
 
     # Virtualization
-    # docker
+    docker
 
     # Gnome Desktop apps
     gnome.nautilus
@@ -135,5 +136,4 @@ with pkgs; [
     #mesa
     #libglvnd
     #libdrm
-
-]
+]; }
