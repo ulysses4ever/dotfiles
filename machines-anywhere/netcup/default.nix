@@ -85,11 +85,12 @@
         devices = {
           "lenovo-p14s" = { id = "GFAZZKL-NSQ2B4A-EGNSRCO-UWFEYSL-3G2FSX2-I7KNPQ4-J2R5SH6-272BYA5"; };
           "pixel7a" = { id = "B2UK2TS-WJQ224N-MZ6UUSL-AHRZ6Z5-VMJWTFV-KZGWIJD-T66PZAS-OFPHUA2"; };
+          "um690" = { id = "HQXNESL-7EYYOWV-5TLW4MV-G7FISYB-HU777OO-N4IJ3PU-3DYRMGA-2CMSAQ3"; };
         };
         folders = {
           "Dropbox" = {
             path = "/home/artem/Dropbox";
-            devices = [ "lenovo-p14s" "pixel7a" ];
+            devices = [ "lenovo-p14s" "pixel7a" "um690" ];
           };
         };
       };
