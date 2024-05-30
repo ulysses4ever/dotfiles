@@ -100,6 +100,13 @@
     vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
     wget
     git
+
+    # sway
+    grim # screenshot functionality
+    slurp # screenshot functionality
+    wl-clipboard # wl-copy and wl-paste for copy/paste from stdin / stdout
+    mako # notification system developed by swaywm maintainer
+    waybar
   ];
 
   # Some programs need SUID wrappers, can be configured further or are
@@ -109,6 +116,13 @@
     enable = true;
     enableSSHSupport = true;
   };
+
+  # enable sway window manager (https://nixos.wiki/wiki/Sway)
+  programs.sway = {
+    enable = true;
+    wrapperFeatures.gtk = true;
+  };
+  services.gnome.gnome-keyring.enable = true;
 
   # List services that you want to enable:
 
