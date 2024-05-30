@@ -114,6 +114,9 @@
   programs.emacs.package = pkgs.emacs29-pgtk;
   programs.emacs.extraPackages = epkgs: with epkgs; [ vterm pdf-tools ];
 
+  # My Doom Emacs config
+  xdg.configFile."doom".source = ./doom.d;
+
   # Dropbox
   # defunct as of end of 2023
   # services.dropbox.enable = true;
