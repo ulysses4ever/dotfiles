@@ -238,6 +238,38 @@
   networking.networkmanager.connectionConfig."connection.mdns" = 2;
   services.avahi.enable = true;
 
+  # Fonts
+  fonts = {
+    enableDefaultPackages = true;
+    packages = with pkgs; [
+      # main:
+      (nerdfonts.override { fonts = [ "FiraCode" "Ubuntu" ]; })
+      fira-code
+      ubuntu_font_family
+      noto-fonts
+      roboto roboto-mono
+
+      # misc:
+      paratype-pt-mono paratype-pt-serif paratype-pt-sans
+      inconsolata hasklig # iosevka
+      noto-fonts-emoji
+      liberation_ttf
+      libertine
+      fira-code-symbols
+      #mplus-outline-fonts
+      pkgs.emacs-all-the-icons-fonts
+    ];
+
+    fontconfig = {
+      defaultFonts = {
+        serif =     [ "Noto Serif Regular" ];
+        sansSerif = [ "Ubuntu Regular"     ];
+        monospace = [ "FiraCode Nerd Font" ];
+      };
+    };
+  };
+
+
   # This value determines the NixOS release from which the default
   # settings for stateful data, like file locations and database versions
   # on your system were taken. It‘s perfectly fine and recommended to leave
