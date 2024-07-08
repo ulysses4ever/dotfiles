@@ -107,6 +107,13 @@
     wl-clipboard # wl-copy and wl-paste for copy/paste from stdin / stdout
     mako # notification system developed by swaywm maintainer
     waybar
+    wlsunset
+    theme-sh
+    brillo
+    bemenu dmenu-wayland wofi
+    swaylock swaykbdd
+    wdisplays
+    xdg-desktop-portal-wlr # screen sharing engine
   ];
 
   # Some programs need SUID wrappers, can be configured further or are

@@ -293,9 +293,8 @@ bindsym $mod+p exec grim -g "$(slurp)" ~/Pictures/$(date +%Y-%m-%d_%H-%m-%s).png
 
 #
 # Color temperature adjustment for surroundings (requires wlsunset)
-# (Boston)
 #
-exec wlsunset -l 40.44 -L -86.93
+exec wlsunset -s 17:00 -S 10:00
 
 # seem to help with screensharing:
 exec systemctl --user restart xdg-desktop-portal-wlr
