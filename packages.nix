@@ -30,6 +30,7 @@ with pkgs; [
 
     # Modern Unix
     fd eza procs tldr bat
+    fzf
     silver-searcher ripgrep
     fish
     starship
