@@ -22,7 +22,7 @@
 ;; (setq doom-font (font-spec :family "monospace" :size 12 :weight 'semi-light)
 ;;       doom-variable-pitch-font (font-spec :family "sans" :size 13))
 (setq doom-font
-        (font-spec :family "monospace" :size 15 :weight 'medium)
+        (font-spec :family "FiraCode Nerd Font" :size 15 :weight 'medium)
       doom-variable-pitch-font
         (font-spec :family "Roboto" :size 14))
 

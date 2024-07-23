@@ -462,7 +462,7 @@ in
     registry.nixpkgs.flake = inputs.nixpkgs;
 
     # enable flakes
-    package = pkgs.nixUnstable;
+    #package = pkgs.nixLatest;
     extraOptions = ''
       experimental-features = nix-command flakes
     '';

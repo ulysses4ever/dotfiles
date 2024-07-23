@@ -252,7 +252,7 @@
     settings.trusted-users = [ "root" "artem" ];
 
     # enable flakes
-    package = pkgs.nixUnstable;
+    package = pkgs.nixVersions.latest;
     extraOptions = ''
       experimental-features = nix-command flakes
     '';
