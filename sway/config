@@ -65,7 +65,7 @@ exec swayidle -w \
 input "type:touchpad" {
     tap enabled
     middle_emulation enabled
-    pointer_accel 0.55
+    pointer_accel 0.75
     natural_scroll disabled
     dwt enabled
     drag enabled
@@ -162,6 +162,10 @@ input "type:keyboard" {
     bindsym $mod+Shift+0 move container to workspace number 10
     # Note: workspaces can have any name you want, not just numbers.
     # We just use 1-10 as the default.
+
+    # Move to prev/next workspace with Super+(Shift+)Tab
+    bindsym $mod+Next workspace next
+    bindsym $mod+Prior workspace prev
 #
 # Layout stuff:
 #

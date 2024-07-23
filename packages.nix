@@ -60,6 +60,7 @@ with pkgs; [
     #emacs # -- using Doom Emacs through Home Manager # -- not anymore
     #emacsPgtkGcc
     libtool libvterm # emacs vterm
+    irony-server
     emacs-all-the-icons-fonts
     geany
     (texlive.combine {
