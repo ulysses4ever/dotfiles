@@ -45,6 +45,7 @@ in
   imports =
     [ # Include the results of the hardware scan.
       ./hardware-configuration.nix
+      ../../packages.nix
     ];
 
   # Bluetooth
@@ -127,21 +128,21 @@ in
   #hardware.nvidia.nvidiaPersistenced = true; # ?
 
   # NVIDIA card drivers onfig
-  services.xserver.videoDrivers = [ "nvidia" ];
-  # --- or on certain laptops ---
-  #services.xserver.videoDrivers = [ "modesetting" "nvidia" ];
-  #hardware.nvidia.package = config.boot.kernelPackages.nvidiaPackages.beta;
-  hardware.nvidia.prime = {
-    # sync.enable = true;
-    offload.enable = true; # -- fancier alternative: enable per app by running:
-    # $ nvidia-offload app
+  # services.xserver.videoDrivers = [ "nvidia" ];
+  # # --- or on certain laptops ---
+  # #services.xserver.videoDrivers = [ "modesetting" "nvidia" ];
+  # #hardware.nvidia.package = config.boot.kernelPackages.nvidiaPackages.beta;
+  # hardware.nvidia.prime = {
+  #   # sync.enable = true;
+  #   offload.enable = true; # -- fancier alternative: enable per app by running:
+  #   # $ nvidia-offload app
 
-    # Bus ID of the NVIDIA GPU. You can find it using lspci, either under 3D or VGA
-    nvidiaBusId = "PCI:45:0:0";
+  #   # Bus ID of the NVIDIA GPU. You can find it using lspci, either under 3D or VGA
+  #   nvidiaBusId = "PCI:45:0:0";
 
-    # Bus ID of the Intel GPU. You can find it using lspci, either under 3D or VGA
-    intelBusId = "PCI:0:2:0";
-  };
+  #   # Bus ID of the Intel GPU. You can find it using lspci, either under 3D or VGA
+  #   intelBusId = "PCI:0:2:0";
+  # };
 
   # Hopefully helps to screen-share under Wayland
   services.pipewire.enable = true;
@@ -439,7 +440,7 @@ in
 
   # List packages installed in system profile. To search, run:
   # $ nix search wget
-  environment.systemPackages = mypkgs pkgs ++ [
+  environment.systemPackages = [
     nvidia-offload
   ];
 
