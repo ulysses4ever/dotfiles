@@ -1,0 +1,106 @@
+{ config, lib, pkgs, ... }:
+
+{
+  # Enable the X11 windowing system.
+  services.xserver = {
+    enable = true;
+
+    # Enable the GNOME Desktop Environment.
+    displayManager.gdm.enable = true;
+    desktopManager.gnome.enable = true;
+
+    # Configure keymap in X11
+    xkb = {
+      layout = "us,ru";
+      variant = "";
+    };
+  };
+
+  # Enable CUPS to print documents.
+  services.printing.enable = true;
+
+  # Enable sound with pipewire.
+  sound.enable = true;
+  hardware.pulseaudio.enable = false;
+  security.rtkit.enable = true;
+  services.pipewire = {
+    enable = true;
+    alsa.enable = true;
+    alsa.support32Bit = true;
+    pulse.enable = true;
+    # If you want to use JACK applications, uncomment this
+    #jack.enable = true;
+
+    # use the example session manager (no others are packaged yet so this is enabled by default,
+    # no need to redefine it in your config for now)
+    #media-session.enable = true;
+  };
+
+  # Sway window manager (https://nixos.wiki/wiki/Sway)
+  programs.sway = {
+    enable = true;
+    wrapperFeatures.gtk = true;
+  };
+  services.gnome.gnome-keyring.enable = true;
+  environment.systemPackages = with pkgs; [
+    # sway
+    grim slurp # screenshot functionality
+    wl-clipboard # wl-copy and wl-paste for copy/paste from stdin / stdout
+    mako # notification system developed by swaywm maintainer
+    waybar
+    wlsunset
+    theme-sh
+    brillo
+    bemenu dmenu-wayland wofi
+    swaylock swaykbdd swayidle
+    wdisplays
+    xdg-desktop-portal-wlr # screen sharing engine
+  ];
+  # Hopefully helps to screen-share under Wayland
+  xdg = {
+    portal = {
+      enable = true;
+      extraPortals = with pkgs; [
+        xdg-desktop-portal-wlr
+        #xdg-desktop-portal-gtk
+      ];
+      #gtkUsePortal = true;
+    };
+  };
+
+
+  # Dconf
+  programs.dconf.enable = true;
+
+  # Fonts
+  fonts = {
+    enableDefaultPackages = true;
+    packages = with pkgs; [
+      # main:
+      (nerdfonts.override { fonts = [ "FiraCode" "Ubuntu" ]; })
+      fira-code
+      ubuntu_font_family
+      noto-fonts
+      roboto roboto-mono
+
+      # misc:
+      paratype-pt-mono paratype-pt-serif paratype-pt-sans
+      inconsolata hasklig # iosevka
+      noto-fonts-emoji
+      liberation_ttf
+      libertine
+      fira-code-symbols
+      #mplus-outline-fonts
+      pkgs.emacs-all-the-icons-fonts
+    ];
+
+    fontconfig = {
+      defaultFonts = {
+        serif =     [ "Noto Serif Regular" ];
+        sansSerif = [ "Ubuntu Regular"     ];
+        monospace = [ "FiraCode Nerd Font" ];
+      };
+    };
+  };
+
+}

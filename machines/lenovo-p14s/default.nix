@@ -43,9 +43,14 @@ in
   #
 
   imports =
-    [ # Include the results of the hardware scan.
-      ./hardware-configuration.nix
+    [
+      ./hardware-configuration.nix # Include the results of the hardware scan.
       ../../packages.nix
+      ../../users/artem.nix
+      ../../modules/network.nix
+      ../../modules/desktop.nix
+      ../../modules/touchpad.nix
+      ../../modules/get-cabal-head.nix
     ];
 
   # Bluetooth
@@ -65,48 +70,6 @@ in
 
   # Brightness via Fn keys
   services.illum.enable = true;
-
-  # Enable sound
-  sound.enable = true;
-  hardware.pulseaudio.enable = true;
-  hardware.pulseaudio.package = pkgs.pulseaudioFull;
-
-
-  #######################################################################################
-  #
-  #   Networking
-  #
-
-  networking = {
-    hostName = "${mname}"; # Define your hostname.
-
-    # Either NetworkManager or wireless service -- not both! (they conflict)
-    networkmanager.enable = true;
-    #wireless.enable = true;  # Enables wireless support via wpa_supplicant.
-
-    #networkmanager.wifi.backend = "iwd";
-    #wireless.iwd.settings.General.UseDefaultInterface = true;
-
-    useDHCP = false; # blanket true is not allowed anymore (they say)
-    interfaces.enp0s31f6.useDHCP = true;
-    interfaces.wlan0.useDHCP = true; # fix iwd race
-    #interfaces.wlp0s20f3.useDHCP = false; # fix iwd race
-  };
-
-  # Open ports in the firewall.
-  # networking.firewall.allowedTCPPorts = [ ... ];
-  # networking.firewall.allowedUDPPorts = [ ... ];
-  # Or disable the firewall altogether.
-  networking.firewall.enable = false;
-
-  # Announce myself as $hostname.local in a local network and help others to do the same
-  # https://github.com/NixOS/nixpkgs/issues/98050#issuecomment-1471678276
-  services.resolved.enable = true; 
-  networking.networkmanager.connectionConfig."connection.mdns" = 2;
-  services.avahi.enable = true; 
-
-  # Enable the OpenSSH daemon.
-  services.openssh.enable = true;
 
 
   #######################################################################################
@@ -144,33 +107,12 @@ in
   #   intelBusId = "PCI:0:2:0";
   # };
 
-  # Hopefully helps to screen-share under Wayland
-  services.pipewire.enable = true;
-  xdg = {
-    portal = {
-      enable = true;
-      extraPortals = with pkgs; [
-        xdg-desktop-portal-wlr
-        #xdg-desktop-portal-gtk
-      ];
-      #gtkUsePortal = true;
-    };
-  };
-
 
   #######################################################################################
   #
   #   User account and interface, desktop, X server
   #
 
-  # Define a user account. Don't forget to set a password with ‘passwd’.
-  # Also, user-management related stuff
-  users.users.artem = {
-    isNormalUser = true;
-    createHome = true;
-    shell = pkgs.fish;
-    extraGroups = [ "wheel" "docker" "vboxusers" "networkmanager" "blue" ];
-  };
   security.sudo.wheelNeedsPassword = false;
 
   # Time zone, locale, keymap
@@ -192,58 +134,37 @@ in
         exec sway --unsupported-gpu
     fi
   '';
-  environment.sessionVariables = {
-     MOZ_ENABLE_WAYLAND = "1";
-  };
 
-  # X Server
-  services.xserver = {
-    enable = true;
+  # Below are dessktop-related options that are subsumed by import modules/desktop.nix above
+  # environment.sessionVariables = {
+  #    MOZ_ENABLE_WAYLAND = "1";
+  # };
 
-    desktopManager = {
-      xterm.enable = false;
+  # # X Server
+  # services.xserver = {
+  #   enable = true;
 
-      # xfce.enable = true;
-        
-      gnome = {
-        enable = true;
-        extraGSettingsOverrides = ''
-          [ org/gnome/desktop/peripherals/mouse ]
-          natural-scroll=true
-          
-          [org.gnome.desktop.peripherals.touchpad]
-          tap-to-click=true
-          click-method='default'
+  #   desktopManager = {
+  #     xterm.enable = false;
 
-          [org/gnome/shell]
-          disable-user-extensions=false
-          '';
-      };
+  #     # xfce.enable = true;
 
-    };
+  #     gnome = {
+  #       enable = true;
+  #       extraGSettingsOverrides = ''
+  #         [ org/gnome/desktop/peripherals/mouse ]
+  #         natural-scroll=true
 
-    displayManager = {
-      defaultSession = "gnome"; # "none+i3";
+  #         [org.gnome.desktop.peripherals.touchpad]
+  #         tap-to-click=true
+  #         click-method='default'
 
-      autoLogin = {
-        #enable = true;
-        #user = "artem";
-      };
+  #         [org/gnome/shell]
+  #         disable-user-extensions=false
+  #         '';
+  #     };
 
-      lightdm = {
-        enable = false;
-        #autoLogin.timeout = 0;
-        #greeter.enable = false; # uncomment if autologin is on
-      };
-      sddm = {
-        enable = true;
-        #autoLogin.delay = 0;
-      };
-      gdm = {
-        enable = false;
-        #autoLogin.delay = 0;
-      };
-    };
+  #   };
 
 #    windowManager.i3 = {
 #      enable = false;
@@ -255,86 +176,13 @@ in
 #     ];
 #    };
 
-    xkb.layout = "us,ru";
-
-    # Enable touchpad support (enabled by default in most desktopManager).
-    libinput = {
-      enable = true;
-      touchpad = {
-        naturalScrolling = false;
-        tapping = true;
-        middleEmulation = true;
-      };
-    };
-  };
-
-  # Fonts 
-  fonts = { 
-    enableDefaultPackages = true;
-    packages = with pkgs; [
-      # main:
-      (nerdfonts.override { fonts = [ "FiraCode" "Ubuntu" ]; })
-      fira-code
-      ubuntu_font_family
-      noto-fonts
-      roboto roboto-mono
-
-      # misc:
-      paratype-pt-mono paratype-pt-serif paratype-pt-sans
-      inconsolata hasklig # iosevka 
-      noto-fonts-emoji
-      liberation_ttf
-      libertine
-      fira-code-symbols
-      #mplus-outline-fonts
-      pkgs.emacs-all-the-icons-fonts
-    ];
-
-    fontconfig = {
-      defaultFonts = {
-        serif =     [ "Noto Serif Regular" ];
-        sansSerif = [ "Ubuntu Regular"     ];
-        monospace = [ "FiraCode Nerd Font" ];
-      };
-    };
-  };
+    # xkb.layout = "us,ru";
+  # };
 
 
   #######################################################################################
   #
   #   Misc Services
-
-  systemd.services."get-cabal-head" = {
-    enable = true;
-    description = "Get cabal pre-release daily";
-    path = with pkgs; [ wget gnutar gzip ];
-    requires = [ "network-online.target" ];
-    script = ''
-      set -eu
-      #until ping -c1 github.com &>/dev/null; do
-      #    sleep 20
-      #done
-      cd "$HOME/.local/bin"
-      wget https://github.com/haskell/cabal/releases/download/cabal-head/cabal-head-Linux-static-x86_64.tar.gz
-      rm -f cabal
-      tar -xzf ./cabal-head-Linux-static-x86_64.tar.gz
-      rm -f ./cabal-head-Linux-static-x86_64.tar.gz
-    '';
-    serviceConfig = {
-      Type = "oneshot";
-      User = "artem";
-    };
-  };
-
-  # Run get-cabal-head daily at midnight or any time later if it hasn't been run yet
-  systemd.timers."get-cabal-head" = {
-    wantedBy = [ "timers.target" ];
-      timerConfig = {
-        Unit = "get-cabal-head.service";
-        OnCalendar = "daily";
-        Persistent = true;
-      };
-  };
 
   virtualisation.docker.enable = true;
   #virtualisation.virtualbox.host.enable = true;
@@ -400,29 +248,6 @@ in
     vimAlias = true;
   };
   
-  # Sway
-  programs.sway = {
-    enable = true;
-    wrapperFeatures.gtk = true;
-    extraPackages = with pkgs; [ 
-      swaylock swayidle xwayland
-      swaykbdd
-      bemenu dmenu-wayland wofi # launchers: which one is bettter?
-      brillo # control brightness
-      theme-sh # control color scheme in foot
-      waybar
-      grim slurp
-      wlsunset
-      wl-clipboard
-      mako # notification daemon
-      wdisplays # monitor manager
-      xdg-desktop-portal-wlr # screen sharing engine
-    ];
-  };
-
-  # Dconf
-  programs.dconf.enable = true;
-
   # GNUPG for SSH keys management
   # Some programs need SUID wrappers, can be configured further or are
   # started in user sessions.
@@ -442,9 +267,6 @@ in
   # $ nix search wget
   environment.systemPackages = [
     nvidia-offload
-  ];
-
-  environment.gnome.excludePackages = with pkgs.gnome3; [
   ];
 
   environment.localBinInPath = true;
