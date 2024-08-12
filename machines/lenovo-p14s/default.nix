@@ -15,6 +15,15 @@ let
   '';
 in
 {
+
+  imports =
+    [
+      ./hardware-configuration.nix # Include the results of the hardware scan.
+      ./syncthing.nix
+      ../../modules/standard.nix
+      ../../modules/laptop.nix
+    ];
+
   #######################################################################################
   #
   #    Boot, kernel
@@ -29,47 +38,11 @@ in
   services.fwupd.enable = true;
   powerManagement.enable = true;
   # Use the systemd-boot EFI boot loader.
-  boot.loader.systemd-boot.enable = true;
-  boot.loader.efi.canTouchEfiVariables = true;
   boot.supportedFilesystems = [ "ntfs" ];
 
   # Kernel
   boot.kernelPackages = pkgs.linuxPackages_latest;
   boot.extraModulePackages = with config.boot.kernelPackages; [ v4l2loopback ];
-
-  #######################################################################################
-  #
-  #   Misc Hardware-related
-  #
-
-  imports =
-    [
-      ./hardware-configuration.nix # Include the results of the hardware scan.
-      ../../packages.nix
-      ../../users/artem.nix
-      ../../modules/network.nix
-      ../../modules/desktop.nix
-      ../../modules/touchpad.nix
-      ../../modules/get-cabal-head.nix
-    ];
-
-  # Bluetooth
-  hardware.bluetooth.enable = true;
-  services.blueman.enable = true;
-  hardware.bluetooth.settings = {
-	  General = {
-		  Enable = "Source,Sink,Media,Socket";
-	  };
-  };
-
-  # Laptop power button to suspend
-  services.logind.extraConfig = "HandlePowerKey=suspend";
-
-  # Enable CUPS to print documents
-  services.printing.enable = true;
-
-  # Brightness via Fn keys
-  services.illum.enable = true;
 
 
   #######################################################################################
@@ -112,12 +85,6 @@ in
   #
   #   User account and interface, desktop, X server
   #
-
-  security.sudo.wheelNeedsPassword = false;
-
-  # Time zone, locale, keymap
-  time.timeZone = "America/New_York";
-  i18n.defaultLocale = "en_US.UTF-8";
 
   # Sway: env vars
   # TODO: Should be done in a more flexible way (e.g. Sway options in home-manager)
@@ -194,28 +161,6 @@ in
   # Lorri -- didn't work
   # services.lorri.enable = true;
 
-  services = {
-    syncthing = {
-      enable = true;
-      user = "artem";
-      overrideDevices = true;
-      overrideFolders = true;
-      configDir = "/home/artem/.config/syncthing";
-      settings = {
-        devices = {
-          "netcup" = { id = "U25H2L7-KJY7IXJ-HHD2D76-4LBMTBZ-2CJE2NM-DBZO2V7-IUVFGPI-JGBXRQA"; };
-          "pixel7a" = { id = "B2UK2TS-WJQ224N-MZ6UUSL-AHRZ6Z5-VMJWTFV-KZGWIJD-T66PZAS-OFPHUA2"; };
-        };
-        folders = {
-          "Dropbox" = {
-            path = "/home/artem/Dropbox";
-            devices = [ "netcup" "pixel7a" ];
-          };
-        };
-      };
-    };
-  };
-
   services.udev.extraRules = ''
     KERNEL=="hidraw*", SUBSYSTEM=="hidraw", MODE="0660", GROUP="users", TAG+="uaccess", TAG+="udev-acl"
   '';
@@ -225,8 +170,6 @@ in
   #    Programs
   #
 
-  programs.fish.enable = true;
-  
   # Nano
   programs.nano.nanorc = ''
     set nowrap
@@ -247,16 +190,6 @@ in
     viAlias = true;
     vimAlias = true;
   };
-  
-  # GNUPG for SSH keys management
-  # Some programs need SUID wrappers, can be configured further or are
-  # started in user sessions.
-  programs.mtr.enable = true;
-  programs.gnupg.agent = {
-    enable = true;
-    enableSSHSupport = true;
-    pinentryPackage = pkgs.pinentry-gnome3;
-  };
 
   #######################################################################################
   #
@@ -269,43 +202,6 @@ in
     nvidia-offload
   ];
 
-  environment.localBinInPath = true;
-
-  #######################################################################################
-  #
-  #   Meta: Nix & Nixpkgs Config
-  #
-  nix = {
-    settings.trusted-users = [ "root" "artem" ];
-
-    nixPath = [ "nixpkgs=${inputs.nixpkgs}" ];
-    registry.nixpkgs.flake = inputs.nixpkgs;
-
-    # enable flakes
-    #package = pkgs.nixLatest;
-    extraOptions = ''
-      experimental-features = nix-command flakes
-    '';
-  };
-
-  nixpkgs.config = {
-    allowUnfree = true;
-
-    oraclejdk.accept_license = true;
-    
-    permittedInsecurePackages = [
-      "libplist-1.12"
-      "libgit2-0.27.10"
-    ];
-    
-    packageOverrides = pkgs: rec {
-      unstable = import <unstable> {
-        # pass the nixpkgs config to the unstable alias
-        # to ensure `allowUnfree = true;` is propagated:
-        config = config.nixpkgs.config;
-      };
-    };
-  };
 
   # This value determines the NixOS release from which the default
   # settings for stateful data, like file locations and database versions

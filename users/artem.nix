@@ -8,4 +8,5 @@
     shell = pkgs.fish;
     extraGroups = [ "wheel" "docker" "vboxusers" "networkmanager" "blue" ];
   };
+  programs.fish.enable = true;
 }
