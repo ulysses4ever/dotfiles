@@ -12,7 +12,7 @@
       #    sleep 20
       #done
       cd "$HOME/.local/bin"
-      wget https://github.com/haskell/cabal/releases/download/cabal-head/cabal-head-Linux-static-x86_64.tar.gz
+      wget -q https://github.com/haskell/cabal/releases/download/cabal-head/cabal-head-Linux-static-x86_64.tar.gz
       rm -f cabal
       tar -xzf ./cabal-head-Linux-static-x86_64.tar.gz
       rm -f ./cabal-head-Linux-static-x86_64.tar.gz
