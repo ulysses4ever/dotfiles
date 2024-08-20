@@ -10,6 +10,7 @@
       ./desktop.nix
       ./touchpad.nix
       ./get-cabal-head.nix
+      ./nix.nix
     ];
 
 }
