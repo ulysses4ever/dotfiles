@@ -67,11 +67,47 @@
   #     };
   #   };
   # };
+
+
+  ##############################################################################
+  #
+  #  Low-tech galery in local network
+  #
+
+  # Nginx is cool but I can't figure out permissions: getting 403
+  #
+  # services.nginx = {
+  #   enable = true;
+  #   virtualHosts."127.0.0.1".locations."/artem-pics/" = {
+  #     alias = "/home/artem/Pictures/Cell/pixel7a/Camera/";
+  #     extraConfig = ''
+  #       autoindex on;
+  #     '';
+  #   };
+  # };
+
   services.httpd = {
     enable = true;
-    virtualHosts."localhost".enableUserDir = true;
+    virtualHosts."127.0.0.1" = {
+      servedDirs =
+        [
+          {
+            dir = "/home/artem/Pictures/Cell/pixel7a/Camera";
+            urlPath = "/artem-pics";
+          }
+        ];
+    };
+    # virtualHosts."localhost".enableUserDir = true; defunct due to https://github.com/NixOS/nixpkgs/pull/50857
   };
 
+  systemd.tmpfiles.rules = [
+    "d /home/artem 0755 artem users"
+    "d /home/artem/Pictures 0755 artem users"
+    "d /home/artem/Pictures/Cell 0755 artem users"
+    "d /home/artem/Pictures/Cell/pixel7a 0755 artem users"
+    "d /home/artem/Pictures/Cell/pixel7a/Camera 0755 artem users"
+
+  ];
   # Open ports in the firewall.
   # networking.firewall.allowedTCPPorts = [ ... ];
   # networking.firewall.allowedUDPPorts = [ ... ];

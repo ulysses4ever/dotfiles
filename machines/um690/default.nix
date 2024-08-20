@@ -9,6 +9,7 @@
     [
       ./hardware-configuration.nix # Include the results of the hardware scan.
       ./syncthing.nix
+      ./server.nix
       ../../modules/standard.nix
       ../../modules/bluetooth.nix
     ];
