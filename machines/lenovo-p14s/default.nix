@@ -2,7 +2,7 @@
 # your system.  Help is available in the configuration.nix(5) man page
 # and in the NixOS manual (accessible by running ‘nixos-help’).
 
-{ config, pkgs, lib, inputs, mname, mypkgs, ... }:
+{ config, pkgs, lib, inputs, mname, ... }:
 
 
 let
@@ -15,15 +15,6 @@ let
   '';
 in
 {
-
-  imports =
-    [
-      ./hardware-configuration.nix # Include the results of the hardware scan.
-      ./syncthing.nix
-      ../../modules/standard.nix
-      ../../modules/laptop.nix
-    ];
-
   #######################################################################################
   #
   #    Boot, kernel
@@ -38,11 +29,84 @@ in
   services.fwupd.enable = true;
   powerManagement.enable = true;
   # Use the systemd-boot EFI boot loader.
+  boot.loader.systemd-boot.enable = true;
+  boot.loader.efi.canTouchEfiVariables = true;
   boot.supportedFilesystems = [ "ntfs" ];
 
   # Kernel
   boot.kernelPackages = pkgs.linuxPackages_latest;
   boot.extraModulePackages = with config.boot.kernelPackages; [ v4l2loopback ];
+
+  #######################################################################################
+  #
+  #   Misc Hardware-related
+  #
+
+  imports =
+    [ # Include the results of the hardware scan.
+      ./hardware-configuration.nix
+      ../../packages.nix
+    ];
+
+  # Bluetooth
+  hardware.bluetooth.enable = true;
+  services.blueman.enable = true;
+  hardware.bluetooth.settings = {
+	  General = {
+		  Enable = "Source,Sink,Media,Socket";
+	  };
+  };
+
+  # Laptop power button to suspend
+  services.logind.extraConfig = "HandlePowerKey=suspend";
+
+  # Enable CUPS to print documents
+  services.printing.enable = true;
+
+  # Brightness via Fn keys
+  services.illum.enable = true;
+
+  # Enable sound
+  sound.enable = true;
+  hardware.pulseaudio.enable = true;
+  hardware.pulseaudio.package = pkgs.pulseaudioFull;
+
+
+  #######################################################################################
+  #
+  #   Networking
+  #
+
+  networking = {
+    hostName = "${mname}"; # Define your hostname.
+
+    # Either NetworkManager or wireless service -- not both! (they conflict)
+    networkmanager.enable = true;
+    #wireless.enable = true;  # Enables wireless support via wpa_supplicant.
+
+    #networkmanager.wifi.backend = "iwd";
+    #wireless.iwd.settings.General.UseDefaultInterface = true;
+
+    useDHCP = false; # blanket true is not allowed anymore (they say)
+    interfaces.enp0s31f6.useDHCP = true;
+    interfaces.wlan0.useDHCP = true; # fix iwd race
+    #interfaces.wlp0s20f3.useDHCP = false; # fix iwd race
+  };
+
+  # Open ports in the firewall.
+  # networking.firewall.allowedTCPPorts = [ ... ];
+  # networking.firewall.allowedUDPPorts = [ ... ];
+  # Or disable the firewall altogether.
+  networking.firewall.enable = false;
+
+  # Announce myself as $hostname.local in a local network and help others to do the same
+  # https://github.com/NixOS/nixpkgs/issues/98050#issuecomment-1471678276
+  services.resolved.enable = true; 
+  networking.networkmanager.connectionConfig."connection.mdns" = 2;
+  services.avahi.enable = true; 
+
+  # Enable the OpenSSH daemon.
+  services.openssh.enable = true;
 
 
   #######################################################################################
@@ -80,11 +144,38 @@ in
   #   intelBusId = "PCI:0:2:0";
   # };
 
+  # Hopefully helps to screen-share under Wayland
+  services.pipewire.enable = true;
+  xdg = {
+    portal = {
+      enable = true;
+      extraPortals = with pkgs; [
+        xdg-desktop-portal-wlr
+        #xdg-desktop-portal-gtk
+      ];
+      #gtkUsePortal = true;
+    };
+  };
+
 
   #######################################################################################
   #
   #   User account and interface, desktop, X server
   #
+
+  # Define a user account. Don't forget to set a password with ‘passwd’.
+  # Also, user-management related stuff
+  users.users.artem = {
+    isNormalUser = true;
+    createHome = true;
+    shell = pkgs.fish;
+    extraGroups = [ "wheel" "docker" "vboxusers" "networkmanager" "blue" ];
+  };
+  security.sudo.wheelNeedsPassword = false;
+
+  # Time zone, locale, keymap
+  time.timeZone = "America/New_York";
+  i18n.defaultLocale = "en_US.UTF-8";
 
   # Sway: env vars
   # TODO: Should be done in a more flexible way (e.g. Sway options in home-manager)
@@ -101,37 +192,58 @@ in
         exec sway --unsupported-gpu
     fi
   '';
+  environment.sessionVariables = {
+     MOZ_ENABLE_WAYLAND = "1";
+  };
 
-  # Below are dessktop-related options that are subsumed by import modules/desktop.nix above
-  # environment.sessionVariables = {
-  #    MOZ_ENABLE_WAYLAND = "1";
-  # };
+  # X Server
+  services.xserver = {
+    enable = true;
 
-  # # X Server
-  # services.xserver = {
-  #   enable = true;
+    desktopManager = {
+      xterm.enable = false;
 
-  #   desktopManager = {
-  #     xterm.enable = false;
+      # xfce.enable = true;
+        
+      gnome = {
+        enable = true;
+        extraGSettingsOverrides = ''
+          [ org/gnome/desktop/peripherals/mouse ]
+          natural-scroll=true
+          
+          [org.gnome.desktop.peripherals.touchpad]
+          tap-to-click=true
+          click-method='default'
 
-  #     # xfce.enable = true;
+          [org/gnome/shell]
+          disable-user-extensions=false
+          '';
+      };
 
-  #     gnome = {
-  #       enable = true;
-  #       extraGSettingsOverrides = ''
-  #         [ org/gnome/desktop/peripherals/mouse ]
-  #         natural-scroll=true
+    };
 
-  #         [org.gnome.desktop.peripherals.touchpad]
-  #         tap-to-click=true
-  #         click-method='default'
+    displayManager = {
+      defaultSession = "gnome"; # "none+i3";
 
-  #         [org/gnome/shell]
-  #         disable-user-extensions=false
-  #         '';
-  #     };
+      autoLogin = {
+        #enable = true;
+        #user = "artem";
+      };
 
-  #   };
+      lightdm = {
+        enable = false;
+        #autoLogin.timeout = 0;
+        #greeter.enable = false; # uncomment if autologin is on
+      };
+      sddm = {
+        enable = true;
+        #autoLogin.delay = 0;
+      };
+      gdm = {
+        enable = false;
+        #autoLogin.delay = 0;
+      };
+    };
 
 #    windowManager.i3 = {
 #      enable = false;
@@ -143,13 +255,86 @@ in
 #     ];
 #    };
 
-    # xkb.layout = "us,ru";
-  # };
+    xkb.layout = "us,ru";
+
+    # Enable touchpad support (enabled by default in most desktopManager).
+    libinput = {
+      enable = true;
+      touchpad = {
+        naturalScrolling = false;
+        tapping = true;
+        middleEmulation = true;
+      };
+    };
+  };
+
+  # Fonts 
+  fonts = { 
+    enableDefaultPackages = true;
+    packages = with pkgs; [
+      # main:
+      (nerdfonts.override { fonts = [ "FiraCode" "Ubuntu" ]; })
+      fira-code
+      ubuntu_font_family
+      noto-fonts
+      roboto roboto-mono
+
+      # misc:
+      paratype-pt-mono paratype-pt-serif paratype-pt-sans
+      inconsolata hasklig # iosevka 
+      noto-fonts-emoji
+      liberation_ttf
+      libertine
+      fira-code-symbols
+      #mplus-outline-fonts
+      pkgs.emacs-all-the-icons-fonts
+    ];
+
+    fontconfig = {
+      defaultFonts = {
+        serif =     [ "Noto Serif Regular" ];
+        sansSerif = [ "Ubuntu Regular"     ];
+        monospace = [ "FiraCode Nerd Font" ];
+      };
+    };
+  };
 
 
   #######################################################################################
   #
   #   Misc Services
+
+  systemd.services."get-cabal-head" = {
+    enable = true;
+    description = "Get cabal pre-release daily";
+    path = with pkgs; [ wget gnutar gzip ];
+    requires = [ "network-online.target" ];
+    script = ''
+      set -eu
+      #until ping -c1 github.com &>/dev/null; do
+      #    sleep 20
+      #done
+      cd "$HOME/.local/bin"
+      wget https://github.com/haskell/cabal/releases/download/cabal-head/cabal-head-Linux-static-x86_64.tar.gz
+      rm -f cabal
+      tar -xzf ./cabal-head-Linux-static-x86_64.tar.gz
+      rm -f ./cabal-head-Linux-static-x86_64.tar.gz
+    '';
+    serviceConfig = {
+      Type = "oneshot";
+      User = "artem";
+    };
+  };
+
+  # Run get-cabal-head daily at midnight or any time later if it hasn't been run yet
+  systemd.timers."get-cabal-head" = {
+    wantedBy = [ "timers.target" ];
+      timerConfig = {
+        Unit = "get-cabal-head.service";
+        OnCalendar = "daily";
+        Persistent = true;
+      };
+  };
 
   virtualisation.docker.enable = true;
   #virtualisation.virtualbox.host.enable = true;
@@ -161,6 +346,28 @@ in
   # Lorri -- didn't work
   # services.lorri.enable = true;
 
+  services = {
+    syncthing = {
+      enable = true;
+      user = "artem";
+      overrideDevices = true;
+      overrideFolders = true;
+      configDir = "/home/artem/.config/syncthing";
+      settings = {
+        devices = {
+          "netcup" = { id = "U25H2L7-KJY7IXJ-HHD2D76-4LBMTBZ-2CJE2NM-DBZO2V7-IUVFGPI-JGBXRQA"; };
+          "pixel7a" = { id = "B2UK2TS-WJQ224N-MZ6UUSL-AHRZ6Z5-VMJWTFV-KZGWIJD-T66PZAS-OFPHUA2"; };
+        };
+        folders = {
+          "Dropbox" = {
+            path = "/home/artem/Dropbox";
+            devices = [ "netcup" "pixel7a" ];
+          };
+        };
+      };
+    };
+  };
+
   services.udev.extraRules = ''
     KERNEL=="hidraw*", SUBSYSTEM=="hidraw", MODE="0660", GROUP="users", TAG+="uaccess", TAG+="udev-acl"
   '';
@@ -170,6 +377,8 @@ in
   #    Programs
   #
 
+  programs.fish.enable = true;
+  
   # Nano
   programs.nano.nanorc = ''
     set nowrap
@@ -190,6 +399,39 @@ in
     viAlias = true;
     vimAlias = true;
   };
+  
+  # Sway
+  programs.sway = {
+    enable = true;
+    wrapperFeatures.gtk = true;
+    extraPackages = with pkgs; [ 
+      swaylock swayidle xwayland
+      swaykbdd
+      bemenu dmenu-wayland wofi # launchers: which one is bettter?
+      brillo # control brightness
+      theme-sh # control color scheme in foot
+      waybar
+      grim slurp
+      wlsunset
+      wl-clipboard
+      mako # notification daemon
+      wdisplays # monitor manager
+      xdg-desktop-portal-wlr # screen sharing engine
+    ];
+  };
+
+  # Dconf
+  programs.dconf.enable = true;
+
+  # GNUPG for SSH keys management
+  # Some programs need SUID wrappers, can be configured further or are
+  # started in user sessions.
+  programs.mtr.enable = true;
+  programs.gnupg.agent = {
+    enable = true;
+    enableSSHSupport = true;
+    pinentryPackage = pkgs.pinentry-gnome3;
+  };
 
   #######################################################################################
   #
@@ -199,9 +441,49 @@ in
   # List packages installed in system profile. To search, run:
   # $ nix search wget
   environment.systemPackages = [
-    nvidia-offload
+    #nvidia-offload
   ];
 
+  environment.gnome.excludePackages = with pkgs.gnome3; [
+  ];
+
+  environment.localBinInPath = true;
+
+  #######################################################################################
+  #
+  #   Meta: Nix & Nixpkgs Config
+  #
+  nix = {
+    settings.trusted-users = [ "root" "artem" ];
+
+    nixPath = [ "nixpkgs=${inputs.nixpkgs}" ];
+    registry.nixpkgs.flake = inputs.nixpkgs;
+
+    # enable flakes
+    #package = pkgs.nixLatest;
+    extraOptions = ''
+      experimental-features = nix-command flakes
+    '';
+  };
+
+  nixpkgs.config = {
+    allowUnfree = true;
+
+    oraclejdk.accept_license = true;
+    
+    permittedInsecurePackages = [
+      "libplist-1.12"
+      "libgit2-0.27.10"
+    ];
+    
+    packageOverrides = pkgs: rec {
+      unstable = import <unstable> {
+        # pass the nixpkgs config to the unstable alias
+        # to ensure `allowUnfree = true;` is propagated:
+        config = config.nixpkgs.config;
+      };
+    };
+  };
 
   # This value determines the NixOS release from which the default
   # settings for stateful data, like file locations and database versions

@@ -36,7 +36,6 @@
         specialArgs = {
           inherit inputs;
           inherit mname;
-          mypkgs = (import ./packages.nix);
         };
       };
 
