@@ -12,9 +12,9 @@
     '';
     shellAliases = {
       mkdir  = "mkdir -p";
-      l      = "exa";
-      l1     = "exa -1";
-      ll     = "exa -l";
+      l      = "eza";
+      l1     = "eza -1";
+      ll     = "eza -l";
       ".."   = "cd ..";
       "..."  = "cd ../..";
       "...." = "cd ../../..";

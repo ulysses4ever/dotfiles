@@ -1,19 +1,20 @@
 # build it with
-# ❯ nix run home-manager/master -- switch --flake ~/dotfiles/hm-only
+# ❯ nix run ~/dotfiles/hm-only#hm -- switch --flake ~/dotfiles/hm-only
 {
   description = "Standalone (Non-NixOS) Home Manager configuration of Artem";
 
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-24.05";
     home-manager = {
-      url = "github:nix-community/home-manager";
+      url = "github:nix-community/home-manager/release-24.05";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
 
   outputs = { nixpkgs, home-manager, ... }:
     let
-      pkgs = nixpkgs.legacyPackages.x86_64-linux;
+      system = "x86_64-linux";
+      pkgs = nixpkgs.legacyPackages.${system};
 
       mkUser = host: user:
         home-manager.lib.homeManagerConfiguration {
@@ -40,5 +41,6 @@
         "artem@hp-julia" = mkUser "hp-julia" "artem";
         "artem@prl-julia" = mkUser "prl-julia" "artem";
       };
+      packages.${system}.hm = home-manager.packages.${system}.default;
     };
 }

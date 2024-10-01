@@ -1,4 +1,4 @@
-{ config, pkgs, inputs, user, ... }:
+{ config, lib, pkgs, inputs, user, ... }:
 
 {
   # AUTO GENERATED

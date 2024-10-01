@@ -38,7 +38,7 @@
       psensor lm_sensors hddtemp
 
       # Modern Unix
-      fd exa procs tldr bat
+      fd eza procs tldr bat
       silver-searcher ripgrep
       fish
       starship
