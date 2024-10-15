@@ -114,4 +114,9 @@
   # Or disable the firewall altogether.
   networking.firewall.enable = false;
 
+  virtualisation.docker.enable = true;
+  virtualisation.docker.rootless = {
+    enable = true;
+    setSocketVariable = true;
+  };
 }
