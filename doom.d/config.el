@@ -133,6 +133,8 @@ nothing happens."
       :n "0" #'evil-beginning-of-visual-line
       :n "$" #'evil-end-of-visual-line)
 
+(map! :n "C-i" "i ESC r" :desc "Insert a character without leaving the normal mode.")
+
 ;; too fast completion popup is annoying; Doom's default is 0.2
 (after! company
   (setq company-idle-delay 0.8))
