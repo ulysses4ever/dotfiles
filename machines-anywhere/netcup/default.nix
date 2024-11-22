@@ -104,7 +104,7 @@
 
   services.nextcloud = {
       enable = true;
-#      package = pkgs.nextcloud27;
+      package = pkgs.nextcloud28;
       hostName = "cloud.pelenitsyn.top";
       # Enable built-in virtual host management
       # Takes care of somewhat complicated setup
@@ -112,7 +112,7 @@
       configureRedis = true;
 
       # Use HTTPS for links
-#      https = true;
+      https = true;
 
 #      extraApps = with config.services.nextcloud.package.packages.apps; {
 #        inherit onlyoffice;
