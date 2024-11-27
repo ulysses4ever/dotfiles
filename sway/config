@@ -65,7 +65,6 @@ exec swayidle -w \
 input "type:touchpad" {
     tap enabled
     middle_emulation enabled
-    pointer_accel 0.75
     natural_scroll disabled
     dwt enabled
     drag enabled
@@ -244,6 +243,7 @@ bar {
     #     background #323232
     #     inactive_workspace #32323200 #32323200 #5c5c5c
     # }
+    height 10
     swaybar_command waybar
 }
 
