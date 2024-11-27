@@ -25,7 +25,13 @@
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
             home-manager.users.artem = { pkgs, ... }: {
-              imports = [ ./home.nix ];
+              imports = [ 
+                ./home.nix 
+                { 
+                  xdg.configFile."sway/machine-dependent".source = ./machines + "/${mname}" +
+                  "/sway/machine-dependent";  
+                }
+              ];
             };
           }
           { 

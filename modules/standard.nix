@@ -6,9 +6,9 @@
       ../packages.nix
       ../users/artem.nix
       ./basics.nix
+      ./bootloader-efi.nix
       ./network.nix
       ./desktop.nix
-      ./touchpad.nix
       ./get-cabal-head.nix
       ./nix.nix
     ];
