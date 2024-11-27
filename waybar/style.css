@@ -1,5 +1,5 @@
 * {
-	font-size: 14px;
+	font-size: 10px;
 	font-family: "FiraCode Nerd Font";
 }
 
@@ -10,12 +10,12 @@ window#waybar {
 
 #custom-right-arrow-dark,
 #custom-left-arrow-dark {
-	font-size: 18px;
+	font-size: 14px;
 	color: #1a1a1a;
 }
 #custom-right-arrow-light,
 #custom-left-arrow-light {
-	font-size: 18px;
+	font-size: 14px;
 	color: #292b2e;
 	background: #1a1a1a;
 }

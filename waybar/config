@@ -132,10 +132,11 @@
     		"max-length": 50
 	},
 	"custom/weather": {
-	"format": "{}",
-	"tooltip": true,
-	"interval": 3600,
-	"exec": "weather.py",
-	"return-type": "json"
+    "exec": "./get_weather.sh Lafayette+Indiana",
+    "return-type": "json",
+    "format": "{}",
+    "tooltip": true,
+    "interval": 3600
 	}
+
 }
