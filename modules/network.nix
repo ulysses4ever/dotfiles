@@ -12,7 +12,7 @@
     #wireless.iwd.settings.General.UseDefaultInterface = true;
 
     useDHCP = false; # blanket true is not allowed anymore (they say)
-    interfaces.enp0s31f6.useDHCP = true;
+    #interfaces.enp0s31f6.useDHCP = true;
     interfaces.wlan0.useDHCP = true; # fix iwd race
     #interfaces.wlp0s20f3.useDHCP = false; # fix iwd race
   };
