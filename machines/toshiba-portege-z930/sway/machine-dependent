@@ -1,4 +1,4 @@
-font monospace 12
+font monospace 10
 
 set $menu bemenu-run --fn $uifont -p "〉" --tf "$prompt" --hf "$highlight" --sf "$highlight" --scf "$highlight" | xargs swaymsg exec
 
