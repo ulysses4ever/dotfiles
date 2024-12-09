@@ -19,14 +19,13 @@ with pkgs; [
     gnupg
     inetutils
     killall
-    aumix # cli sound control
     imagemagick
     cachix
     comma # run soft w/o install
     findutils.locate # plocate # locate
 
     # Temperature (and other) diagnostics
-    psensor lm_sensors hddtemp
+    lm_sensors hddtemp
 
     # Modern Unix
     fd eza procs tldr bat
@@ -42,18 +41,18 @@ with pkgs; [
     docker
 
     # Gnome Desktop apps
-    gnome.nautilus
+    nautilus
     gedit
-    gnome.gnome-terminal
-    gnome.eog
-    gnome.evince
-    gnome.gnome-tweaks
-    gnome.dconf-editor
-    gnome.file-roller
+    gnome-terminal
+    eog
+    evince
+    gnome-tweaks
+    dconf-editor
+    file-roller
     gnomeExtensions.appindicator
     gnomeExtensions.dash-to-dock
-    gnome.gnome-keyring
-    transmission-gtk
+    gnome-keyring
+    transmission_4-gtk
     baobab
 
     # Text
