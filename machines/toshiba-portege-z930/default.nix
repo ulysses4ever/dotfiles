@@ -8,7 +8,7 @@
   imports =
     [
       ./hardware-configuration.nix # Include the results of the hardware scan.
-      # ./syncthing.nix
+      ./syncthing.nix
 
       # standard minus bootloader-efi + bootloader-grub
       ../../packages.nix
