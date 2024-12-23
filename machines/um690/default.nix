@@ -2,7 +2,7 @@
 # your system.  Help is available in the configuration.nix(5) man page
 # and in the NixOS manual (accessible by running ‘nixos-help’).
 
-{ config, pkgs, inputs, mname, ... }:
+{ config, pkgs, inputs, mname, pkgsUnstable, ... }:
 
 {
   imports =
@@ -13,6 +13,15 @@
       ../../modules/standard.nix
       ../../modules/bluetooth.nix
     ];
+
+  # this allows you to access `pkgsUnstable` anywhere in your config
+  _module.args.pkgsUnstable = import inputs.nixpkgs-unstable {
+    inherit (pkgs.stdenv.hostPlatform) system;
+    inherit (config.nixpkgs) config;
+  };
+
+  # uncomment when https://nixpk.gs/pr-tracker.html?pr=367194 lands
+  # environment.systemPackages = [ pkgsUnstable.haskell.compiler.ghc9121 ];
 
 
   # This value determines the NixOS release from which the default
