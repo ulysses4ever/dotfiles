@@ -210,6 +210,7 @@
       merge  = { conflictstyle = "diff3"; };
       diff   = { colorMoved = "default"; }; github = { user = "ulysses4ever"; };
       init   = { defaultBranch = "main"; };
+      blame  = { ignoreRevsFile = ".git-blame-ignore-revs"; };
     };
     aliases = {
       aa   = "add --all";
