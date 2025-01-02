@@ -20,8 +20,7 @@
     inherit (config.nixpkgs) config;
   };
 
-  # uncomment when https://nixpk.gs/pr-tracker.html?pr=367194 lands
-  # environment.systemPackages = [ pkgsUnstable.haskell.compiler.ghc9121 ];
+  environment.systemPackages = [ pkgsUnstable.haskell.compiler.ghc9121 ];
 
 
   # This value determines the NixOS release from which the default
