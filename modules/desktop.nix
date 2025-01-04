@@ -7,7 +7,24 @@
 
     # Enable the GNOME Desktop Environment.
     displayManager.gdm.enable = true;
-    desktopManager.gnome.enable = true;
+    desktopManager = {
+      xterm.enable = false;
+
+      gnome = {
+        enable = true;
+        extraGSettingsOverrides = ''
+          [ org/gnome/desktop/peripherals/mouse ]
+          natural-scroll=true
+
+          [org.gnome.desktop.peripherals.touchpad]
+          tap-to-click=true
+          click-method='default'
+
+          [org/gnome/shell]
+          disable-user-extensions=false
+          '';
+      };
+    };
 
     # Configure keymap in X11
     xkb = {
@@ -15,6 +32,7 @@
       variant = "";
     };
   };
+  programs.dconf.enable = true;
 
   # Enable CUPS to print documents.
   services.printing.enable = true;
@@ -66,7 +84,10 @@
       #gtkUsePortal = true;
     };
   };
-  environment.sessionVariables.NIXOS_OZONE_WL = "1";
+  environment.sessionVariables = {
+    NIXOS_OZONE_WL = "1";
+    MOZ_ENABLE_WAYLAND = "1";
+  };
 
   # Some programs need SUID wrappers, can be configured further or are
   # started in user sessions.
@@ -76,8 +97,7 @@
     enableSSHSupport = true;
   };
 
-  # Dconf
-  programs.dconf.enable = true;
+  virtualisation.docker.enable = true;
 
   # Fonts
   fonts = {

@@ -5,6 +5,7 @@
   imports =
     [
       ./bluetooth.nix
+      ./touchpad.nix
     ];
 
   # Laptop power button to suspend
