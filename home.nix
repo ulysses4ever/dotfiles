@@ -246,7 +246,6 @@
  programs.neovim = {
 	  enable = true;
 	  extraConfig = ''
-      colorscheme flattened_light
       set colorcolumn=90
       let g:context_nvim_no_redraw = 1
       set mouse=a
