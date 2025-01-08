@@ -2,6 +2,72 @@
 
 {
 
+  virtualisation.docker.enable = true;
+  virtualisation.docker.rootless = {
+    enable = true;
+    setSocketVariable = true;
+  };
+
+  ##############################################################################
+  #
+  #  Low-tech galery in local network.
+  #  It serves phone photos (obtained via Syncthing) through a simple HTML/JS page
+  #
+
+  # Nginx is cool but I can't figure out permissions: getting 403
+  #
+  # services.nginx = {
+  #   enable = true;
+  #   virtualHosts."127.0.0.1".locations."/artem-pics/" = {
+  #     alias = "/home/artem/Pictures/Cell/pixel7a/Camera/";
+  #     extraConfig = ''
+  #       autoindex on;
+  #     '';
+  #   };
+  # };
+
+  services.httpd = {
+    enable = true;
+    virtualHosts."127.0.0.1" = {
+      servedDirs =
+        [
+          {
+            dir = "/home/artem/Pictures/Cell/pixel7a/Camera";
+            urlPath = "/artem-pics";
+          }
+        ];
+    };
+    # virtualHosts."localhost".enableUserDir = true; defunct due to https://github.com/NixOS/nixpkgs/pull/50857
+  };
+
+  systemd.tmpfiles.rules = [
+    "d /home/artem 0755 artem users"
+    "d /home/artem/Pictures 0755 artem users"
+    "d /home/artem/Pictures/Cell 0755 artem users"
+    "d /home/artem/Pictures/Cell/pixel7a 0755 artem users"
+    "d /home/artem/Pictures/Cell/pixel7a/Camera 0755 artem users"
+
+  ];
+  # Open ports in the firewall.
+  # networking.firewall.allowedTCPPorts = [ ... ];
+  # networking.firewall.allowedUDPPorts = [ ... ];
+  # Or disable the firewall altogether.
+  networking.firewall.enable = false;
+
+
+  ##############################################################################
+  #
+  #  (Attempt at) Immich
+  #
+
+  # https://wiki.nixos.org/wiki/Immich
+  services.immich.enable = true;
+  users.users.immich.extraGroups = [ "video" "render" ];
+
+  ##############################################################################
+  #
+  #  (Attempt at) Photoprism
+
   # Photoprism will use Mysql and maybe Nginx
   # fileSystems."/var/lib/private/photoprism/originals" =
   #   { device = "/data/originals";
@@ -69,54 +135,5 @@
   # };
 
 
-  ##############################################################################
-  #
-  #  Low-tech galery in local network
-  #
 
-  # Nginx is cool but I can't figure out permissions: getting 403
-  #
-  # services.nginx = {
-  #   enable = true;
-  #   virtualHosts."127.0.0.1".locations."/artem-pics/" = {
-  #     alias = "/home/artem/Pictures/Cell/pixel7a/Camera/";
-  #     extraConfig = ''
-  #       autoindex on;
-  #     '';
-  #   };
-  # };
-
-  services.httpd = {
-    enable = true;
-    virtualHosts."127.0.0.1" = {
-      servedDirs =
-        [
-          {
-            dir = "/home/artem/Pictures/Cell/pixel7a/Camera";
-            urlPath = "/artem-pics";
-          }
-        ];
-    };
-    # virtualHosts."localhost".enableUserDir = true; defunct due to https://github.com/NixOS/nixpkgs/pull/50857
-  };
-
-  systemd.tmpfiles.rules = [
-    "d /home/artem 0755 artem users"
-    "d /home/artem/Pictures 0755 artem users"
-    "d /home/artem/Pictures/Cell 0755 artem users"
-    "d /home/artem/Pictures/Cell/pixel7a 0755 artem users"
-    "d /home/artem/Pictures/Cell/pixel7a/Camera 0755 artem users"
-
-  ];
-  # Open ports in the firewall.
-  # networking.firewall.allowedTCPPorts = [ ... ];
-  # networking.firewall.allowedUDPPorts = [ ... ];
-  # Or disable the firewall altogether.
-  networking.firewall.enable = false;
-
-  virtualisation.docker.enable = true;
-  virtualisation.docker.rootless = {
-    enable = true;
-    setSocketVariable = true;
-  };
 }
