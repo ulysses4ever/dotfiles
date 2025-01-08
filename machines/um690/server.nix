@@ -40,7 +40,7 @@
     # virtualHosts."localhost".enableUserDir = true; defunct due to https://github.com/NixOS/nixpkgs/pull/50857
   };
 
-  systemd.tmpfiles.rules = [
+  systemd.user.tmpfiles.rules = [
     "d /home/artem 0755 artem users"
     "d /home/artem/Pictures 0755 artem users"
     "d /home/artem/Pictures/Cell 0755 artem users"
