@@ -63,6 +63,10 @@
   # https://wiki.nixos.org/wiki/Immich
   services.immich.enable = true;
   users.users.immich.extraGroups = [ "video" "render" ];
+  fileSystems."/media/immich/archive" = {
+    device = "/home/artem/Pictures/archive";
+    options = [ "bind" "nofail" ];
+  };
 
   ##############################################################################
   #
