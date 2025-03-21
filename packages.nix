@@ -110,6 +110,7 @@ with pkgs; [
     ghc cabal-install ghcid
     haskellPackages.alex
     haskellPackages.happy
+    haskellPackages.hasktags # (used by Emacs)
     haskell-language-server
 
 #    coq_8_12
