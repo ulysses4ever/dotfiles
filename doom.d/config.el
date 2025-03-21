@@ -137,7 +137,7 @@ nothing happens."
 
 ;; too fast completion popup is annoying; Doom's default is 0.2
 (after! company
-  (setq company-idle-delay 0.8))
+  (setq company-idle-delay 0.5))
 
 ;; saner defaults for evil, thanks to:
 ;; https://tecosaur.github.io/emacs-config/config.html
@@ -151,12 +151,12 @@ nothing happens."
        :desc "Mark the whole buffer" "w" #'mark-whole-buffer))
 
 ;; Julia: use our language server
-(setq lsp-julia-package-dir nil)
-(after! lsp-julia
-  (setq lsp-julia-default-environment "~/.julia/environments/v1.7"))
+;; (setq lsp-julia-package-dir nil)
+;; (after! lsp-julia
+;;   (setq lsp-julia-default-environment "~/.julia/environments/v1.7"))
 ;;; https://github.com/gdkrmr/lsp-julia/issues/23:
 (setq lsp-enable-folding t)
-(setq lsp-folding-range-limit 100)
+;; (setq lsp-folding-range-limit 100)
 
 ;; ob-haskell (Org Babel for Haskell) breaks on custom prompts that I put in my .ghci
 (after! haskell
