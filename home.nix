@@ -235,6 +235,12 @@
     };
   };
 
+  # Nix-index is necessary so that command-not-found doesn't freak out
+  programs.nix-index = {
+    enable = true;
+    enableBashIntegration = true;
+    enableFishIntegration = true;
+  };
 
  # NEOVIM CONFIG
  programs.neovim = {
