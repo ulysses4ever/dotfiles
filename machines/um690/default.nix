@@ -12,6 +12,7 @@
       ./server.nix
       ../../modules/standard.nix
       ../../modules/bluetooth.nix
+      ../../modules/docker.nix
     ];
 
   # this allows you to access `pkgsUnstable` anywhere in your config

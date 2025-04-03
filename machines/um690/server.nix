@@ -2,12 +2,6 @@
 
 {
 
-  virtualisation.docker.enable = true;
-  virtualisation.docker.rootless = {
-    enable = true;
-    setSocketVariable = true;
-  };
-
   ##############################################################################
   #
   #  Low-tech galery in local network.

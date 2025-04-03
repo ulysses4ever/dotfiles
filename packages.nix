@@ -37,9 +37,6 @@ with pkgs; [
     neofetch # beautiful splash screen for terminal
     tmux # the ultimate terminal manager
 
-    # Virtualization
-    docker
-
     # Gnome Desktop apps
     nautilus
     gedit
