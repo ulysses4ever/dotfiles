@@ -7,4 +7,4 @@ set $menu bemenu-run --fn $uifont -p "〉" --tf "$prompt" --hf "$highlight" --sf
 
 exec swaykbdd
 
-xwayland disable
+# xwayland disable
