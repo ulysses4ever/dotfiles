@@ -111,7 +111,7 @@
   services.emacs.enable = true;
   # remove if controlled by nix-doom-emacs; cf. in flakes.nix
   programs.emacs.enable = true;
-  programs.emacs.package = pkgs.emacs29-pgtk;
+  programs.emacs.package = pkgs.emacs30-pgtk;
   programs.emacs.extraPackages = epkgs: with epkgs; [ vterm pdf-tools ];
 
   # My Doom Emacs config
