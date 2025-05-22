@@ -7,4 +7,6 @@ set $menu bemenu-run --fn $uifont -p "〉" --tf "$prompt" --hf "$highlight" --sf
 
 exec swaykbdd
 
+exec --no-startup-id blueman-applet
+
 # xwayland disable
