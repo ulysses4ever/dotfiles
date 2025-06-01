@@ -84,7 +84,8 @@
     enableDefaultPackages = true;
     packages = with pkgs; [
       # main:
-      (nerdfonts.override { fonts = [ "FiraCode" "Ubuntu" ]; })
+      nerd-fonts.fira-code
+      nerd-fonts.ubuntu
       fira-code
       ubuntu_font_family
       noto-fonts
