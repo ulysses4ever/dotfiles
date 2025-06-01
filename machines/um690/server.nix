@@ -1,5 +1,8 @@
 { config, lib, pkgs, ... }:
 
+  let
+    bindMount = dev: { device = dev; options = [ "bind" "nofail" ]; };
+  in
 {
 
   ##############################################################################
@@ -35,6 +38,9 @@
   };
 
   systemd.user.tmpfiles.rules = [
+    "d /media/immich/data 0755 immich users"
+    "d /media/immich/archive 0755 immich users"
+    "d /media/immich/cell 0755 immich users"
     "d /home/artem 0755 artem users"
     "d /home/artem/Pictures 0755 artem users"
     "d /home/artem/Pictures/Cell 0755 artem users"
@@ -42,11 +48,12 @@
     "d /home/artem/Pictures/Cell/pixel7a/Camera 0755 artem users"
 
   ];
+
   # Open ports in the firewall.
-  # networking.firewall.allowedTCPPorts = [ ... ];
+  # networking.firewall.allowedTCPPorts = [ 80 443 2283 ];
   # networking.firewall.allowedUDPPorts = [ ... ];
   # Or disable the firewall altogether.
-  networking.firewall.enable = false;
+  # networking.firewall.enable = true;
 
 
   ##############################################################################
@@ -55,12 +62,14 @@
   #
 
   # https://wiki.nixos.org/wiki/Immich
-  services.immich.enable = true;
-  users.users.immich.extraGroups = [ "video" "render" ];
-  fileSystems."/media/immich/archive" = {
-    device = "/home/artem/Pictures/archive";
-    options = [ "bind" "nofail" ];
+  services.immich = {
+    enable = true;
+    host = "0.0.0.0";
+    mediaLocation = "/media/immich/data";
   };
+  fileSystems."/media/immich/data" = bindMount "/home/artem/.local/state/immich";
+  fileSystems."/media/immich/archive" = bindMount "/home/artem/Pictures/archive";
+  fileSystems."/media/immich/cell" = bindMount "/home/artem/Pictures/Cell/pixel7a/Camera";
 
   ##############################################################################
   #
