@@ -174,3 +174,9 @@ nothing happens."
 
 ;; Moving over camelCase graciously
 (global-subword-mode 1)
+
+;; jk stopped working suddenly in Spring 2025.
+;; Trying to bring it back using the advice how to disable it:
+;; https://discourse.doomemacs.org/t/59
+(after! evil-escape
+  (setq evil-escape-key-sequence "jk"))
