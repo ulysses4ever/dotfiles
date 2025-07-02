@@ -53,11 +53,14 @@ with pkgs; [
     baobab
 
     # Text
+
     #emacs # -- using Doom Emacs through Home Manager # -- not anymore
     #emacsPgtkGcc
     libtool libvterm # emacs vterm
     irony-server
     emacs-all-the-icons-fonts
+    copilot-language-server-fhs
+
     geany
     (texlive.combine {
         inherit (texlive)
