@@ -41,13 +41,12 @@ in
   boot.tmp.cleanOnBoot = true;
   boot.initrd.checkJournalingFS = false;
   hardware.enableAllFirmware = true;
-  hardware.enableRedistributableFirmware = false;
   services.fwupd.enable = true;
   powerManagement.enable = true;
   boot.supportedFilesystems = [ "ntfs" ];
 
   # Kernel
-  # boot.kernelPackages = pkgs.linuxPackages_latest;
+  boot.kernelPackages = pkgs.linuxPackages_latest;
   # boot.extraModulePackages = with config.boot.kernelPackages; [ v4l2loopback ];
   #
 
