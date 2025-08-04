@@ -32,6 +32,10 @@
             dir = "/home/artem/Pictures/Cell/pixel7a/Camera";
             urlPath = "/artem-pics";
           }
+          {
+            dir = "/home/artem/Pictures/archive/HomeV";
+            urlPath = "/hv";
+          }
         ];
     };
     # virtualHosts."localhost".enableUserDir = true; defunct due to https://github.com/NixOS/nixpkgs/pull/50857
@@ -58,7 +62,7 @@
 
   ##############################################################################
   #
-  #  (Attempt at) Immich
+  #  Immich
   #
 
   # https://wiki.nixos.org/wiki/Immich
