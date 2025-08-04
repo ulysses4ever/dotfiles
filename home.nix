@@ -246,6 +246,7 @@
  programs.neovim = {
 	  enable = true;
 	  extraConfig = ''
+      colorscheme doom-one
       set colorcolumn=90
       let g:context_nvim_no_redraw = 1
       set mouse=a
@@ -397,7 +398,7 @@
       #context-vim
       editorconfig-vim
       awesome-vim-colorschemes
-      #doom-one
+      doom-one
       vim-surround vim-repeat
       vim-easymotion
       vim-sneak
