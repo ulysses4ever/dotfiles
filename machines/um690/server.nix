@@ -76,7 +76,7 @@
     mediaLocation = "/media/immich/data";
   };
   fileSystems."/media/immich/data" = bindMount "/home/artem/.local/state/immich";
-  fileSystems."/media/immich/archive" = bindMount "/home/artem/Pictures/archive";
+  fileSystems."/media/immich/archive" = bindMount "/home/artem/data/Pictures/archive";
   fileSystems."/media/immich/cell" = bindMount "/home/artem/Pictures/Cell/pixel7a/Camera";
   fileSystems."/home/artem/data" = bindMount "/mnt/data/artem";
 
