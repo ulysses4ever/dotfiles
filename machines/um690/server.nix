@@ -41,6 +41,11 @@
     # virtualHosts."localhost".enableUserDir = true; defunct due to https://github.com/NixOS/nixpkgs/pull/50857
   };
 
+  systemd.tmpfiles.rules = [
+    "d /mnt 0755 root users"
+    "d /mnt/data 0755 root users"
+    "d /mnt/data/artem 0755 artem users"
+  ];
   systemd.user.tmpfiles.rules = [
     "d /media/immich/data 0755 immich users"
     "d /media/immich/archive 0755 immich users"
@@ -50,7 +55,6 @@
     "d /home/artem/Pictures/Cell 0755 artem users"
     "d /home/artem/Pictures/Cell/pixel7a 0755 artem users"
     "d /home/artem/Pictures/Cell/pixel7a/Camera 0755 artem users"
-
   ];
 
   # Open ports in the firewall.
@@ -74,49 +78,30 @@
   fileSystems."/media/immich/data" = bindMount "/home/artem/.local/state/immich";
   fileSystems."/media/immich/archive" = bindMount "/home/artem/Pictures/archive";
   fileSystems."/media/immich/cell" = bindMount "/home/artem/Pictures/Cell/pixel7a/Camera";
+  fileSystems."/home/artem/data" = bindMount "/mnt/data/artem";
 
   ##############################################################################
   #
-  #  (Attempt at) Photoprism
-
-  # Photoprism will use Mysql and maybe Nginx
-  # fileSystems."/var/lib/private/photoprism/originals" =
-  #   { device = "/data/originals";
-  #     options = [ "bind" ];
-  #   };
-  # services.photoprism = {
+  # Cloudflared
+  #
+  # environment.systemPackages = [pkgs.cloudflared];
+  # services.cloudflared = {
   #   enable = true;
-  #   port = 2342;
-  #   # originalsPath = "/home/artem/Pictures/Photoprism";
-  #   originalsPath = "/var/lib/private/photoprism/originals";
-  #   address = "0.0.0.0";
-  #   settings = {
-  #     PHOTOPRISM_ADMIN_USER = "admin";
-  #     PHOTOPRISM_ADMIN_PASSWORD = "123456";
-  #     PHOTOPRISM_DEFAULT_LOCALE = "en";
-  #     PHOTOPRISM_DATABASE_DRIVER = "mysql";
-  #     PHOTOPRISM_DATABASE_NAME = "photoprism";
-  #     PHOTOPRISM_DATABASE_SERVER = "/run/mysqld/mysqld.sock";
-  #     PHOTOPRISM_DATABASE_USER = "photoprism";
-  #     PHOTOPRISM_SITE_URL = "http://127.0.0.1:2342";
-  #     PHOTOPRISM_SITE_TITLE = "My PhotoPrism";
-  #   };
-  # };
-
-  # # MySQL
-  # services.mysql = {
-  #   enable = true;
-  #   package = pkgs.mariadb;
-  #   ensureDatabases = [ "photoprism" ];
-  #   ensureUsers = [ {
-  #     name = "photoprism";
-  #     ensurePermissions = {
-  #       "photoprism.*" = "ALL PRIVILEGES";
+  #   tunnels = {
+  #     "2b80d7a7-9b63-4e0f-83b8-fd2601d5fe19" = {
+  #       credentialsFile = "${config.users.users.artem.home}/.cloudflared/artem-tunnel.config.json";
+  #       default = "http_status:404";
+  #       ingress = {
+  #         "*.pelenitsyn.site" = {
+  #          service = "http://localhost:2283";
+  #         };
+  #       };
   #     };
-  #   } ];
+  #   };
   # };
 
-  # NGINX
+
+  # NGINX (for Photoprism but may be good for future)
   # services.nginx = {
   #   enable = true;
   #   # recommendedTlsSettings = true;
