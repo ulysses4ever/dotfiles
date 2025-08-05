@@ -97,8 +97,6 @@
     enableSSHSupport = true;
   };
 
-  virtualisation.docker.enable = true;
-
   # Fonts
   fonts = {
     enableDefaultPackages = true;
