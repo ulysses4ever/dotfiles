@@ -29,11 +29,11 @@
       servedDirs =
         [
           {
-            dir = "/home/artem/Pictures/Cell/pixel7a/Camera";
+            dir = "/home/artem/data/Pictures/pixel7a-artem/Camera";
             urlPath = "/artem-pics";
           }
           {
-            dir = "/home/artem/Pictures/archive/HomeV";
+            dir = "/home/artem/data/Pictures/archive/HomeV";
             urlPath = "/hv";
           }
         ];
@@ -77,7 +77,7 @@
   };
   fileSystems."/media/immich/data" = bindMount "/home/artem/.local/state/immich";
   fileSystems."/media/immich/archive" = bindMount "/home/artem/data/Pictures/archive";
-  fileSystems."/media/immich/cell" = bindMount "/home/artem/Pictures/Cell/pixel7a/Camera";
+  fileSystems."/media/immich/cell" = bindMount "/home/artem/data/Pictures//pixel7a-artem/Camera";
   fileSystems."/home/artem/data" = bindMount "/mnt/data/artem";
 
   ##############################################################################

@@ -21,12 +21,12 @@
           };
           "Pixel7a-Pictures" = {
             id = "pixel_7a_j24u-photos";
-            path = "/home/artem/Pictures/Cell/pixel7a";
+            path = "/home/artem/data/Pictures/pixel7a-artem";
             devices = [ "pixel7a" ];
           };
           "Pixel7a-Julia-Photos" = {
             id = "pixel_7a_s1ud-photos";
-            path = "/home/artem/Pictures/Pixel7a-Julia-Photos";
+            path = "/home/artem/data/Pictures/pixel7a-julia";
             devices = [ "pixel7a-julia" ];
           };
         };
