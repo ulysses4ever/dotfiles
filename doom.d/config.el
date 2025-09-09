@@ -189,3 +189,29 @@ nothing happens."
               ("TAB" . 'copilot-accept-completion)
               ("C-TAB" . 'copilot-accept-completion-by-word)
               ("C-<tab>" . 'copilot-accept-completion-by-word)))
+
+(after! copilot-chat
+  ;; Start a chat session
+  (map! :leader
+        :desc "Copilot Chat"
+        "l C" #'copilot-chat)
+
+  ;; Add current buffer as context
+  (map! :leader
+        :desc "Copilot Chat Add Current Buffer"
+        "l a" #'copilot-chat-add-current-buffer)
+
+  ;; Remove current buffer from context
+  (map! :leader
+        :desc "Copilot Chat Remove Current Buffer"
+        "l r" #'copilot-chat-del-current-buffer)
+
+  ;; List and manage context buffers
+  (map! :leader
+        :desc "Copilot Chat List Context Buffers"
+        "l l" #'copilot-chat-list)
+
+  ;; Go to input prompt in the chat buffer
+  (map! :leader
+        :desc "Copilot Chat Go To Input"
+        "l g" #'copilot-chat-goto-input))
