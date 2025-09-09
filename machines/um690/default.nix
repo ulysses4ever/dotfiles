@@ -23,6 +23,11 @@
 
   # environment.systemPackages = [ pkgsUnstable.haskell.compiler.ghc9121 ];
 
+  # Performance benchmarking requires predictable CPU frequency
+  # "performance" governor is supposed to disable CPU frequency scaling among other things
+  powerManagement.cpuFreqGovernor = "ondemand"; # default is "ondemand"
+  # If using GNOME, disable power-profiles-daemon
+  # services.power_profiles_daemon.enable = false;
 
   # This value determines the NixOS release from which the default
   # settings for stateful data, like file locations and database versions
