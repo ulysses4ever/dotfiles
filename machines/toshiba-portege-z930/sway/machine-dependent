@@ -6,9 +6,6 @@ input "type:touchpad" {
 
 set $menu bemenu-run --fn $uifont -p "〉" --tf "$prompt" --hf "$highlight" --sf "$highlight" --scf "$highlight" | xargs swaymsg exec
 
-# all hail to pipewire/xdg-desktop-portal-wlr
-# exec /nix/store/5arq8bagvjlvyj21dvfcpx54bkblg1hg-xdg-desktop-portal-1.8.1/libexec/xdg-desktop-portal -r
-
 exec swaykbdd
 
 xwayland disable

@@ -71,7 +71,6 @@
     bemenu dmenu-wayland wofi
     swaylock swaykbdd swayidle
     wdisplays
-    xdg-desktop-portal-wlr # screen sharing engine
   ];
   # Hopefully helps to screen-share under Wayland
   xdg = {
