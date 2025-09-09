@@ -59,7 +59,7 @@ with pkgs; [
     libtool libvterm # emacs vterm
     irony-server
     emacs-all-the-icons-fonts
-    copilot-language-server-fhs
+    copilot-language-server
 
     geany
     (texlive.combine {

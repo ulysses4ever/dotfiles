@@ -55,11 +55,7 @@
       scrollback = {
         lines = "50000";
       };
-      cursor = {
-        # color = "002b36 93a1a1"; # Solarized dark
-        color = "fdf6e3 586e75"; # Solarized light
-      };
-      colors = { 
+      colors = {
         alpha = "0.9";
 
         ## Themes
