@@ -20,7 +20,6 @@
       gnupg
       inetutils
       killall
-      aumix # cli sound control
       imagemagick
       cachix
       comma # run soft w/o install
@@ -35,7 +34,7 @@
       binutils gnumake gdb
 
       # Temperature (and other) diagnostics
-      psensor lm_sensors hddtemp
+      lm_sensors hddtemp
 
       # Modern Unix
       fd eza procs tldr bat

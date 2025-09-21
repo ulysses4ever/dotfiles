@@ -33,7 +33,7 @@
       vim-easymotion
       vim-sneak
       #vim-numbertoggle
-      coc-nvim coc-git coc-highlight coc-python coc-vimtex coc-yaml coc-html coc-json # auto completion
+      coc-nvim coc-git coc-highlight coc-vimtex coc-yaml coc-html coc-json # auto completion
       vim-airline
       vim-nix
       vimtex
