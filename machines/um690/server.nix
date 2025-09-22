@@ -5,6 +5,13 @@
   in
 {
 
+  #
+  # Jellyfin media server
+  #
+  services.jellyfin = {
+    enable = true;
+  };
+
   ##############################################################################
   #
   #  Low-tech galery in local network.
