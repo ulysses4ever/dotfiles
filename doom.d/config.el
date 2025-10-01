@@ -215,3 +215,6 @@ nothing happens."
   (map! :leader
         :desc "Copilot Chat Go To Input"
         "l g" #'copilot-chat-goto-input))
+
+;; remove the pesky -k from the default compile command
+(setq compile-command "make")
