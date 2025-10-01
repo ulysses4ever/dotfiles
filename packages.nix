@@ -36,6 +36,7 @@ with pkgs; [
     kitty
     neofetch # beautiful splash screen for terminal
     tmux # the ultimate terminal manager
+    jq # deal with JSON like a pro
 
     # Gnome Desktop apps
     nautilus
