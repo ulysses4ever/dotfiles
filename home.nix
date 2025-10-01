@@ -139,6 +139,7 @@
       starship init fish | source
       fish_vi_key_bindings
       set GPG_TTY (tty)
+      set SSH_AUTH_SOCK (gpgconf --list-dirs agent-ssh-socket)
       gpg-connect-agent updatestartuptty /bye >/dev/null
     '';
     shellAliases = {
@@ -207,6 +208,7 @@
       diff   = { colorMoved = "default"; }; github = { user = "ulysses4ever"; };
       init   = { defaultBranch = "main"; };
       blame  = { ignoreRevsFile = ".git-blame-ignore-revs"; };
+      gpg    = { format = "ssh"; };
     };
     aliases = {
       aa   = "add --all";
