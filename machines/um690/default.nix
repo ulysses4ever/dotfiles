@@ -22,6 +22,10 @@
   };
 
   # environment.systemPackages = [ pkgsUnstable.haskell.compiler.ghc9121 ];
+  environment.systemPackages = with pkgs; [ rocq-core rocqPackages.stdlib ];
+  environment.variables = {
+    ROCQPATH = "$ROCQPATH:${pkgs.rocqPackages.stdlib}/lib/coq/9.0/user-contrib";
+  };
 
   # Performance benchmarking requires predictable CPU frequency
   # "performance" governor is supposed to disable CPU frequency scaling among other things
