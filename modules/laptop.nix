@@ -9,7 +9,9 @@
     ];
 
   # Laptop power button to suspend
-  services.logind.extraConfig = "HandlePowerKey=suspend";
+  services.logind.settings.Login = {
+    HandlePowerKey = "suspend";
+  };
 
   # Brightness via Fn keys
   services.illum.enable = true;
