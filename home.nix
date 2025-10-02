@@ -21,7 +21,7 @@
   home.stateVersion = "21.03";
   # ENF OF AUTO GENERATED
 
-  home.packages = with pkgs; [ ];
+  #home.packages = with pkgs; [ ];
 
   home.file.".ghci".source = ./.ghci;
 

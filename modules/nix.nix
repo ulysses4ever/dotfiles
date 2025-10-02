@@ -10,11 +10,6 @@
 
     oraclejdk.accept_license = true;
 
-    permittedInsecurePackages = [
-      "libplist-1.12"
-      "libgit2-0.27.10"
-    ];
-
     packageOverrides = pkgs: rec {
       unstable = import <unstable> {
         # pass the nixpkgs config to the unstable alias
