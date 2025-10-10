@@ -23,6 +23,8 @@
 ;;       doom-variable-pitch-font (font-spec :family "sans" :size 13))
 (setq doom-font
         (font-spec :family "FiraCode Nerd Font" :size 15 :weight 'medium)
+      doom-symbol-font
+        (font-spec :family "FiraCode Nerd Font" :size 15 :weight 'medium)
       doom-variable-pitch-font
         (font-spec :family "Roboto" :size 14))
 
