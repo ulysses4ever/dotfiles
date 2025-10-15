@@ -1,7 +1,7 @@
 font monospace 10
 
 input "type:touchpad" {
-    pointer_accel 0.65
+    pointer_accel 0.55
 }
 
 set $menu bemenu-run --fn $uifont -p "〉" --tf "$prompt" --hf "$highlight" --sf "$highlight" --scf "$highlight" | xargs swaymsg exec
