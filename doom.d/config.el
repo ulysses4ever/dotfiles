@@ -220,3 +220,7 @@ nothing happens."
 
 ;; remove the pesky -k from the default compile command
 (setq compile-command "make")
+;; build latex with latexmk into _build directory by default
+(add-hook! 'LaTeX-mode-hook :append (lambda ()
+            (set (make-local-variable 'compile-command)
+                 (format "latexmk -xelatex --output-directory=_build %s" (file-name-nondirectory buffer-file-name)))))
