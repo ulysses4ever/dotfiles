@@ -105,6 +105,8 @@
       roboto roboto-mono
 
       # misc:
+      corefonts
+      libre-franklin
       paratype-pt-mono paratype-pt-serif paratype-pt-sans
       inconsolata hasklig # iosevka
       noto-fonts-emoji
