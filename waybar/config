@@ -74,11 +74,12 @@
 	"clock#2": {
 		"format": "{:%H:%M}",
 		"tooltip": false,
-    "timezone": "America/Indianapolis"
+		"timezone": "America/Indianapolis"
 	},
 	"clock#3": {
 		"format": "{:%m-%d}",
-		"tooltip": false
+		"tooltip": false,
+		"timezone": "America/Indianapolis"
 	},
 
 	"pulseaudio": {
