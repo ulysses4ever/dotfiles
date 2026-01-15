@@ -85,9 +85,9 @@ with pkgs; [
 
     # Desktop
     xdg-utils
-    firefox-wayland chromium
+    firefox chromium
     zoom-us
-    tdesktop
+    telegram-desktop
     steam
     shotwell
 #    bluejeans-gui
@@ -100,7 +100,7 @@ with pkgs; [
     #clapper # new kid on the block: supports Wayland but unpolished/buggy
     droidcam
     pamixer
-    glxinfo
+    mesa-demos
     obs-studio obs-studio-plugins.wlrobs
     wf-recorder v4l-utils
 
@@ -120,7 +120,7 @@ with pkgs; [
     gcc git cmake
     jdk ant maven
     python3Minimal
-    julia_19
+    julia-lts
 
     # direnv
 

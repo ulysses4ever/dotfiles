@@ -100,7 +100,7 @@
       nerd-fonts.fira-code
       nerd-fonts.ubuntu
       fira-code
-      ubuntu_font_family
+      ubuntu-classic
       noto-fonts
       roboto roboto-mono
 
@@ -109,7 +109,7 @@
       libre-franklin
       paratype-pt-mono paratype-pt-serif paratype-pt-sans
       inconsolata hasklig # iosevka
-      noto-fonts-emoji
+      noto-fonts-color-emoji
       liberation_ttf
       libertine
       fira-code-symbols
