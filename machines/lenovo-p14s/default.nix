@@ -45,6 +45,9 @@ in
   powerManagement.enable = true;
   boot.supportedFilesystems = [ "ntfs" ];
 
+  # probing kernel during freezes (debug)
+  boot.kernel.sysctl."kernel.sysrq" = 1;
+
   # Kernel
   boot.kernelPackages = pkgs.linuxPackages_latest;
   # boot.extraModulePackages = with config.boot.kernelPackages; [ v4l2loopback ];
