@@ -5,6 +5,9 @@
   in
 {
 
+  # Disable IPv6 in the hope to recover torrent access / XFinity port forwarding.
+  networking.enableIPv6 = false;
+
   #
   # Jellyfin media server
   #
