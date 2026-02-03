@@ -224,3 +224,8 @@ nothing happens."
 (add-hook! 'LaTeX-mode-hook :append (lambda ()
             (set (make-local-variable 'compile-command)
                  (format "latexmk -xelatex --output-directory=_build %s" (file-name-nondirectory buffer-file-name)))))
+
+;; Set path to mermaid CLI (adjust the path if mmdc is not in your system's PATH)
+(setq ob-mermaid-cli-path "mmdc")
+;; Add mermaid to org-babel-load-languages
+(org-babel-do-load-languages 'org-babel-load-languages '((mermaid . t)))

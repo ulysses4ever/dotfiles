@@ -56,3 +56,6 @@
 
 (package! copilot-chat
   :recipe (:host github :repo "chep/copilot-chat.el"))
+
+(package! mermaid-mode)
+(package! ob-mermaid)

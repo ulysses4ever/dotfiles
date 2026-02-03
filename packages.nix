@@ -37,6 +37,7 @@ with pkgs; [
     neofetch # beautiful splash screen for terminal
     tmux # the ultimate terminal manager
     jq # deal with JSON like a pro
+    mermaid-cli # diagrams from text
 
     # Gnome Desktop apps
     nautilus
