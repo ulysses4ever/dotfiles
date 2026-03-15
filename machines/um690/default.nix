@@ -22,7 +22,7 @@
   };
 
   # environment.systemPackages = [ pkgsUnstable.haskell.compiler.ghc9121 ];
-  environment.systemPackages = with pkgs; [ rocq-core rocqPackages.stdlib ];
+  environment.systemPackages = with pkgs; [ rocq-core rocqPackages.stdlib pkgsUnstable.github-copilot-cli ];
   environment.variables = {
     ROCQPATH = "$ROCQPATH:${pkgs.rocqPackages.stdlib}/lib/coq/9.0/user-contrib";
   };

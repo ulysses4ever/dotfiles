@@ -158,7 +158,7 @@
       m      = "make";
       n      = "nix";
       p      = "ssh prl-julia";
-      t      = "tmux";
+      t      = "theme.sh --dark";
     };
     functions = {
       fish_greeting = {
@@ -213,7 +213,7 @@
       init   = { defaultBranch = "main"; };
       blame  = { ignoreRevsFile = ".git-blame-ignore-revs"; };
       gpg    = { format = "ssh"; };
-      aliases = {
+      alias  = {
         aa   = "add --all";
         cam  = "commit -am";
         cn   = "commit --amend";

@@ -85,7 +85,7 @@
     host = "0.0.0.0";
     mediaLocation = "/media/immich/data";
   };
-  fileSystems."/media/immich/data" = bindMount "/home/artem/.local/state/immich";
+  fileSystems."/media/immich/data" = bindMount "/home/artem/data/Pictures/immich-data";
   fileSystems."/media/immich/archive" = bindMount "/home/artem/data/Pictures/archive";
   fileSystems."/media/immich/cell" = bindMount "/home/artem/data/Pictures//pixel7a-artem/Camera";
   fileSystems."/home/artem/data" = bindMount "/mnt/data/artem";

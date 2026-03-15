@@ -27,8 +27,8 @@
       disable-user-extensions=false
       '';
     };
-
-  programs.dconf.enable = true;
+  programs.dconf.enable = true; # many gnome programs need this
+  services.gvfs.enable = true;
 
   # Enable CUPS to print documents.
   services.printing.enable = true;
@@ -67,6 +67,7 @@
     bemenu dmenu-wayland wofi
     swaylock swaykbdd swayidle
     wdisplays
+    adwaita-icon-theme
   ];
   # Hopefully helps to screen-share under Wayland
   xdg = {
