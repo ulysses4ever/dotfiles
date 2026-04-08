@@ -48,7 +48,7 @@ in
   boot.kernel.sysctl."kernel.sysrq" = 1;
 
   # Kernel
-  boot.kernelPackages = pkgs.linuxPackages_latest;
+  # boot.kernelPackages = pkgs.linuxPackages_latest;
   # boot.extraModulePackages = with config.boot.kernelPackages; [ v4l2loopback ];
   #
 
@@ -59,7 +59,6 @@ in
   #
 
   # OpenGL
-  # hardware.opengl.enable = true;
   # Needed by Steam (or so I heard)
   # hardware.opengl.driSupport32Bit = true;
   # hardware.opengl.extraPackages32 = with pkgs.pkgsi686Linux; [ libva ];
@@ -67,25 +66,26 @@ in
   # Wayland with Nvidia drivers is complicated
   #services.xserver.displayManager.gdm.wayland = false; # true didn't make any difference to me
   # services.xserver.displayManager.gdm.nvidiaWayland = true;
-  #hardware.nvidia.modesetting.enable = true; # ?
+  hardware.nvidia.modesetting.enable = true; # ?
   #hardware.nvidia.nvidiaPersistenced = true; # ?
 
   # NVIDIA card drivers onfig
-  # services.xserver.videoDrivers = [ "nvidia" ];
+  services.xserver.videoDrivers = [ "nvidia" ];
+  hardware.nvidia.open = false; # Quadro P520 is Pascal, while open drivers support archs starting with Turing (one arch later than Pascal :'-()
   # # --- or on certain laptops ---
   # #services.xserver.videoDrivers = [ "modesetting" "nvidia" ];
   # #hardware.nvidia.package = config.boot.kernelPackages.nvidiaPackages.beta;
-  # hardware.nvidia.prime = {
-  #   # sync.enable = true;
-  #   offload.enable = true; # -- fancier alternative: enable per app by running:
-  #   # $ nvidia-offload app
+  hardware.nvidia.prime = {
+    # sync.enable = true;
+    #offload.enable = true; # -- fancier alternative: enable per app by running:
+    # $ nvidia-offload app
 
-  #   # Bus ID of the NVIDIA GPU. You can find it using lspci, either under 3D or VGA
-  #   nvidiaBusId = "PCI:45:0:0";
+    # Bus ID of the NVIDIA GPU. You can find it using lspci, either under 3D or VGA
+    nvidiaBusId = "PCI:45@0:0:0";
 
-  #   # Bus ID of the Intel GPU. You can find it using lspci, either under 3D or VGA
-  #   intelBusId = "PCI:0:2:0";
-  # };
+    # Bus ID of the Intel GPU. You can find it using lspci, either under 3D or VGA
+    intelBusId = "PCI:0@0:2:0";
+  };
 
 
   #######################################################################################
