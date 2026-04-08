@@ -207,6 +207,21 @@ in
   # the one true editor
   environment.variables.EDITOR = "vim";
 
+  # Compatibility layer for running non-nixos binaries
+  # programs.nix-ld.enable = true;
+
+
+  # Virtualization
+
+  # Qemu uefi support (NixOS wiki)
+  systemd.tmpfiles.rules = [ "L+ /var/lib/qemu/firmware - - - - ${pkgs.qemu}/share/qemu/firmware" ];
+
+  programs.virt-manager.enable = true;
+  virtualisation.libvirtd.enable = true;
+  users.users.artem = {
+    extraGroups = [ "libvirtd" ];
+  };
+
   #######################################################################################
   #
   #   System Packages, Paths
@@ -214,8 +229,9 @@ in
 
   # List packages installed in system profile. To search, run:
   # $ nix search wget
-  environment.systemPackages = [
+  environment.systemPackages = with pkgs; [
     #nvidia-offload
+    qemu
   ];
 
   environment.gnome.excludePackages = with pkgs.gnome3; [
