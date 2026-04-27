@@ -2,7 +2,7 @@
 # your system.  Help is available in the configuration.nix(5) man page
 # and in the NixOS manual (accessible by running ‘nixos-help’).
 
-{ config, pkgs, lib, inputs, mname, ... }:
+{ config, pkgs, lib, inputs, mname, pkgsUnstable, ... }:
 
 
 let
@@ -29,6 +29,10 @@ in
       ../../modules/docker.nix
     ];
 
+  _module.args.pkgsUnstable = import inputs.nixpkgs-unstable {
+    inherit (pkgs.stdenv.hostPlatform) system;
+    inherit (config.nixpkgs) config;
+  };
 
   #######################################################################################
   #
@@ -234,6 +238,8 @@ in
   environment.systemPackages = with pkgs; [
     #nvidia-offload
     qemu
+    pkgsUnstable.github-copilot-cli
+
   ];
 
   environment.gnome.excludePackages = with pkgs.gnome3; [
