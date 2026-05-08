@@ -25,9 +25,34 @@
 
   # Announce myself as $hostname.local in a local network and help others to do the same
   # https://github.com/NixOS/nixpkgs/issues/98050#issuecomment-1471678276
-  services.resolved.enable = true;
   networking.networkmanager.connectionConfig."connection.mdns" = 2;
-  services.avahi.enable = true;
+  services.resolved = {
+    enable = false;
+  #   extraConfig = ''
+  #     MulticastDNS=no
+  #   '';
+  };
+     system.nssDatabases.hosts = lib.mkForce [
+       "files"
+       "mdns4_minimal [NOTFOUND=return]"
+       "dns"
+       "mdns4"
+       "myhostname"
+     ];
+  services.avahi = { # this is more elaborated than suggeted on the github issue above
+                     # to make ipv4 work
+    enable = true;
+    nssmdns4 = true;
+    ipv4 = true;
+    ipv6 = false;
+    allowInterfaces = [ "eno1" ];
+    publish = {
+      enable = true;
+      addresses = true;
+      workstation = true;
+    };
+    openFirewall = true;
+  };
 
   # Enable the OpenSSH daemon.
   services.openssh.enable = true;
