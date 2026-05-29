@@ -32,6 +32,19 @@
     pkgsUnstable.github-copilot-cli
   ];
 
+  # systemd.services.hermes-gateway = {
+  #   description = "Start hermes gateway";
+  #   after = [ "docker.service" ];
+  #   requires = [ "docker.service" ];
+  #   wantedBy = [ "multi-user.target" ];
+  #   serviceConfig = {
+  #     Type = "oneshot";
+  #     # Use full paths for binaries in NixOS systemd units
+  #     ExecStart = "${pkgs.docker}/bin/docker exec hermes hermes gateway run";
+  #     RemainAfterExit = true;
+  #   };
+  # };
+
   # Performance benchmarking requires predictable CPU frequency
   # "performance" governor is supposed to disable CPU frequency scaling among other things
   powerManagement.cpuFreqGovernor = "ondemand"; # default is "ondemand"
