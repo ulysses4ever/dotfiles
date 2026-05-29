@@ -108,6 +108,7 @@ with pkgs; [
     # Develpoment
     binutils gnumake gdb
     nodejs # neovim wants it
+    gh
 
     ghc cabal-install ghcid
     haskellPackages.alex
