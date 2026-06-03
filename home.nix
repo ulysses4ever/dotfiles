@@ -351,10 +351,6 @@
       inoremap jk <Esc>
       inoremap kj <Esc>
 
-      " Easy CAPS
-      inoremap <c-u> <ESC>viwUi
-      nnoremap <c-u> viwU<Esc>
-
       " TAB in general mode will move to text buffer
       nnoremap <TAB> :bnext<CR>
       " SHIFT-TAB will go back
@@ -401,12 +397,17 @@
 
       " Find files
       nnoremap <leader>ff <cmd>lua Snacks.picker.files()<cr>
+      nnoremap <leader>. <cmd>lua Snacks.picker.files()<cr>
 
       " Live grep / Find words
       nnoremap <leader>fg <cmd>lua Snacks.picker.grep()<cr>
+      nnoremap <leader>/ <cmd>lua Snacks.picker.grep()<cr>
 
       " Resume last picker search
-      nnoremap <leader>fr <cmd>lua Snacks.picker.resume()<cr>
+      nnoremap <leader>fu <cmd>lua Snacks.picker.resume()<cr>
+
+      " Global history of opened files
+      nnoremap <leader>fr <cmd>lua Snacks.picker.recent()<cr>
     '';
 	  plugins = with pkgs.vimPlugins; let
       doom-one = pkgs.vimUtils.buildVimPlugin {
