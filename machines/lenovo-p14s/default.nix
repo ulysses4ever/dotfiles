@@ -2,7 +2,7 @@
 # your system.  Help is available in the configuration.nix(5) man page
 # and in the NixOS manual (accessible by running ‘nixos-help’).
 
-{ config, pkgs, lib, inputs, mname, ... }:
+{ config, pkgs, lib, inputs, mname, pkgsUnstable, ... }:
 
 
 let
@@ -24,12 +24,15 @@ in
   imports =
     [ # Include the results of the hardware scan.
       ./hardware-configuration.nix
-      ../../packages.nix
-      ../../users/artem.nix
       ../../modules/standard.nix
       ../../modules/laptop.nix
+      ../../modules/docker.nix
     ];
 
+  _module.args.pkgsUnstable = import inputs.nixpkgs-unstable {
+    inherit (pkgs.stdenv.hostPlatform) system;
+    inherit (config.nixpkgs) config;
+  };
 
   #######################################################################################
   #
@@ -49,7 +52,7 @@ in
   boot.kernel.sysctl."kernel.sysrq" = 1;
 
   # Kernel
-  boot.kernelPackages = pkgs.linuxPackages_latest;
+  # boot.kernelPackages = pkgs.linuxPackages_latest;
   # boot.extraModulePackages = with config.boot.kernelPackages; [ v4l2loopback ];
   #
 
@@ -60,7 +63,6 @@ in
   #
 
   # OpenGL
-  # hardware.opengl.enable = true;
   # Needed by Steam (or so I heard)
   # hardware.opengl.driSupport32Bit = true;
   # hardware.opengl.extraPackages32 = with pkgs.pkgsi686Linux; [ libva ];
@@ -68,25 +70,26 @@ in
   # Wayland with Nvidia drivers is complicated
   #services.xserver.displayManager.gdm.wayland = false; # true didn't make any difference to me
   # services.xserver.displayManager.gdm.nvidiaWayland = true;
-  #hardware.nvidia.modesetting.enable = true; # ?
+  hardware.nvidia.modesetting.enable = true; # ?
   #hardware.nvidia.nvidiaPersistenced = true; # ?
 
   # NVIDIA card drivers onfig
-  # services.xserver.videoDrivers = [ "nvidia" ];
+  services.xserver.videoDrivers = [ "nvidia" ];
+  hardware.nvidia.open = false; # Quadro P520 is Pascal, while open drivers support archs starting with Turing (one arch later than Pascal :'-()
   # # --- or on certain laptops ---
   # #services.xserver.videoDrivers = [ "modesetting" "nvidia" ];
   # #hardware.nvidia.package = config.boot.kernelPackages.nvidiaPackages.beta;
-  # hardware.nvidia.prime = {
-  #   # sync.enable = true;
-  #   offload.enable = true; # -- fancier alternative: enable per app by running:
-  #   # $ nvidia-offload app
+  hardware.nvidia.prime = {
+    # sync.enable = true;
+    #offload.enable = true; # -- fancier alternative: enable per app by running:
+    # $ nvidia-offload app
 
-  #   # Bus ID of the NVIDIA GPU. You can find it using lspci, either under 3D or VGA
-  #   nvidiaBusId = "PCI:45:0:0";
+    # Bus ID of the NVIDIA GPU. You can find it using lspci, either under 3D or VGA
+    nvidiaBusId = "PCI:45@0:0:0";
 
-  #   # Bus ID of the Intel GPU. You can find it using lspci, either under 3D or VGA
-  #   intelBusId = "PCI:0:2:0";
-  # };
+    # Bus ID of the Intel GPU. You can find it using lspci, either under 3D or VGA
+    intelBusId = "PCI:0@0:2:0";
+  };
 
 
   #######################################################################################
@@ -188,6 +191,8 @@ in
     KERNEL=="hidraw*", SUBSYSTEM=="hidraw", MODE="0660", GROUP="users", TAG+="uaccess", TAG+="udev-acl"
   '';
 
+  networking.networkmanager.plugins = with pkgs; [ networkmanager-openconnect ];
+
   #######################################################################################
   #
   #    Programs
@@ -208,6 +213,21 @@ in
   # the one true editor
   environment.variables.EDITOR = "vim";
 
+  # Compatibility layer for running non-nixos binaries
+  # programs.nix-ld.enable = true;
+
+
+  # Virtualization
+
+  # Qemu uefi support (NixOS wiki)
+  systemd.tmpfiles.rules = [ "L+ /var/lib/qemu/firmware - - - - ${pkgs.qemu}/share/qemu/firmware" ];
+
+  programs.virt-manager.enable = true;
+  virtualisation.libvirtd.enable = true;
+  users.users.artem = {
+    extraGroups = [ "libvirtd" ];
+  };
+
   #######################################################################################
   #
   #   System Packages, Paths
@@ -215,8 +235,11 @@ in
 
   # List packages installed in system profile. To search, run:
   # $ nix search wget
-  environment.systemPackages = [
+  environment.systemPackages = with pkgs; [
     #nvidia-offload
+    qemu
+    pkgsUnstable.github-copilot-cli
+
   ];
 
   environment.gnome.excludePackages = with pkgs.gnome3; [
