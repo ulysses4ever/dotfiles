@@ -25,11 +25,12 @@
   environment.systemPackages = with pkgs; [
 
     # Coq
-    (pkgsUnstable.coq.withPackages (ps: with ps; [
-      pkgsUnstable.coqPackages.stdlib
+    (coq.withPackages (ps: with ps; [
+      coqPackages.stdlib
     ]))
 
-    pkgsUnstable.github-copilot-cli
+    github-copilot-cli
+    claude-code
   ];
 
   # systemd.services.hermes-gateway = {

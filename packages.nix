@@ -10,7 +10,7 @@ with pkgs; [
     openvpn openssl
     parted
     sudo
-    xorg.xbacklight
+    xbacklight
     zip unzip
     zlib zlib.dev
     which
@@ -34,7 +34,6 @@ with pkgs; [
     fish
     starship
     kitty
-    neofetch # beautiful splash screen for terminal
     tmux # the ultimate terminal manager
     jq # deal with JSON like a pro
     mermaid-cli # diagrams from text
@@ -89,9 +88,7 @@ with pkgs; [
     firefox chromium
     zoom-us
     telegram-desktop
-    steam
     shotwell
-#    bluejeans-gui
 
     # A/V
     pavucontrol
@@ -133,7 +130,7 @@ with pkgs; [
 
     # styling for gtk apps
     #lxappearance # don't work on pure Wayland, instead:
-    xfce.xfce4-settings # use xfce4-appearance-settings from here
+    xfce4-settings # use xfce4-appearance-settings from here
 
     # NVIDIA+Wayland experiments
     #egl-wayland

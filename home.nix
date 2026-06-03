@@ -51,35 +51,16 @@
       main = {
         shell = "fish";
         font = "monospace:size=12";
+        # initial-color-theme = "light";
       };
       scrollback = {
         lines = "50000";
       };
-      colors = {
+      # Colors: default is dark. To switch:
+      # > pkill -USR1 foot # dark
+      # > pkill -USR2 foot # light
+      colors-light = {
         alpha = "0.9";
-
-        ## Themes
-
-        # Solarized dark
-       # foreground = "839496";
-       # background = "002B36";
-       # regular0 = "171421";
-       # regular1 = "C01C28";
-       # regular2 = "26A269";
-       # regular3 = "A2734C";
-       # regular4 = "12488B";
-       # regular5 = "A347BA";
-       # regular6 = "2AA1B3";
-       # regular7 = "D0CFCC";
-       # bright0  = "5E5C64";
-       # bright1  = "F66151";
-       # bright2  = "33D17A";
-       # bright3  = "E9AD0C";
-       # bright4  = "2A7BDE";
-       # bright5  = "C061CB";
-       # bright6  = "33C7DE";
-       # bright7  = "FFFFFF";
-
         # Solarized light
         background = "fdf6e3";
         foreground = "657b83";
@@ -99,6 +80,47 @@
         bright5 = "6c71c4";
         bright6 = "586e75";
         bright7 = "002b36";
+      };
+      colors-dark = {
+        alpha = "0.9";
+        # Dracula
+        background="282a36";
+        foreground="f8f8f2";
+        regular0="21222c";
+        regular1="ff5555";
+        regular2="50fa7b";
+        regular3="f1fa8c";
+        regular4="bd93f9";
+        regular5="ff79c6";
+        regular6="8be9fd";
+        regular7="f8f8f2";
+        bright0="6272a4";
+        bright1="ff6e6e";
+        bright2="69ff94";
+        bright3="ffffa5";
+        bright4="d6acff";
+        bright5="ff92df";
+        bright6="a4ffff";
+        bright7="ffffff";
+        # Solarized dark
+        # foreground = "839496";
+        # background = "002B36";
+        # regular0 = "171421";
+        # regular1 = "C01C28";
+        # regular2 = "26A269";
+        # regular3 = "A2734C";
+        # regular4 = "12488B";
+        # regular5 = "A347BA";
+        # regular6 = "2AA1B3";
+        # regular7 = "D0CFCC";
+        # bright0  = "5E5C64";
+        # bright1  = "F66151";
+        # bright2  = "33D17A";
+        # bright3  = "E9AD0C";
+        # bright4  = "2A7BDE";
+        # bright5  = "C061CB";
+        # bright6  = "33C7DE";
+        # bright7  = "FFFFFF";
       };
     };
   };
@@ -376,6 +398,15 @@
 
       nnoremap <Leader>o o<Esc>^Da
       nnoremap <Leader>O O<Esc>^Da
+
+      " Find files
+      nnoremap <leader>ff <cmd>lua Snacks.picker.files()<cr>
+
+      " Live grep / Find words
+      nnoremap <leader>fg <cmd>lua Snacks.picker.grep()<cr>
+
+      " Resume last picker search
+      nnoremap <leader>fr <cmd>lua Snacks.picker.resume()<cr>
     '';
 	  plugins = with pkgs.vimPlugins; let
       doom-one = pkgs.vimUtils.buildVimPlugin {
@@ -411,11 +442,15 @@
       vimtex
       julia-vim
       csv-vim
+      neotest
+      snacks-nvim
     ]; # Only loaded if programs.neovim.extraConfig is set
     viAlias = true;
     vimAlias = true;
     vimdiffAlias = true;
   };
+  programs.neovim.withRuby = false;
+  programs.neovim.withPython3 = false;
   # END OF NEOVIM CONFIG
 
 }

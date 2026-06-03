@@ -1,7 +1,7 @@
 { config, lib, pkgs, ... }:
 
   let
-    bindMount = dev: { device = dev; options = [ "bind" "nofail" ]; };
+    bindMount = dev: { device = dev; options = [ "bind" "nofail" ]; fsType = "ext4"; };
   in
 {
 
