@@ -61,23 +61,23 @@ with pkgs; [
      copilot-language-server
 
      geany
-     # (texlive.combine {
-     #     inherit (texlive)
-     #         scheme-medium
-     #         collection-langcyrillic
-     #         collection-latex
-     #         collection-latexrecommended
-     #         collection-latexextra
-     #         collection-fontsextra
-     #         collection-fontutils
-     #         collection-fontsrecommended
-     #         collection-publishers
-     #     ;
-     # })
-     # pplatex
-     # biber
-     # ott
-     # libreoffice-fresh
+     (texlive.combine {
+         inherit (texlive)
+             scheme-medium
+             collection-langcyrillic
+             collection-latex
+             collection-latexrecommended
+             collection-latexextra
+             collection-fontsextra
+             collection-fontutils
+             collection-fontsrecommended
+             collection-publishers
+         ;
+     })
+     pplatex
+     biber
+     ott
+     libreoffice-fresh
      aspell
      aspellDicts.en enchant # helps with spell-checking in e.g. gEdit
 
