@@ -187,7 +187,7 @@
         description = "Greeting to show when starting a fish shell";
         body = "";
       };
-      mkdcd = {
+      mkcd = {
         description = "Make a directory tree and enter it";
         body = "mkdir -p $argv[1]; and cd $argv[1]";
       };
