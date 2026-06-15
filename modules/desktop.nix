@@ -107,6 +107,7 @@
       ubuntu-classic
       noto-fonts
       roboto roboto-mono
+      symbola # Doom Emacs recommends
 
       # misc:
       corefonts
