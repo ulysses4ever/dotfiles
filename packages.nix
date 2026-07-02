@@ -104,12 +104,13 @@ with pkgs; [
     binutils gnumake gdb
     nodejs # neovim wants it
     gh
+    claude-code
 
-     ghc cabal-install ghcid
-     haskellPackages.alex
-     haskellPackages.happy
-     # haskellPackages.hasktags # (used by Emacs)
-     haskell-language-server
+    ghc cabal-install ghcid
+    haskellPackages.alex
+    haskellPackages.happy
+    # haskellPackages.hasktags # (used by Emacs)
+    haskell-language-server
 
  #    coq_8_12
  #    (agda.withPackages (p: [p.standard-library]))

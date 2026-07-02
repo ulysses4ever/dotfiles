@@ -29,7 +29,6 @@
       coqPackages.stdlib
     ]))
 
-    github-copilot-cli
     claude-code
   ];
 
