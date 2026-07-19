@@ -59,6 +59,7 @@ with pkgs; [
      irony-server
      emacs-all-the-icons-fonts
      copilot-language-server
+     multimarkdown
 
      geany
      (texlive.combine {
