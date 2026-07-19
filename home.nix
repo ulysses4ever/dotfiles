@@ -146,7 +146,7 @@
   # bat
   programs.bat = {
     enable = true;
-    config.theme = "GitHub";
+    config.theme = "Dracula";
   };
 
   programs.tmux = {
