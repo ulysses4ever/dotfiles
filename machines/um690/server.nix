@@ -92,23 +92,35 @@
 
   ##############################################################################
   #
+  # cloudflared's embedded SSH client only offers hmac-sha2-256/512 (non-etm),
+  # so we add those alongside NixOS's default etm-only list.
+  services.openssh.settings.Macs = [
+    "hmac-sha2-512-etm@openssh.com"
+    "hmac-sha2-256-etm@openssh.com"
+    "umac-128-etm@openssh.com"
+    "hmac-sha2-512"
+    "hmac-sha2-256"
+  ];
+
   # Cloudflared
   #
-  # environment.systemPackages = [pkgs.cloudflared];
-  # services.cloudflared = {
-  #   enable = true;
-  #   tunnels = {
-  #     "2b80d7a7-9b63-4e0f-83b8-fd2601d5fe19" = {
-  #       credentialsFile = "${config.users.users.artem.home}/.cloudflared/artem-tunnel.config.json";
-  #       default = "http_status:404";
-  #       ingress = {
-  #         "*.pelenitsyn.site" = {
-  #          service = "http://localhost:2283";
-  #         };
-  #       };
-  #     };
-  #   };
-  # };
+  services.cloudflared = {
+    enable = true;
+    tunnels = {
+      "2b80d7a7-9b63-4e0f-83b8-fd2601d5fe19" = {
+        credentialsFile = "${config.users.users.artem.home}/.cloudflared/2b80d7a7-9b63-4e0f-83b8-fd2601d5fe19.json";
+        default = "http_status:404";
+        ingress = {
+          "immich.pelenitsyn.site" = {
+            service = "http://localhost:2283";
+          };
+          "ssh.pelenitsyn.site" = {
+            service = "ssh://localhost:22";
+          };
+        };
+      };
+    };
+  };
 
 
   # NGINX (for Photoprism but may be good for future)
