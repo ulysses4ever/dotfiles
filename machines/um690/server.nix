@@ -4,6 +4,7 @@
     bindMount = dev: { device = dev; options = [ "bind" "nofail" ]; fsType = "ext4"; };
   in
 {
+  imports = [ ./matrix-bot.nix ];
 
   # Disable IPv6 in the hope to recover torrent access / XFinity port forwarding.
   networking.enableIPv6 = false;
@@ -118,6 +119,9 @@
           };
           "ssh.pelenitsyn.site" = {
             service = "ssh://localhost:22";
+          };
+          "cabal-bot.pelenitsyn.site" = {
+            service = "http://localhost:8765";
           };
         };
       };
