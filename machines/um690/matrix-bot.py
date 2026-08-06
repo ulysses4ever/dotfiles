@@ -22,14 +22,20 @@ def verify_signature(body: bytes, signature: str) -> bool:
     return hmac.compare_digest("sha256=" + mac, signature)
 
 
-def send_matrix_message(text: str) -> None:
+def send_matrix_message(plain: str, html: str) -> None:
     txn_id = str(int(time.time() * 1000))
     room = urllib.parse.quote(MATRIX_ROOM_ID, safe="")
     url = (
         f"{MATRIX_HOMESERVER}/_matrix/client/v3/rooms"
         f"/{room}/send/m.room.message/{txn_id}"
     )
-    data = json.dumps({"msgtype": "m.text", "body": text}).encode()
+    payload = {
+        "msgtype": "m.text",
+        "body": plain,
+        "format": "org.matrix.custom.html",
+        "formatted_body": html,
+    }
+    data = json.dumps(payload).encode()
     req = urllib.request.Request(url, data=data, method="PUT")
     req.add_header("Authorization", f"Bearer {MATRIX_TOKEN}")
     req.add_header("Content-Type", "application/json")
@@ -77,12 +83,13 @@ class WebhookHandler(http.server.BaseHTTPRequestHandler):
         html_url = item.get("html_url", "")
         kind = "issue" if "issue" in payload else "PR"
 
-        message = (
-            f"@{actor} marked as a high priority {kind}:\n\n"
-            f"* [{title}]({html_url})"
+        plain = f"@{actor} marked as a high priority {kind}:\n* {title} {html_url}"
+        html = (
+            f"@{actor} marked as a high priority {kind}:<br>"
+            f'<ul><li><a href="{html_url}">{title}</a></li></ul>'
         )
         try:
-            send_matrix_message(message)
+            send_matrix_message(plain, html)
         except Exception as e:
             print(f"Failed to send Matrix message: {e}", file=sys.stderr, flush=True)
             self.send_response(500)
