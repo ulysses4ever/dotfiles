@@ -315,6 +315,9 @@ bindsym XF86AudioLowerVolume exec pactl set-sink-volume @DEFAULT_SINK@ -10%
 # Pretty Desktop Notifications
 exec mako --default-timeout=10000
 
+# NetworkManager tray + SAML auth-dialog agent (needed for CommonwealthU VPN)
+exec nm-applet --indicator
+
 # this is some magic spell to make gnome apps work on sway >1.5
 exec systemctl --user import-environment DISPLAY WAYLAND_DISPLAY SWAYSOCK
 exec hash dbus-update-activation-environment 2>/dev/null && \
