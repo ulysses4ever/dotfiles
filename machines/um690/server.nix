@@ -51,6 +51,10 @@
           }
         ];
     };
+    # Public vhost exposed via Cloudflare tunnel — only public_html.
+    virtualHosts."www.pelenitsyn.site" = {
+      documentRoot = "/home/artem/public_html";
+    };
     # virtualHosts."localhost".enableUserDir = true; defunct due to https://github.com/NixOS/nixpkgs/pull/50857
   };
 
@@ -64,6 +68,7 @@
     "d /media/immich/archive 0755 immich users"
     "d /media/immich/cell 0755 immich users"
     "d /home/artem 0755 artem users"
+    "d /home/artem/public_html 0755 artem users"
     "d /home/artem/Pictures 0755 artem users"
     "d /home/artem/Pictures/Cell 0755 artem users"
     "d /home/artem/Pictures/Cell/pixel7a 0755 artem users"
@@ -122,6 +127,9 @@
           };
           "cabal-bot.pelenitsyn.site" = {
             service = "http://localhost:8765";
+          };
+          "www.pelenitsyn.site" = {
+            service = "http://localhost:80";
           };
         };
       };
