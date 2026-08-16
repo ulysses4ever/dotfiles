@@ -1,4 +1,4 @@
-{ config, lib, pkgs, ... }:
+{ config, lib, pkgs, pkgsUnstable, ... }:
 
   let
     bindMount = dev: { device = dev; options = [ "bind" "nofail" ]; fsType = "ext4"; };
@@ -109,6 +109,28 @@
     "hmac-sha2-512"
     "hmac-sha2-256"
   ];
+
+  # GitHub Actions self-hosted runners for the cu-cs-classes org.
+  # All runners share a single PAT file at /var/lib/github-runner/pat; the
+  # runner service exchanges the PAT for a short-lived registration token on
+  # each startup, so the same file is reused across runners and survives
+  # config changes. PAT scope: classic PAT with `admin:org`, or fine-grained
+  # PAT with "Self-hosted runners: Read and write" on the cu-cs-classes org.
+  services.github-runners = lib.genAttrs
+    (map (i: "cu-cs-classes-${toString i}") (lib.range 1 8))
+    (name: {
+      enable = true;
+      inherit name;
+      url = "https://github.com/cu-cs-classes";
+      tokenFile = "/var/lib/github-runner/pat";
+      replace = true;
+      # 26.05 pins 2.334.0, which GitHub's broker now refuses as deprecated:
+      # the runner registers and connects, then dies on the first poll with a
+      # 403. The store is read-only so the module must pass --disableupdate,
+      # leaving no way to self-update — the version has to come from unstable.
+      # Expect this to need bumping again every few months.
+      package = pkgsUnstable.github-runner;
+    });
 
   # Cloudflared
   #
