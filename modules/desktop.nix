@@ -94,6 +94,10 @@
   programs.gnupg.agent = {
     enable = true;
     enableSSHSupport = true;
+    # Something in the desktop stack pulls in pinentry-gnome3, which pops a
+    # dialog on DISPLAY :0 — invisible to a terminal or ssh session, so signing
+    # there just hangs until it times out. Curses prompts in the tty instead.
+    pinentryPackage = pkgs.pinentry-curses;
   };
 
   # Fonts

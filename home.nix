@@ -222,7 +222,11 @@
   # Git
   programs.git = {
     enable = true;
-    signing.key = "A31C1BFA09B1F47D";
+    signing = {
+      key = "A31C1BFA09B1F47D";
+      format = "openpgp";
+      signByDefault = true;
+    };
     settings = {
       user = {
         name  = "Artem Pelenitsyn";
@@ -234,7 +238,6 @@
       diff   = { colorMoved = "default"; }; github = { user = "ulysses4ever"; };
       init   = { defaultBranch = "main"; };
       blame  = { ignoreRevsFile = ".git-blame-ignore-revs"; };
-      gpg    = { format = "ssh"; };
       # gh clones and creates over https, and an https remote never reaches the
       # ssh keys gpg-agent serves — push then falls through to an askpass prompt
       # and hangs. Rewrite GitHub https URLs to ssh so a repo authenticates the
