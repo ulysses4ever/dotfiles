@@ -235,6 +235,11 @@
       init   = { defaultBranch = "main"; };
       blame  = { ignoreRevsFile = ".git-blame-ignore-revs"; };
       gpg    = { format = "ssh"; };
+      # gh clones and creates over https, and an https remote never reaches the
+      # ssh keys gpg-agent serves — push then falls through to an askpass prompt
+      # and hangs. Rewrite GitHub https URLs to ssh so a repo authenticates the
+      # same way no matter how it was cloned.
+      url    = { "git@github.com:" = { insteadOf = "https://github.com/"; }; };
       alias  = {
         aa   = "add --all";
         cam  = "commit -am";
@@ -256,6 +261,19 @@
         stp  = "stash pop";
         sta  = "stash apply";
       };
+    };
+  };
+
+  programs.gh = {
+    enable = true;
+    settings = {
+      # Was https, which is how this machine ended up with repos whose remotes
+      # never reach the ssh keys gpg-agent serves. Pairs with the url rewrite
+      # above so both new clones and existing https remotes go over ssh.
+      git_protocol = "ssh";
+      prompt = "enabled";
+      prefer_editor_prompt = "disabled";
+      aliases = { co = "pr checkout"; };
     };
   };
 
