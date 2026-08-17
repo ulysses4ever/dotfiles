@@ -98,6 +98,13 @@
     # dialog on DISPLAY :0 — invisible to a terminal or ssh session, so signing
     # there just hangs until it times out. Curses prompts in the tty instead.
     pinentryPackage = pkgs.pinentry-curses;
+    # The agent is per-login-session, not per-terminal, so one unlock covers
+    # every shell until these expire. Defaults are 600s idle / 7200s absolute,
+    # which means re-typing the passphrase several times a day just to commit.
+    settings = {
+      default-cache-ttl = 604800;
+      max-cache-ttl = 604800;
+    };
   };
 
   # Fonts
