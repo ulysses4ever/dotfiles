@@ -323,3 +323,11 @@ exec systemctl --user import-environment DISPLAY WAYLAND_DISPLAY SWAYSOCK
 exec hash dbus-update-activation-environment 2>/dev/null && \
      dbus-update-activation-environment --systemd DISPLAY WAYLAND_DISPLAY SWAYSOCK PATH
 
+# The emacs daemon is WantedBy=default.target so a text-TTY login still gets
+# one, so it starts before sway and caches an environment with no DISPLAY.
+# import-environment above only reaches units started later, so hand the
+# running daemon the same three values. Without this every vterm shell
+# inherits the display-less env and `quarto preview` opens lynx, not Firefox.
+# The outer quotes matter: sway splits commands on ';'.
+exec 'for v in DISPLAY WAYLAND_DISPLAY SWAYSOCK; do emacsclient --suppress-output --eval "(setenv \"$v\" \"$(printenv $v)\")"; done'
+
