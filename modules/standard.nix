@@ -8,7 +8,7 @@
       ./basics.nix
       ./bootloader-efi.nix
       ./network.nix
-      ./vpn-cu.nix
+      ./vpn.nix
       ./desktop.nix
       ./get-cabal-head.nix
       ./nix.nix
