@@ -195,6 +195,14 @@ in
       # NOTE: no `authgroup` set here.  The server pre-selects Faculty/Staff
       # for our SAML identity; the dialog also lets the user override it
       # from a dropdown if that ever changes.
+
+      # Don't cache the AnyConnect session cookie — Cisco ASAs invalidate
+      # it on disconnect, so reusing it on the next `con up` yields
+      #     Cookie was rejected by server; exiting.
+      #     dbus: failure: login-failed (0)
+      # with no auth dialog ever shown.  See the identical note on the
+      # Purdue profile below for the full explanation of flag value 2.
+      "cookie-flags" = "2";
     };
     ipv4.method = "auto";
     ipv6.method = "auto";
