@@ -86,6 +86,10 @@
   environment.sessionVariables = {
     NIXOS_OZONE_WL = "1";
     MOZ_ENABLE_WAYLAND = "1";
+    # Java AWT assumes a reparenting WM unless told otherwise. Sway isn't one,
+    # so Swing apps (NetBeans) map a window and then never paint it — you get a
+    # blank rectangle. Applies to XWayland clients; harmless for native ones.
+    _JAVA_AWT_WM_NONREPARENTING = "1";
   };
 
   # Some programs need SUID wrappers, can be configured further or are
