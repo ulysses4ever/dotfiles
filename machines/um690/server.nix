@@ -4,7 +4,7 @@
     bindMount = dev: { device = dev; options = [ "bind" "nofail" ]; fsType = "ext4"; };
   in
 {
-  imports = [ ./matrix-bot.nix ];
+  imports = [ ./matrix-bot.nix ./cu-cs-mirror.nix ];
 
   # Disable IPv6 in the hope to recover torrent access / XFinity port forwarding.
   networking.enableIPv6 = false;
@@ -63,6 +63,7 @@
     "d /mnt/data 0755 root users"
     "d /mnt/data/artem 0755 artem users"
   ];
+
   systemd.user.tmpfiles.rules = [
     "d /media/immich/data 0755 immich users"
     "d /media/immich/archive 0755 immich users"
