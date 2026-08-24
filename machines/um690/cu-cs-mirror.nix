@@ -1,9 +1,10 @@
-{ pkgs, ... }:
+{ config, pkgs, ... }:
 
 let
   mirrorScript = pkgs.writeShellApplication {
     name = "cu-cs-mirror";
-    runtimeInputs = with pkgs; [ git rsync ];
+    # config.nix.package rather than pkgs.nix so the client matches the daemon.
+    runtimeInputs = [ pkgs.git pkgs.rsync config.nix.package ];
     text = builtins.readFile ./cu-cs-mirror.sh;
   };
 in

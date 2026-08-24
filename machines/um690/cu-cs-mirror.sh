@@ -69,7 +69,10 @@ for repo in "${COURSE_REPOS[@]}"; do
   elif [[ $rc -eq 1 ]]; then
     echo "up to date"
   else
-    (cd "$REPOS_DIR/$repo" && nix-shell --run 'make render')
+    # NIX_PATH as CI sets it: shell.nix imports the pin directly, but nix-shell
+    # itself resolves <nixpkgs> for bashInteractive and there are no channels here.
+    (cd "$REPOS_DIR/$repo" \
+      && NIX_PATH="nixpkgs=$REPOS_DIR/$repo/config/nixpkgs.nix" nix-shell --run 'make render')
     rsync -a --delete "$REPOS_DIR/$repo/_site/" "$WWW_DIR/$repo/"
     echo "updated"
   fi
