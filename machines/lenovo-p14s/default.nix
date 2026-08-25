@@ -24,6 +24,7 @@ in
   imports =
     [ # Include the results of the hardware scan.
       ./hardware-configuration.nix
+      ./syncthing.nix
       ../../modules/standard.nix
       ../../modules/laptop.nix
       ../../modules/docker.nix
@@ -165,27 +166,6 @@ in
 
   # Lorri -- didn't work
   # services.lorri.enable = true;
-
-  services = {
-    syncthing = {
-      enable = true;
-      user = "artem";
-      overrideDevices = true;
-      overrideFolders = true;
-      configDir = "/home/artem/.config/syncthing";
-      settings = {
-        devices = {
-          "pixel7a" = { id = "B2UK2TS-WJQ224N-MZ6UUSL-AHRZ6Z5-VMJWTFV-KZGWIJD-T66PZAS-OFPHUA2"; };
-        };
-        folders = {
-          "Dropbox" = {
-            path = "/home/artem/Dropbox";
-            devices = [ "pixel7a" ];
-          };
-        };
-      };
-    };
-  };
 
   services.udev.extraRules = ''
     KERNEL=="hidraw*", SUBSYSTEM=="hidraw", MODE="0660", GROUP="users", TAG+="uaccess", TAG+="udev-acl"
