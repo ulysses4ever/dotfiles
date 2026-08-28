@@ -173,6 +173,8 @@ in
 
   networking.networkmanager.plugins = with pkgs; [ networkmanager-openconnect ];
 
+  services.tailscale.enable = true;
+
   #######################################################################################
   #
   #    Programs
