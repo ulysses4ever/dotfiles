@@ -43,7 +43,7 @@ with pkgs; [
      gedit
      gnome-terminal
      eog
-     evince
+     papers # PDF viewer; GNOME's rename of evince
      gnome-tweaks
      dconf-editor
      file-roller

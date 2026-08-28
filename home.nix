@@ -1,6 +1,8 @@
 { config, pkgs, inputs, ... }:
 
 {
+  imports = [ ./mime.nix ];
+
   # AUTO GENERATED
   # Let Home Manager install and manage itself.
   programs.home-manager.enable = true;

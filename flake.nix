@@ -25,6 +25,10 @@
           home-manager.nixosModules.home-manager {
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
+            # Activation refuses to clobber a pre-existing file it is about to
+            # start managing. Moving it aside instead means adopting a path that
+            # used to be mutable state doesn't require hand-deleting it first.
+            home-manager.backupFileExtension = "hm-bak";
             home-manager.users.artem = { pkgs, ... }: {
               imports = [ 
                 ./home.nix 

@@ -90,6 +90,13 @@
     # so Swing apps (NetBeans) map a window and then never paint it — you get a
     # blank rectangle. Applies to XWayland clients; harmless for native ones.
     _JAVA_AWT_WM_NONREPARENTING = "1";
+    # winemenubuilder scatters a wine-extension-*.desktop into
+    # ~/.local/share/applications for every extension a prefix knows, and lists
+    # them in mimeinfo.cache — which is where xdg-mime looks once a default
+    # fails to resolve. Those entries outlive the prefix and even wine itself,
+    # so a stale one silently becomes the handler. Disable the builder; nothing
+    # else in wine depends on it.
+    WINEDLLOVERRIDES = "winemenubuilder.exe=d";
   };
 
   # Some programs need SUID wrappers, can be configured further or are
