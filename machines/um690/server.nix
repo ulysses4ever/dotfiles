@@ -4,7 +4,7 @@
     bindMount = dev: { device = dev; options = [ "bind" "nofail" ]; fsType = "ext4"; };
   in
 {
-  imports = [ ./matrix-bot.nix ./cu-cs-mirror.nix ];
+  imports = [ ./matrix-bot.nix ./cu-cs-mirror.nix ./pyret-grader.nix ];
 
   # Disable IPv6 in the hope to recover torrent access / XFinity port forwarding.
   networking.enableIPv6 = false;
@@ -153,6 +153,9 @@
           };
           "www.pelenitsyn.site" = {
             service = "http://localhost:80";
+          };
+          "pyret-grader.pelenitsyn.site" = {
+            service = "http://localhost:8120";
           };
         };
       };
