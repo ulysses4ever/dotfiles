@@ -24,6 +24,14 @@
 
     registry.nixpkgs.flake = inputs.nixpkgs;
 
+    gc = {
+      automatic = true;
+      dates = "weekly";
+      options = "--delete-older-than 7d";
+    };
+
+    optimise.automatic = true;
+
     # enable flakes
     package = pkgs.nixVersions.latest;
     extraOptions = ''
