@@ -16,6 +16,7 @@ in
   imports =
     [
       ./hardware-configuration.nix
+      ./syncthing.nix
       ../../modules/standard.nix
       ../../modules/laptop.nix
       ../../modules/docker.nix
