@@ -1,0 +1,9 @@
+{
+  "name": "pyret",
+  "version": "0.1.24",
+  "private": true,
+  "description": "Pinned Pyret toolchain, packaged for Nix.",
+  "dependencies": {
+    "pyret-npm": "0.1.24"
+  }
+}

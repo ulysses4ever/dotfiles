@@ -59,3 +59,10 @@
 
 (package! mermaid-mode)
 (package! ob-mermaid)
+
+;; Pyret's Emacs mode lives inside the pyret-lang monorepo, on the `drydock`
+;; default branch. The file provides feature `pyret', not `pyret-mode'.
+(package! pyret
+  :recipe (:host github :repo "brownplt/pyret-lang"
+           :branch "drydock"
+           :files ("lang/tools/emacs/pyret.el")))

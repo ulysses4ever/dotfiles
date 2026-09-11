@@ -120,6 +120,7 @@ with pkgs; [
      jdk ant maven
      python3Minimal
      julia-lts
+     (callPackage ./pkgs/pyret { })
 
      # direnv
 

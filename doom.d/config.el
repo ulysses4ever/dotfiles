@@ -183,6 +183,33 @@ nothing happens."
 (after! evil-escape
   (setq evil-escape-key-sequence "jk"))
 
+;; pyret.el ships no autoload cookies, so its own `auto-mode-alist' entry never
+;; fires until the package is loaded.
+(use-package! pyret
+  :mode ("\\.arr\\'" . pyret-mode)
+  :config
+  (defun +pyret-run ()
+    "Run the current Pyret file's check blocks."
+    (interactive)
+    (save-buffer)
+    ;; pyret drops a .pyret/ cache beside the file and resolves the compiled
+    ;; output's requires from it, so it has to run in the file's directory.
+    (let ((default-directory (file-name-directory buffer-file-name)))
+      (compile (concat "pyret -q --checks all "
+                       (shell-quote-argument
+                        (file-name-nondirectory buffer-file-name))))))
+
+  (map! :map pyret-mode-map :localleader "r" #'+pyret-run)
+
+  (after! compile
+    ;; Locations read `file://ABS/PATH:LINE:COL-LINE:COL', at the start of
+    ;; check-result lines and mid-sentence in compile errors, so this cannot
+    ;; anchor to the start of a line.
+    (add-to-list 'compilation-error-regexp-alist-alist
+                 '(pyret "file://\\(.+?\\):\\([0-9]+\\):\\([0-9]+\\)-[0-9]+:[0-9]+"
+                         1 2 3))
+    (add-to-list 'compilation-error-regexp-alist 'pyret)))
+
 ;; accept completion from copilot and fallback to company
 (use-package! copilot
   :hook (prog-mode . copilot-mode)
