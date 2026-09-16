@@ -154,6 +154,13 @@
           "www.pelenitsyn.site" = {
             service = "http://localhost:80";
           };
+          # grader. is the name to keep; pyret-grader. is the original and stays
+          # until nothing points at it. Both must be in the Cloudflare Access
+          # app — serve.py has no auth of its own, so a hostname that routes
+          # here without Access in front is an open autograder.
+          "grader.pelenitsyn.site" = {
+            service = "http://localhost:8120";
+          };
           "pyret-grader.pelenitsyn.site" = {
             service = "http://localhost:8120";
           };
