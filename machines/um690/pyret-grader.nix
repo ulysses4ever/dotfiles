@@ -33,8 +33,8 @@ in
     after = [ "network-online.target" ];
   
     # systemd.user.services is defined for every user on the machine. This is
-    # the only thing stopping it fr Jump to bottom (ctrl+End) ↓ her account
-    # that gets a session.
+    # the only thing stopping it from running under any other account that
+    # gets a session.
     unitConfig.ConditionUser = "artem";
 
     path = with pkgs; [ nix bash coreutils git ];
