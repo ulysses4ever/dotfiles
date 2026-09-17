@@ -300,9 +300,6 @@ bindsym $mod+p exec grim -g "$(slurp)" ~/Pictures/$(date +%Y-%m-%d_%H-%m-%s).png
 #
 exec wlsunset -s 17:00 -S 10:00
 
-# seem to help with screensharing:
-exec systemctl --user restart xdg-desktop-portal-wlr
-
 # Brightness
 bindsym --locked XF86MonBrightnessUp exec light -T 1.4
 bindsym --locked XF86MonBrightnessDown exec light -T 0.72
@@ -319,9 +316,17 @@ exec mako --default-timeout=10000
 exec nm-applet --indicator
 
 # this is some magic spell to make gnome apps work on sway >1.5
-exec systemctl --user import-environment DISPLAY WAYLAND_DISPLAY SWAYSOCK
+# XDG_CURRENT_DESKTOP has to be in here: xdg-desktop-portal picks its backend
+# config file by that name, and a GNOME login earlier in the boot leaves GNOME
+# in the systemd user env, which routes FileChooser to xdg-desktop-portal-gnome.
+# That cannot start here and nothing falls back to gtk, so every file picker --
+# browser upload dialogs included -- silently does nothing. The portal restart
+# (which also seems to help with screensharing) has to be in this same command,
+# after the import, or it races and re-reads the stale value.
+# The outer quotes matter: sway splits commands on ';'.
+exec 'systemctl --user import-environment DISPLAY WAYLAND_DISPLAY SWAYSOCK XDG_CURRENT_DESKTOP XDG_SESSION_DESKTOP; systemctl --user restart xdg-desktop-portal.service xdg-desktop-portal-wlr.service'
 exec hash dbus-update-activation-environment 2>/dev/null && \
-     dbus-update-activation-environment --systemd DISPLAY WAYLAND_DISPLAY SWAYSOCK PATH
+     dbus-update-activation-environment --systemd DISPLAY WAYLAND_DISPLAY SWAYSOCK PATH XDG_CURRENT_DESKTOP XDG_SESSION_DESKTOP
 
 # The emacs daemon is WantedBy=default.target so a text-TTY login still gets
 # one, so it starts before sway and caches an environment with no DISPLAY.
