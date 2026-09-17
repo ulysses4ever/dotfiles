@@ -323,9 +323,11 @@ exec nm-applet --indicator
 # browser upload dialogs included -- silently does nothing. The portal restart
 # (which also seems to help with screensharing) has to be in this same command,
 # after the import, or it races and re-reads the stale value.
+# exec_always, not exec: a plain `swaymsg reload` does not re-run exec lines, so a
+# stale env would survive every reload and only clear on a full re-login.
 # The outer quotes matter: sway splits commands on ';'.
-exec 'systemctl --user import-environment DISPLAY WAYLAND_DISPLAY SWAYSOCK XDG_CURRENT_DESKTOP XDG_SESSION_DESKTOP; systemctl --user restart xdg-desktop-portal.service xdg-desktop-portal-wlr.service'
-exec hash dbus-update-activation-environment 2>/dev/null && \
+exec_always 'systemctl --user import-environment DISPLAY WAYLAND_DISPLAY SWAYSOCK XDG_CURRENT_DESKTOP XDG_SESSION_DESKTOP; systemctl --user restart xdg-desktop-portal.service xdg-desktop-portal-wlr.service'
+exec_always hash dbus-update-activation-environment 2>/dev/null && \
      dbus-update-activation-environment --systemd DISPLAY WAYLAND_DISPLAY SWAYSOCK PATH XDG_CURRENT_DESKTOP XDG_SESSION_DESKTOP
 
 # The emacs daemon is WantedBy=default.target so a text-TTY login still gets
