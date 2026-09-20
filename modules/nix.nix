@@ -5,6 +5,16 @@
   #
   #   Meta: Nix & Nixpkgs Config
   #
+
+  # Lets any module take `pkgsUnstable` as an argument and pull single packages
+  # from unstable. Defined here, which every machine reaches, rather than in
+  # each machine: toshiba-portege-z930 skips standard.nix and so would have been
+  # the one host where a shared list like packages.nix could not use it.
+  _module.args.pkgsUnstable = import inputs.nixpkgs-unstable {
+    inherit (pkgs.stdenv.hostPlatform) system;
+    inherit (config.nixpkgs) config;
+  };
+
   nixpkgs.config = {
     allowUnfree = true;
 

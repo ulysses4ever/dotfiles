@@ -30,10 +30,7 @@ in
       ../../modules/docker.nix
     ];
 
-  _module.args.pkgsUnstable = import inputs.nixpkgs-unstable {
-    inherit (pkgs.stdenv.hostPlatform) system;
-    inherit (config.nixpkgs) config;
-  };
+  # pkgsUnstable comes from modules/nix.nix, which standard.nix pulls in.
 
   #######################################################################################
   #

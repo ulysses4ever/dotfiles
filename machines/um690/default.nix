@@ -15,11 +15,7 @@
       ../../modules/docker.nix
     ];
 
-  # this allows you to access `pkgsUnstable` anywhere in your config
-  _module.args.pkgsUnstable = import inputs.nixpkgs-unstable {
-    inherit (pkgs.stdenv.hostPlatform) system;
-    inherit (config.nixpkgs) config;
-  };
+  # pkgsUnstable comes from modules/nix.nix, which standard.nix pulls in.
 
   # environment.systemPackages = [ pkgsUnstable.haskell.compiler.ghc9121 ];
   environment.systemPackages = with pkgs; [
@@ -28,8 +24,6 @@
     (coq.withPackages (ps: with ps; [
       coqPackages.stdlib
     ]))
-
-    claude-code
   ];
 
   # systemd.services.hermes-gateway = {

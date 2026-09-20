@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ pkgs, pkgsUnstable, ... }:
 
 { environment.systemPackages =
 with pkgs; [
@@ -105,7 +105,7 @@ with pkgs; [
     binutils gnumake gdb
     nodejs # neovim wants it
     gh
-    claude-code
+    pkgsUnstable.claude-code # released far faster than a NixOS cycle
 
     ghc cabal-install ghcid
     haskellPackages.alex
