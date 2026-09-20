@@ -4,7 +4,15 @@
     bindMount = dev: { device = dev; options = [ "bind" "nofail" ]; fsType = "ext4"; };
   in
 {
-  imports = [ ./matrix-bot.nix ./cu-cs-mirror.nix ./pyret-grader.nix ];
+  imports = [
+    ./matrix-bot.nix
+    ./cu-cs-mirror.nix
+    # tailnet-serve.nix owns `tailscale serve` for the whole node; the two
+    # below contribute a port each rather than each running their own reset.
+    ./tailnet-serve.nix
+    ./pyret-grader.nix
+    ./course-status.nix
+  ];
 
   # Disable IPv6 in the hope to recover torrent access / XFinity port forwarding.
   networking.enableIPv6 = false;

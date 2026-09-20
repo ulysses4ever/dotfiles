@@ -61,34 +61,14 @@ in
   # address. Binding it there would take it off loopback, forcing cloudflared
   # to reach it over the tailnet too, and a tailscaled outage would then break
   # the off-campus path as well. Proxying keeps the two paths independent.
-  systemd.services.grader-tailnet = {
-    description = "Expose the Pyret autograder on the tailnet";
-    wants = [ "tailscaled.service" ];
-    after = [ "tailscaled.service" ];
-    wantedBy = [ "multi-user.target" ];
-
-    serviceConfig = {
-      Type = "oneshot";
-      RemainAfterExit = true;
-      # tailscaled is up before it is authenticated; serve fails until then.
-      Restart = "on-failure";
-      RestartSec = 10;
-
-      # serve config lives in tailscaled's state, not here, so it survives
-      # across rebuilds and would otherwise accumulate stale handlers on this
-      # port. Reset first so the node's config is exactly what this unit
-      # declares. um690 serves nothing else this way; revisit if it ever does.
-      ExecStartPre = "-${config.services.tailscale.package}/bin/tailscale serve reset";
-
-      # --tcp, not --http. Serve's HTTP mode is a reverse proxy that routes on
-      # the Host header and only answers for this node's MagicDNS names, so a
-      # browser arriving through `ssh -L` — which sends Host: localhost:8120 —
-      # gets a 404. Raw TCP passthrough does not inspect the request at all.
-      # (--https is the default mode and is wrong here for the same reason,
-      # plus it would demand a certificate for a hostname the client isn't using.)
-      # --yes suppresses a confirmation prompt that would hang the unit.
-      ExecStart = "${config.services.tailscale.package}/bin/tailscale serve --bg --yes --tcp=${toString port} tcp://127.0.0.1:${toString port}";
-    };
-  };
+  #
+  # This was a `grader-tailnet` unit of its own, resetting the serve config
+  # before declaring this port, under a comment reading "um690 serves nothing
+  # else this way; revisit if it ever does." It does now — course-status.nix is
+  # on 8121 — and `reset` clears the node's whole config rather than one port,
+  # so two such units would take turns deleting each other's handler. The reset
+  # and every declaration moved into tailnet-serve.nix together; its header has
+  # the reasoning, including why unit ordering would not have been a fix.
+  um690.tailnetServe.tcp."${toString port}" = "tcp://127.0.0.1:${toString port}";
 }
 
