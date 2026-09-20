@@ -324,9 +324,14 @@ exec nm-applet --indicator
 # (which also seems to help with screensharing) has to be in this same command,
 # after the import, or it races and re-reads the stale value.
 # exec_always, not exec: a plain `swaymsg reload` does not re-run exec lines, so a
-# stale env would survive every reload and only clear on a full re-login.
+# stale env would survive every reload and clear only on a full re-login. The
+# import is idempotent, but restarting the portal kills any in-flight screencast
+# and reload is on $mod+Shift+c -- so only restart when the running portal really
+# does hold the wrong value, which happens after a GNOME login and not otherwise.
 # The outer quotes matter: sway splits commands on ';'.
-exec_always 'systemctl --user import-environment DISPLAY WAYLAND_DISPLAY SWAYSOCK XDG_CURRENT_DESKTOP XDG_SESSION_DESKTOP; systemctl --user restart xdg-desktop-portal.service xdg-desktop-portal-wlr.service'
+# NB: `grep` here is ugrep, where -z is --decompress, not GNU's --null-data, so
+# splitting environ with tr is both correct and portable between the two greps.
+exec_always 'systemctl --user import-environment DISPLAY WAYLAND_DISPLAY SWAYSOCK XDG_CURRENT_DESKTOP XDG_SESSION_DESKTOP; pid=$(systemctl --user show -p MainPID --value xdg-desktop-portal.service); tr "\0" "\n" < /proc/$pid/environ | grep -q "^XDG_CURRENT_DESKTOP=sway" || systemctl --user restart xdg-desktop-portal.service xdg-desktop-portal-wlr.service'
 exec_always hash dbus-update-activation-environment 2>/dev/null && \
      dbus-update-activation-environment --systemd DISPLAY WAYLAND_DISPLAY SWAYSOCK PATH XDG_CURRENT_DESKTOP XDG_SESSION_DESKTOP
 
