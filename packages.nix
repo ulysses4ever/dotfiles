@@ -85,7 +85,17 @@ with pkgs; [
     # Desktop
     xdg-utils
     firefox chromium
-    zoom-us
+    # From unstable: 26.05's zoom-us leaves libxcb-util out of the FHS sandbox,
+    # so /opt/zoom/zopen, the bare Qt helper that hands the SSO login URL to the
+    # browser, dies loading the xcb platform plugin and the SSO "Continue"
+    # button does nothing. (The main client only survives because it links
+    # xcb-image/cursor/keysyms directly and their runpaths drag xcb-util in.)
+    # Unstable fixed the dependency list along with 7.1.5. The price is a
+    # second dependency tree: 2.8 GiB unique in the store, 1.7 GiB net of what
+    # stable's zoom held (measured 2026-09). If that is too dear on a small /,
+    # the lean fix on stable is
+    # `zoom-us.override { targetPkgsFixed = [ libxcb-util ]; }`.
+    pkgsUnstable.zoom-us
     telegram-desktop
     shotwell
 
