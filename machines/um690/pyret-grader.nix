@@ -6,7 +6,7 @@
 let
   checkout = "/home/artem/dev/pyret-grader";
   port = 8120;
-   
+
   # nix-shell needs a shell to run in and the unit needs one command to
   # exec, so the two meet in a script rather than in ExecStart quoting.
   # shell.nix pins its own nixpkgs, so NIX_PATH is deliberately not set.
@@ -14,33 +14,47 @@ let
     cd ${checkout}
     exec ${pkgs.nix}/bin/nix-shell --run "./serve.py --port ${toString port}"
   '';
+
+  # A restart is the deploy. The checkout is brought up to origin/main before
+  # serve.py starts, so after a push `systemctl --user restart pyret-grader`
+  # is the whole procedure — Artem, 2026-09-25, after a release sat unpulled
+  # on the box for three days. Fast-forward only, so the box never merges;
+  # the `-` on ExecStartPre below lets a failed pull (no network, a diverged
+  # checkout) log and start the old code rather than take the grader down.
+  pull = pkgs.writeShellScript "pyret-grader-pull" ''
+    cd ${checkout}
+    exec ${pkgs.git}/bin/git pull --ff-only
+  '';
 in
-{   
+{
   # Student names, code and grades land in ${checkout}/runs. This box also
   # runs eight GitHub Actions runners sharing an org PAT, so the mode is
   # doing real work: keep it 0700 and keep the directory out of any path
   # those runners check out into.
   systemd.tmpfiles.rules = [ "d ${checkout} 0700 artem users -" ];
-      
+
   # grade.py wraps every submission in `systemd-run --user --scope`, which
   # needs a user manager and its session bus. Linger starts one at boot, so
   # the grader survives a reboot with nobody logged in.
   users.users.artem.linger = true;
-  
+
   systemd.user.services.pyret-grader = {
     description = "CMSC 120 Pyret autograder";
     wantedBy = [ "default.target" ];
     wants = [ "network-online.target" ];
     after = [ "network-online.target" ];
-  
+
     # systemd.user.services is defined for every user on the machine. This is
     # the only thing stopping it from running under any other account that
     # gets a session.
     unitConfig.ConditionUser = "artem";
 
-    path = with pkgs; [ nix bash coreutils git ];
+    # openssh is for the pull: the remote is git@github.com and git looks for
+    # ssh on PATH, which is this list and nothing else.
+    path = with pkgs; [ nix bash coreutils git openssh ];
 
     serviceConfig = {
+      ExecStartPre = "-${pull}";
       ExecStart = start;
       Restart = "on-failure";
       RestartSec = 5;
@@ -71,4 +85,3 @@ in
   # the reasoning, including why unit ordering would not have been a fix.
   um690.tailnetServe.tcp."${toString port}" = "tcp://127.0.0.1:${toString port}";
 }
-
