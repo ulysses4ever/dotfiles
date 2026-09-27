@@ -109,13 +109,13 @@
     # dialog on DISPLAY :0 — invisible to a terminal or ssh session, so signing
     # there just hangs until it times out. Curses prompts in the tty instead.
     pinentryPackage = pkgs.pinentry-curses;
-    # The agent is per-login-session, not per-terminal, so one unlock covers
-    # every shell until these expire. Defaults are 600s idle / 7200s absolute,
-    # which means re-typing the passphrase several times a day just to commit.
-    settings = {
-      default-cache-ttl = 604800;
-      max-cache-ttl = 604800;
-    };
+    # No cache-ttl settings on purpose. The signing key carries no passphrase,
+    # so there is nothing for the agent to cache and raising the TTL bought
+    # nothing -- the cache lives in the agent's memory and dies with it, so it
+    # could never have survived a reboot, which was the actual goal. The same
+    # applies to ssh: enableSSHSupport serves that same passphrase-less key.
+    # Note pinentry-curses refuses an empty passphrase and silently re-prompts;
+    # `gpg --pinentry-mode loopback --passwd <key>` is the way to clear one.
   };
 
   # Fonts
