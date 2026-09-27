@@ -102,6 +102,14 @@
     enable = true;
     host = "0.0.0.0";
     mediaLocation = "/media/immich/data";
+    # 26.05 pins immich 2.7.5, which is now marked insecure: the 2.x line is
+    # end-of-life (CVE-2026-59258, CVE-2026-82272) and 3.x only landed in
+    # 26.11, so the package has to come from unstable. Only the application
+    # moves -- vectorchord is 1.1.1 in both channels, so the module's
+    # postgres setup and the vector indexes stay where they are, and no
+    # REINDEX is triggered. This one option covers machine learning too,
+    # whose unit runs `cfg.package.machine-learning`.
+    package = pkgsUnstable.immich;
   };
   fileSystems."/media/immich/data" = bindMount "/home/artem/data/Pictures/immich-data";
   fileSystems."/media/immich/archive" = bindMount "/home/artem/data/Pictures/archive";
