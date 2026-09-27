@@ -12,6 +12,7 @@
     ./tailnet-serve.nix
     ./pyret-grader.nix
     ./course-status.nix
+    ./brightspace-keepalive.nix
   ];
 
   # Disable IPv6 in the hope to recover torrent access / XFinity port forwarding.
