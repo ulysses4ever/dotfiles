@@ -71,6 +71,9 @@
     "d /mnt 0755 root users"
     "d /mnt/data 0755 root users"
     "d /mnt/data/artem 0755 artem users"
+    # Docker's overlay2 tree had grown to 27G on a 96G root partition, next to
+    # 1.1T free here. 0710 root:root mirrors what the daemon creates itself.
+    "d /mnt/data/docker 0710 root root"
   ];
 
   systemd.user.tmpfiles.rules = [
@@ -115,6 +118,16 @@
   fileSystems."/media/immich/archive" = bindMount "/home/artem/data/Pictures/archive";
   fileSystems."/media/immich/cell" = bindMount "/home/artem/data/Pictures//pixel7a-artem/Camera";
   fileSystems."/home/artem/data" = bindMount "/mnt/data/artem";
+  # Keeps the daemon's own path at /var/lib/docker, so nothing in docker's
+  # config or in any compose file has to know the store moved. Done as a bind
+  # rather than `daemon.settings.data-root` because the same mount can be made
+  # by hand before the rebuild, which is what frees the space the rebuild needs.
+  fileSystems."/var/lib/docker" = bindMount "/mnt/data/docker";
+  # docker.service ships only After=network.target docker.socket -- no
+  # RequiresMountsFor of its own -- and the `nofail` above lets boot continue
+  # when the bind is missing. Together those let the daemon come up against the
+  # empty directory underneath and quietly rebuild its store back onto /.
+  systemd.services.docker.unitConfig.RequiresMountsFor = "/var/lib/docker";
 
   ##############################################################################
   #
