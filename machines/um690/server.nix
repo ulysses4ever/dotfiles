@@ -1,7 +1,13 @@
 { config, lib, pkgs, pkgsUnstable, ... }:
 
   let
-    bindMount = dev: { device = dev; options = [ "bind" "nofail" ]; fsType = "ext4"; };
+    # fsType "none" is the fstab convention for a bind: the kernel ignores the
+    # type when -o bind is given, so naming a real filesystem here only invited
+    # confusion. Changing it is not free -- switch-to-configuration treats a
+    # mount unit's Type change as needing a restart (unmount + remount), unlike
+    # an Options change which it merely reloads -- so apply this with
+    # `nixos-rebuild boot` and a reboot, never a live `switch`.
+    bindMount = dev: { device = dev; options = [ "bind" "nofail" ]; fsType = "none"; };
   in
 {
   imports = [
