@@ -128,7 +128,14 @@ with pkgs; [
 
      gcc git cmake
      jdk ant maven
-     python3Minimal
+     # A full python with the two modules ~/edu/scripts needs, so every script
+     # there runs as `./x.py` or `python3 x.py` with no nix-shell around it.
+     # python3Minimal, which was here until 2026-09-27, has no ssl, no zlib and
+     # no third-party modules: brightspace.py could not reach https, its tests
+     # could not read Firefox's session store, and each script had to relaunch
+     # itself under nix-shell to run at all. lz4 is Firefox's session-store
+     # container; pyyaml reads course-status.yml.
+     (python3.withPackages (ps: with ps; [ lz4 pyyaml ]))
      julia-lts
      (callPackage ./pkgs/pyret { })
 
