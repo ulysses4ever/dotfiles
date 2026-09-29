@@ -66,3 +66,6 @@
   :recipe (:host github :repo "brownplt/pyret-lang"
            :branch "drydock"
            :files ("lang/tools/emacs/pyret.el")))
+
+;; Outline sidebar; see the use-package! block in config.el.
+(package! imenu-list)

@@ -256,3 +256,31 @@ nothing happens."
 (setq ob-mermaid-cli-path "mmdc")
 ;; Add mermaid to org-babel-load-languages
 (org-babel-do-load-languages 'org-babel-load-languages '((mermaid . t)))
+
+;; Outline sidebar (SPC o o): the imenu index that SPC s i shows in a popup,
+;; kept in a persistent pane under treemacs' one in the same left column.
+(use-package! imenu-list
+  :commands imenu-list-smart-toggle
+  :init
+  (map! :leader :desc "Outline sidebar" "o o" #'imenu-list-smart-toggle)
+  :config
+  (setq imenu-list-focus-after-activation nil)
+  ;; Must come after the package loads: imenu-list installs its own placement
+  ;; rule at load time, which splits the frame root window and cannot coexist
+  ;; with treemacs' side window. A rule set afterwards takes precedence.
+  ;; display-buffer-in-side-window joins treemacs' column below it; drop
+  ;; :actions to get a second full-height column instead.
+  (set-popup-rule! "^\\*Ilist\\*$"
+    :actions '(display-buffer-in-side-window)
+    :side 'left :size 35 :height 0.45 :slot 1
+    :quit nil :select nil :ttl nil)
+  ;; imenu-list's idle refresh is skipped when point is at the same position
+  ;; as in the previous buffer, so a freshly opened file keeps the old outline
+  ;; until the cursor moves. Refresh on every buffer switch instead.
+  (defun +outline-follow-buffer-h (frame)
+    (with-current-buffer (window-buffer (frame-selected-window frame))
+      (when (and imenu-list-minor-mode
+                 (not (minibufferp))
+                 (not (derived-mode-p 'imenu-list-major-mode)))
+        (ignore-errors (imenu-list-update t)))))
+  (add-hook 'window-buffer-change-functions #'+outline-follow-buffer-h))
