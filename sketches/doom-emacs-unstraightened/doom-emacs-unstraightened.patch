@@ -1,0 +1,267 @@
+diff --git a/doom.d/config.el b/doom.d/config.el
+index fc2af1b..3efb7c0 100644
+--- a/doom.d/config.el
++++ b/doom.d/config.el
+@@ -177,6 +177,16 @@ nothing happens."
+ ;; Moving over camelCase graciously
+ (global-subword-mode 1)
+ 
++;; The emoji module turns on global-emojify-mode with the first buffer, and the
++;; +github style needs an image set that emojify fetches on first use. Left at
++;; its default ('ask) it asks with yes-or-no-p, which in the daemon -- before
++;; any frame exists -- waits on a keyboard there isn't and wedges the whole
++;; daemon. That surfaced moving to nix-doom-emacs-unstraightened, whose data
++;; dir starts out empty. Fetch without asking: a failed download errors out
++;; instead of hanging.
++(after! emojify
++  (setq emojify-download-emojis-p t))
++
+ ;; jk stopped working suddenly in Spring 2025.
+ ;; Trying to bring it back using the advice how to disable it:
+ ;; https://discourse.doomemacs.org/t/59
+diff --git a/doom.d/init.el b/doom.d/init.el
+index 75972bf..33cfcb3 100644
+--- a/doom.d/init.el
++++ b/doom.d/init.el
+@@ -32,7 +32,7 @@
+        :ui
+        ;;deft              ; notational velocity for Emacs
+        doom              ; what makes DOOM look the way it does
+-       doom-dashboard    ; a nifty splash screen for Emacs
++       dashboard         ; a nifty splash screen for Emacs (was doom-dashboard until Doom's June 2026 rename)
+        ;doom-quit         ; DOOM quit-message prompts when you quit Emacs
+        (emoji +unicode +github)  ; 🙂
+        hl-todo           ; highlight TODO/FIXME/NOTE/DEPRECATED/HACK/REVIEW
+@@ -102,7 +102,6 @@
+        ;;pass              ; password manager for nerds
+        pdf               ; pdf enhancements
+        ;;prodigy           ; FIXME managing external services & code builders
+-       rgb               ; creating color strings
+        ;;taskrunner        ; taskrunner for all your projects
+        ;;terraform         ; infrastructure as code
+        ;;tmux              ; an API for interacting with tmux
+diff --git a/doom.d/packages.el b/doom.d/packages.el
+index af2c771..89ad48c 100644
+--- a/doom.d/packages.el
++++ b/doom.d/packages.el
+@@ -62,7 +62,14 @@
+ 
+ ;; Pyret's Emacs mode lives inside the pyret-lang monorepo, on the `drydock`
+ ;; default branch. The file provides feature `pyret', not `pyret-mode'.
++;; The :pin is required, not decorative: pyret is not on MELPA, and
++;; nix-doom-emacs-unstraightened refuses to build a recipe package that
++;; emacs-overlay does not provide unless it is pinned. This is the commit
++;; straight.el had checked out when the mode was last known to work; the next
++;; one to touch pyret.el (6e62dcda52) only adds a lexical-binding cookie, which
++;; is worth taking but changes scoping for the whole file.
+ (package! pyret
+   :recipe (:host github :repo "brownplt/pyret-lang"
+            :branch "drydock"
+-           :files ("lang/tools/emacs/pyret.el")))
++           :files ("lang/tools/emacs/pyret.el"))
++  :pin "99c834686b40f93fd1273e29f3af3d759a1fda4a")
+diff --git a/flake.lock b/flake.lock
+index d04a236..4a4389f 100644
+--- a/flake.lock
++++ b/flake.lock
+@@ -20,6 +20,78 @@
+         "type": "github"
+       }
+     },
++    "doomdir": {
++      "flake": false,
++      "locked": {
++        "lastModified": 1783603851,
++        "narHash": "sha256-PXn0v4NR75U7/FpkaZ9GD6HPepVY5vVT48tMd1tMgdQ=",
++        "owner": "marienz",
++        "repo": "nix-doom-emacs-unstraightened",
++        "rev": "4c63e8a411f815bd2473e5ced94dc4b8bf31d240",
++        "type": "github"
++      },
++      "original": {
++        "owner": "marienz",
++        "ref": "doomdir",
++        "repo": "nix-doom-emacs-unstraightened",
++        "type": "github"
++      }
++    },
++    "doomemacs": {
++      "flake": false,
++      "locked": {
++        "lastModified": 1788654597,
++        "narHash": "sha256-Ywp5JhRziVk11M8qPhejJS+tF4ONNbOhevj5JRZsfOg=",
++        "owner": "doomemacs",
++        "repo": "core",
++        "rev": "01d68aaf6bd7db073365385cd82e1ad7e815295c",
++        "type": "github"
++      },
++      "original": {
++        "owner": "doomemacs",
++        "repo": "core",
++        "type": "github"
++      }
++    },
++    "doomemacs-modules": {
++      "flake": false,
++      "locked": {
++        "lastModified": 1788284745,
++        "narHash": "sha256-W+Xwss52Eb6K+I7TRaCU3Z5zPxmo0PfWbNPNLJv1TjE=",
++        "owner": "doomemacs",
++        "repo": "modules",
++        "rev": "d57ab52a3425b6d39564fb011b0e9571da0e270f",
++        "type": "github"
++      },
++      "original": {
++        "owner": "doomemacs",
++        "repo": "modules",
++        "type": "github"
++      }
++    },
++    "emacs-overlay": {
++      "inputs": {
++        "nixpkgs": [
++          "nix-doom-emacs-unstraightened"
++        ],
++        "nixpkgs-stable": [
++          "nix-doom-emacs-unstraightened"
++        ]
++      },
++      "locked": {
++        "lastModified": 1790613328,
++        "narHash": "sha256-5LDnCPquVuofOFXKvJCPhwfiWtL4bFqqrgjplJAcxrE=",
++        "owner": "nix-community",
++        "repo": "emacs-overlay",
++        "rev": "cb705f871c3cb8a2749527c4b175ebbb9319b261",
++        "type": "github"
++      },
++      "original": {
++        "owner": "nix-community",
++        "repo": "emacs-overlay",
++        "type": "github"
++      }
++    },
+     "home-manager": {
+       "inputs": {
+         "nixpkgs": [
+@@ -41,6 +113,28 @@
+         "type": "github"
+       }
+     },
++    "nix-doom-emacs-unstraightened": {
++      "inputs": {
++        "doomdir": "doomdir",
++        "doomemacs": "doomemacs",
++        "doomemacs-modules": "doomemacs-modules",
++        "emacs-overlay": "emacs-overlay",
++        "nixpkgs": []
++      },
++      "locked": {
++        "lastModified": 1790657029,
++        "narHash": "sha256-dzsCRMi2ToBSQPA7bfthCfjKWyUB98mFNFpz1zw/3ms=",
++        "owner": "marienz",
++        "repo": "nix-doom-emacs-unstraightened",
++        "rev": "8099e7a6294d2d9e1bbd2dd9750767f2192a81df",
++        "type": "github"
++      },
++      "original": {
++        "owner": "marienz",
++        "repo": "nix-doom-emacs-unstraightened",
++        "type": "github"
++      }
++    },
+     "nixpkgs": {
+       "locked": {
+         "lastModified": 1790450978,
+@@ -77,6 +171,7 @@
+       "inputs": {
+         "disko": "disko",
+         "home-manager": "home-manager",
++        "nix-doom-emacs-unstraightened": "nix-doom-emacs-unstraightened",
+         "nixpkgs": "nixpkgs",
+         "nixpkgs-unstable": "nixpkgs-unstable"
+       }
+diff --git a/flake.nix b/flake.nix
+index c0d6a1f..b60cb4f 100644
+--- a/flake.nix
++++ b/flake.nix
+@@ -8,6 +8,12 @@
+     home-manager.inputs.nixpkgs.follows = "nixpkgs";
+     disko.url = github:nix-community/disko;
+     disko.inputs.nixpkgs.follows = "nixpkgs";
++    # Doom Emacs built by Nix instead of straight.el: `doom sync` goes away and
++    # every package is pinned by this flake's lock. The home-manager module
++    # builds against home-manager's own pkgs, so its nixpkgs input is never
++    # read; pointing it at nothing saves fetching a second nixpkgs.
++    nix-doom-emacs-unstraightened.url = "github:marienz/nix-doom-emacs-unstraightened";
++    nix-doom-emacs-unstraightened.inputs.nixpkgs.follows = "";
+   };
+ 
+   outputs = { home-manager, nixpkgs, disko, ... }@inputs: {
+@@ -30,9 +36,10 @@
+             # used to be mutable state doesn't require hand-deleting it first.
+             home-manager.backupFileExtension = "hm-bak";
+             home-manager.users.artem = { pkgs, ... }: {
+-              imports = [ 
+-                ./home.nix 
+-                { 
++              imports = [
++                ./home.nix
++                inputs.nix-doom-emacs-unstraightened.homeModule
++                {
+                   xdg.configFile."sway/machine-dependent".source = ./machines + "/${mname}" +
+                   "/sway/machine-dependent";  
+                 }
+diff --git a/home.nix b/home.nix
+index 660fc4d..fda19f9 100644
+--- a/home.nix
++++ b/home.nix
+@@ -128,14 +128,42 @@
+   };
+ 
+   # emacs
++  #
++  # Doom Emacs built by nix-doom-emacs-unstraightened (flake input; its
++  # home-manager module is imported in flake.nix). The module installs `emacs`
++  # and `emacsclient` itself and sets services.emacs.package, so programs.emacs
++  # has to stay off -- both would put an `emacs` into the profile and collide.
++  #
++  # ./doom.d is baked into the store rather than symlinked to ~/.config/doom,
++  # so a config edit takes a rebuild plus an Emacs restart; `doom sync` and
++  # `doom/reload` no longer apply. vterm and pdf-tools used to be added here by
++  # hand: Doom's :term vterm and :tools pdf modules pull them now, with their
++  # native halves (libvterm, epdfinfo) built by Nix.
+   services.emacs.enable = true;
+-  # remove if controlled by nix-doom-emacs; cf. in flakes.nix
+-  programs.emacs.enable = true;
+-  programs.emacs.package = pkgs.emacs30-pgtk;
+-  programs.emacs.extraPackages = epkgs: with epkgs; [ vterm pdf-tools ];
+-
+-  # My Doom Emacs config
+-  xdg.configFile."doom".source = ./doom.d;
++  programs.doom-emacs = {
++    enable = true;
++    doomDir = ./doom.d;
++    emacs = pkgs.emacs30-pgtk;
++    # Fetch pinned packages as GitHub tarballs instead of full-history git
++    # clones. That matters for pyret, whose mode lives in the ~650M pyret-lang
++    # monorepo, and it sidesteps the "Cannot find Git revision" fetchGit
++    # failures upstream reports on Nix newer than 2.18.
++    experimentalFetchTree = true;
++    # copilot.el now ships its own copilot-chat.el, and so does the separate
++    # copilot-chat package (chep) that packages.el pulls in. Both
++    # `(provide 'copilot-chat)`, so whichever sits first on load-path is the
++    # only one that can ever load. Under straight.el that was chep's, which is
++    # what the `SPC l` bindings in config.el call into; here copilot's would
++    # win and break them (copilot-chat-add-current-buffer lives in chep's
++    # copilot-chat-command.el, which requires chep's copilot-chat). The fix has
++    # to be here: Unstraightened ignores a recipe's :files for packages that
++    # emacs-overlay already provides.
++    emacsPackageOverrides = eself: esuper: {
++      copilot = esuper.copilot.overrideAttrs (old: {
++        files = ''(:defaults "dist" (:exclude "copilot-chat.el"))'';
++      });
++    };
++  };
+ 
+   # Dropbox
+   # defunct as of end of 2023
