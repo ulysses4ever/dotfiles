@@ -15,6 +15,11 @@ let
   # Beside the grader's 8120 because they are the same family of tooling.
   # Not a course number: this one reports on all three courses.
   port = 8121;
+  # The desktop's own Python (packages.nix), which carries pyyaml and lz4. With
+  # it course-status-serve.py runs the report directly instead of through the
+  # script's nix-shell shebang, which cost about 0.7 s of every report
+  # (measured 2026-10-02). The same expression, so the same store path.
+  python = pkgs.python3.withPackages (ps: with ps; [ lz4 pyyaml ]);
 in
 {
   systemd.services.course-status = {
@@ -28,7 +33,9 @@ in
     # branch each website repo is on — and that one fails *quietly*: the
     # OSError is caught and the column prints `?`, so the header would read
     # `120@?` and look like a fact about the checkout rather than a missing
-    # binary. bash is what nix-shell runs the build in.
+    # binary. bash is what nix-shell runs the build in. nix and bash stay
+    # although the server now runs the report through `python` below: they
+    # are the fallback when that Python cannot read YAML.
     path = with pkgs; [ nix git bash coreutils ];
 
     serviceConfig = {
@@ -41,7 +48,7 @@ in
       # and his Dropbox.
       User = "artem";
 
-      ExecStart = "${pkgs.python3}/bin/python3 ${edu}/course-status-serve.py --port ${toString port}";
+      ExecStart = "${python}/bin/python3 ${edu}/course-status-serve.py --port ${toString port}";
       Restart = "on-failure";
       RestartSec = 5;
 
