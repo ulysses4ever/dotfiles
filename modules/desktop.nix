@@ -56,6 +56,11 @@
   programs.sway = {
     enable = true;
     wrapperFeatures.gtk = true;
+    # GDM starts sway with the PAM environment, which environment.localBinInPath never
+    # reaches (it only edits shell init), so bemenu-run couldn't see ~/.local/bin.
+    extraSessionCommands = ''
+      export PATH="$HOME/.local/bin:$PATH"
+    '';
   };
   services.gnome.gnome-keyring.enable = true;
   environment.systemPackages = with pkgs; [
