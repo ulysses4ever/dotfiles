@@ -17,6 +17,8 @@
     # below contribute a port each rather than each running their own reset.
     ./tailnet-serve.nix
     ./pyret-grader.nix
+    # The students' grader, beside it until the switch.
+    ./cu-cs-grader.nix
     ./course-status.nix
     ./brightspace-keepalive.nix
   ];
