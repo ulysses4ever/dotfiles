@@ -14,9 +14,6 @@
 # Nix store: keepalive.ini holds sessions. A change to web.ini takes effect on
 # `systemctl restart brightspace-web`; a change to brightspace-cli's checkout
 # reaches each command at once and the page itself on the same restart.
-#
-# The university sinkholes the whole pelenitsyn.site zone, so this does not
-# resolve on campus, the trade the decommissioned grader there made too.
 { config, lib, pkgs, ... }:
 
 let

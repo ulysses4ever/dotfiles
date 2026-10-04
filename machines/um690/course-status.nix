@@ -5,9 +5,10 @@
 # has no authentication of its own, so it is published on the tailnet and
 # nowhere else. Not through cloudflared like the grader: a new Cloudflare
 # hostname routes with no Access policy until one is added by hand, and the
-# university sinkholes the whole pelenitsyn.site zone anyway, so a public
-# hostname would not resolve from campus — which is where this is most wanted.
-# The tailnet is already authenticated and already works there.
+# tailnet is already authenticated. This also said the university sinkholed the
+# whole pelenitsyn.site zone, so that a public hostname would not resolve on
+# campus; Artem, 2026-10-04: "Campus doesn't block pelenitsyn.site last time I
+# checked.
 { config, lib, pkgs, ... }:
 
 let
