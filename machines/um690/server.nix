@@ -22,6 +22,7 @@
     ./cu-cs-grader.nix
     ./course-status.nix
     ./brightspace-keepalive.nix
+    ./brightspace-web.nix
   ];
 
   # Disable IPv6 in the hope to recover torrent access / XFinity port forwarding.
