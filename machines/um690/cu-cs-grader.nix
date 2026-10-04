@@ -1,19 +1,20 @@
-# cu-cs-grader.nix — the grader students test their work on, at
-# grader.cu-cs-classes.site. The `next` branch of cu-cs-courses/pyret-grader
-# until the switch; pyret-grader.nix is the instructors-only grader it will
-# replace, and stays as it is until then.
+# cu-cs-grader.nix — the autograder, at grader.cu-cs-classes.site: students
+# test their work on it, and instructors grade on it under /teach. The `main`
+# branch of cu-cs-courses/pyret-grader, v2.0 on. It replaced pyret-grader.nix,
+# the instructors-only grader at grader.pelenitsyn.site, which was
+# decommissioned 2026-10-04 — git history has it.
 #
 # Two locks, one per half, and neither is this file's: /teach is behind a
 # Cloudflare Access application naming the instructors, whose token serve.py
 # checks as well; everything else answers nobody but a student signed in by a
-# Brightspace launch. So, unlike pyret-grader, a request that reaches this
+# Brightspace launch. So, unlike the old grader, a request that reaches this
 # service without Access in front of it still gets nothing. Create the Access
 # application anyway before the rebuild that activates the ingress below.
 { config, pkgs, lib, ... }:
 
 let
   checkout = "/home/artem/dev/cu-cs-grader";
-  # Beside the grader's 8120 and course-status's 8121.
+  # Beside course-status's 8121; 8120 was the old grader's.
   port = 8122;
 
   # Pyret runs at once. Eight rather than grade.py's three: eighty students
@@ -34,8 +35,8 @@ let
     exec ${pkgs.nix}/bin/nix-shell --run "./serve.py --port ${toString port} --state ${checkout}/state --slots ${toString slots}"
   '';
 
-  # A restart is the deploy, as for pyret-grader: fast-forward only, and a
-  # failed pull starts the old code rather than nothing.
+  # A restart is the deploy: fast-forward only, and a failed pull starts the
+  # old code rather than nothing.
   pull = pkgs.writeShellScript "cu-cs-grader-pull" ''
     cd ${checkout}
     exec ${pkgs.git}/bin/git pull --ff-only
@@ -44,24 +45,29 @@ in
 {
   systemd.tmpfiles.rules = [ "d ${checkout} 0700 artem users -" ];
 
-  # A user service for the reason pyret-grader is one: grade.py wraps every
-  # run in `systemd-run --user --scope`, which needs a user manager. Linger is
-  # already on, from pyret-grader.nix.
+  # A user service on purpose: grade.py wraps every run in `systemd-run
+  # --user --scope`, which needs a user manager and its session bus — as a
+  # system service that call fails on every run, and the class scores zero.
+  # Linger starts the user manager at boot, so the grader survives a reboot
+  # with nobody logged in. It came with pyret-grader.nix, and stays with the
+  # grader now that the module is gone.
+  users.users.artem.linger = true;
   systemd.user.services.cu-cs-grader = {
     description = "CMSC autograder for students, grader.cu-cs-classes.site";
     wantedBy = [ "default.target" ];
     wants = [ "network-online.target" ];
     after = [ "network-online.target" ];
     unitConfig.ConditionUser = "artem";
-    # openssh for the pull; the rest as for pyret-grader.
+    # nix-shell and the shell it runs; git and openssh for the pull.
     path = with pkgs; [ nix bash coreutils git openssh ];
     serviceConfig = {
       ExecStartPre = "-${pull}";
       ExecStart = start;
       Restart = "on-failure";
       RestartSec = 5;
-      # Confining the supervisor would break the thing doing the confining;
-      # each run is sandboxed in grade.sandbox(). See pyret-grader.nix.
+      # No ProtectHome/PrivateTmp/ReadOnlyPaths, on purpose: confining the
+      # supervisor would break the thing doing the confining, and each run is
+      # sandboxed in grade.sandbox().
     };
   };
 

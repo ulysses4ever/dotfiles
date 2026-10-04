@@ -13,11 +13,12 @@
   imports = [
     ./matrix-bot.nix
     ./cu-cs-mirror.nix
-    # tailnet-serve.nix owns `tailscale serve` for the whole node; the two
-    # below contribute a port each rather than each running their own reset.
+    # tailnet-serve.nix owns `tailscale serve` for the whole node;
+    # course-status.nix contributes its port rather than running its own reset.
     ./tailnet-serve.nix
-    ./pyret-grader.nix
-    # The students' grader, beside it until the switch.
+    # The autograder, students' and instructors': grader.cu-cs-classes.site.
+    # pyret-grader.nix, the instructors-only one at grader.pelenitsyn.site,
+    # was decommissioned 2026-10-04, when the student-facing one became v2.0.
     ./cu-cs-grader.nix
     ./course-status.nix
     ./brightspace-keepalive.nix
@@ -191,16 +192,6 @@
           };
           "www.pelenitsyn.site" = {
             service = "http://localhost:80";
-          };
-          # grader. is the name to keep; pyret-grader. is the original and stays
-          # until nothing points at it. Both must be in the Cloudflare Access
-          # app — serve.py has no auth of its own, so a hostname that routes
-          # here without Access in front is an open autograder.
-          "grader.pelenitsyn.site" = {
-            service = "http://localhost:8120";
-          };
-          "pyret-grader.pelenitsyn.site" = {
-            service = "http://localhost:8120";
           };
         };
       };

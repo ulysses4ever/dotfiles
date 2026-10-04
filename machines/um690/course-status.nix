@@ -12,7 +12,8 @@
 
 let
   edu = "/home/artem/edu";
-  # Beside the grader's 8120 because they are the same family of tooling.
+  # Beside the grader's port (8122; 8120 before 2026-10-04): the same family
+  # of tooling.
   # Not a course number: this one reports on all three courses.
   port = 8121;
   # The desktop's own Python (packages.nix), which carries pyyaml and lz4. With
