@@ -1,6 +1,7 @@
-# brightspace-web.nix — brightspace-cli's web page, copying a quiz into several
-# sections so far, for Artem and Julia at https://brightspace.pelenitsyn.site/,
-# behind the Cloudflare Access application that protected grader.pelenitsyn.site.
+# brightspace-web.nix — brightspace-cli's web page, making a quiz from its YAML
+# and copying a quiz into several sections so far, for Artem and Julia at
+# https://brightspace.pelenitsyn.site/, behind the Cloudflare Access application
+# that protected grader.pelenitsyn.site.
 #
 # It acts in Brightspace as whoever signed in. Access signs a token naming them,
 # the page checks that token itself against the keys Access publishes, and
@@ -20,12 +21,13 @@ let
   clone = "/home/artem/edu/brightspace-cli";
   port = 8140;
   # lz4 for re-reading Artem's session out of Firefox's session store, as in
-  # brightspace-keepalive.nix; every command the page runs uses this interpreter.
-  python = pkgs.python3.withPackages (ps: [ ps.lz4 ]);
+  # brightspace-keepalive.nix, and PyYAML for a quiz's YAML file, which the page
+  # makes a quiz from with setup-quiz; every command it runs uses this interpreter.
+  python = pkgs.python3.withPackages (ps: [ ps.lz4 ps.pyyaml ]);
 in
 {
   systemd.services.brightspace-web = {
-    description = "Brightspace quiz copying on a page, behind Cloudflare Access";
+    description = "Brightspace quizzes on a page, behind Cloudflare Access";
     wantedBy = [ "multi-user.target" ];
     wants = [ "network-online.target" ];
     after = [ "network-online.target" ];
