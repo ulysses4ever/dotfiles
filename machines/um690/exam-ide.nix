@@ -10,21 +10,15 @@
 # the students have no identity Access knows, and the seat password is the
 # lock. Between exams nothing listens on 8090 and the hostname answers 502.
 #
-# Two hostnames, one service. exam.pelenitsyn.site was routed with
-# `cloudflared tunnel route dns`, since the certificate in ~/.cloudflared is
-# logged in for that zone. exam.cu-cs-classes.site, the one students see, is
-# the same CNAME made in the account that holds cu-cs-classes.site, as the
-# grader's was: `exam` -> 2b80d7a7-9b63-4e0f-83b8-fd2601d5fe19.cfargotunnel.com,
-# proxied; or `cloudflared tunnel login` into that zone with TUNNEL_ORIGIN_CERT
-# pointing at a second cert file, then `route dns`.
+# One hostname. Its DNS record is the tunnel's CNAME in the account that holds
+# cu-cs-classes.site, made the way the grader's was: `exam` ->
+# 2b80d7a7-9b63-4e0f-83b8-fd2601d5fe19.cfargotunnel.com, proxied. The
+# certificate in ~/.cloudflared is logged in for pelenitsyn.site only, so
+# `cloudflared tunnel route dns` cannot make it from here.
 { config, lib, pkgs, ... }:
 
-let
-  service = { service = "http://localhost:8090"; };
-in
 {
-  services.cloudflared.tunnels."2b80d7a7-9b63-4e0f-83b8-fd2601d5fe19".ingress = {
-    "exam.cu-cs-classes.site" = service;
-    "exam.pelenitsyn.site" = service;
+  services.cloudflared.tunnels."2b80d7a7-9b63-4e0f-83b8-fd2601d5fe19".ingress."exam.cu-cs-classes.site" = {
+    service = "http://localhost:8090";
   };
 }
