@@ -21,6 +21,7 @@
     # was decommissioned 2026-10-04, when the student-facing one became v2.0.
     ./cu-cs-grader.nix
     ./course-status.nix
+    ./exam-ide.nix
     ./brightspace-keepalive.nix
     ./brightspace-web.nix
   ];
