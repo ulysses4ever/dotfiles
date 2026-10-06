@@ -1,4 +1,4 @@
-# exam-ide.nix — the in-browser exam IDE at https://exam.cu-cs-classes.site/,
+# exam-ide.nix — the in-browser exam IDE at https://exam.pelenitsyn.site/,
 # for 230's programming exams under LockDown Browser (2026-10-06).
 #
 # Nothing runs from here but the hostname: the seats are Docker containers
@@ -15,7 +15,7 @@
 { config, lib, pkgs, ... }:
 
 {
-  services.cloudflared.tunnels."2b80d7a7-9b63-4e0f-83b8-fd2601d5fe19".ingress."exam.cu-cs-classes.site" = {
+  services.cloudflared.tunnels."2b80d7a7-9b63-4e0f-83b8-fd2601d5fe19".ingress."exam.pelenitsyn.site" = {
     service = "http://localhost:8090";
   };
 }
