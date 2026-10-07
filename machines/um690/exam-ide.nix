@@ -1,5 +1,10 @@
-# exam-ide.nix — the in-browser exam IDE at https://exam.pelenitsyn.site/,
+# exam-ide.nix — the in-browser exam IDE at https://exam.cu-cs-classes.site/,
 # for 230's programming exams under LockDown Browser (2026-10-06).
+#
+# Since 2026-10-07 the record points at artemserver's own tunnel, where the
+# seats run (~/exam/exam-ide there, ~/edu/exam-ide/README.md here). This
+# ingress is the fallback: ~/edu/exam-ide/exam-dns.py points the record back
+# at this tunnel, 2b80d7a7, after up.sh on this machine.
 #
 # Nothing runs from here but the hostname: the seats are Docker containers
 # started by hand from ~/edu/exam-ide/up.sh, one code-server per student on
