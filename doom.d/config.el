@@ -284,3 +284,13 @@ nothing happens."
                  (not (derived-mode-p 'imenu-list-major-mode)))
         (ignore-errors (imenu-list-update t)))))
   (add-hook 'window-buffer-change-functions #'+outline-follow-buffer-h))
+
+;; Zen mode (SPC t z) blew the font up as the cursor entered code blocks.
+;; polymode (pulled in by :lang ess, and it claims *.md and *.qmd) gives each
+;; code-block language its own indirect buffer and carries the text's face
+;; remappings over to it, but not the cookie text-scale uses to find its own
+;; entry among them. Zen's text scaling, rerun in each new buffer, then stacked
+;; another 1.44x on top instead of replacing it.
+(after! polymode-core
+  (add-to-list 'polymode-move-these-vars-from-old-buffer
+               'text-scale-mode-remapping))
