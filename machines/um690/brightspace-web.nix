@@ -57,9 +57,14 @@ in
   # The hostname's DNS record is the tunnel's CNAME in the cu-cs-classes.site
   # zone, made with ~/edu/exam-ide/exam-dns.py, as the grader's and the exam
   # IDE's were: the certificate in ~/.cloudflared is logged in for
-  # pelenitsyn.site only. The Access application covering it is set in the Zero
-  # Trust dashboard, which is the one part not declared here; the hostname is
-  # also web.ini's host, which the page answers under and no other.
+  # pelenitsyn.site only. The Access application covering it, "brightspace
+  # web", is the one part not declared here. The account token that script
+  # reads, ~/.config/cloudflare/dns-token, edits it through the API as well,
+  # which is how its hostname moved on 2026-10-07, its AUD kept. The hostname is
+  # also web.ini's host, which the page answers under and no other, and the
+  # page reads web.ini only when it starts: restart it after changing either,
+  # since a switch that changes nothing but a unit's Description restarts
+  # nothing.
   services.cloudflared.tunnels."2b80d7a7-9b63-4e0f-83b8-fd2601d5fe19".ingress."brightspace.cu-cs-classes.site" = {
     service = "http://localhost:${toString port}";
   };
