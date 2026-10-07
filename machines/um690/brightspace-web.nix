@@ -1,7 +1,9 @@
-# brightspace-web.nix — brightspace-cli's web page: making a quiz, in its course or
-# in an empty shell to copy into several sections, copying it, and each course's
-# quiz defaults, for Artem and Julia at https://brightspace.pelenitsyn.site/,
-# behind its own Cloudflare Access application, "brightspace web" (2026-10-04).
+# brightspace-web.nix — brightspace-cli's web page, in two tabs: a checklist, the
+# same in several courses at once; and quizzes, made in their course or in an
+# empty shell to copy into several sections, copied, and each course's quiz
+# defaults. For Artem and Julia at https://brightspace.cu-cs-classes.site/, behind
+# its own Cloudflare Access application, "brightspace web" (2026-10-04; at
+# brightspace.pelenitsyn.site until 2026-10-07).
 #
 # It acts in Brightspace as one of the sessions in keepalive.ini. Access signs a
 # token naming whoever signed in, the page checks that token itself against the
@@ -23,12 +25,13 @@ let
   port = 8140;
   # lz4 for re-reading Artem's session out of Firefox's session store, as in
   # brightspace-keepalive.nix, and PyYAML for a quiz's YAML file, which the page
-  # makes a quiz from with setup-quiz; every command it runs uses this interpreter.
+  # makes a quiz from with setup-quiz, and for a checklist's Markdown, which is
+  # bs-yaml-quiz's; every command it runs uses this interpreter.
   python = pkgs.python3.withPackages (ps: [ ps.lz4 ps.pyyaml ]);
 in
 {
   systemd.services.brightspace-web = {
-    description = "Brightspace quizzes on a page, behind Cloudflare Access";
+    description = "Brightspace checklists and quizzes on a page, behind Cloudflare Access";
     wantedBy = [ "multi-user.target" ];
     wants = [ "network-online.target" ];
     after = [ "network-online.target" ];
@@ -51,10 +54,13 @@ in
     };
   };
 
-  # The hostname's DNS record is the tunnel's CNAME, made once with
-  # `cloudflared tunnel route dns`; the Access application covering it is set in
-  # the Zero Trust dashboard, which is the one part not declared here.
-  services.cloudflared.tunnels."2b80d7a7-9b63-4e0f-83b8-fd2601d5fe19".ingress."brightspace.pelenitsyn.site" = {
+  # The hostname's DNS record is the tunnel's CNAME in the cu-cs-classes.site
+  # zone, made with ~/edu/exam-ide/exam-dns.py, as the grader's and the exam
+  # IDE's were: the certificate in ~/.cloudflared is logged in for
+  # pelenitsyn.site only. The Access application covering it is set in the Zero
+  # Trust dashboard, which is the one part not declared here; the hostname is
+  # also web.ini's host, which the page answers under and no other.
+  services.cloudflared.tunnels."2b80d7a7-9b63-4e0f-83b8-fd2601d5fe19".ingress."brightspace.cu-cs-classes.site" = {
     service = "http://localhost:${toString port}";
   };
 }
