@@ -285,8 +285,16 @@ nothing happens."
         (ignore-errors (imenu-list-update t)))))
   (add-hook 'window-buffer-change-functions #'+outline-follow-buffer-h))
 
+;; *.md opens in plain markdown-mode, which already highlights code blocks in
+;; their own language. poly-markdown (pulled in by :lang ess) claims *.md from
+;; its autoloads, and claims it again whenever it loads, since quarto-mode and
+;; poly-R require it.
+(setq auto-mode-alist (rassq-delete-all 'poly-markdown-mode auto-mode-alist))
+(after! poly-markdown
+  (setq auto-mode-alist (rassq-delete-all 'poly-markdown-mode auto-mode-alist)))
+
 ;; Zen mode (SPC t z) blew the font up as the cursor entered code blocks.
-;; polymode (pulled in by :lang ess, and it claims *.md and *.qmd) gives each
+;; polymode (pulled in by :lang ess; *.qmd and *.Rmd files use it) gives each
 ;; code-block language its own indirect buffer and carries the text's face
 ;; remappings over to it, but not the cookie text-scale uses to find its own
 ;; entry among them. Zen's text scaling, rerun in each new buffer, then stacked
