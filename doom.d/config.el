@@ -260,9 +260,20 @@ nothing happens."
 ;; Outline sidebar (SPC o o): the imenu index that SPC s i shows in a popup,
 ;; kept in a persistent pane under treemacs' one in the same left column.
 (use-package! imenu-list
-  :commands imenu-list-smart-toggle
+  :defer t
   :init
-  (map! :leader :desc "Outline sidebar" "o o" #'imenu-list-smart-toggle)
+  ;; imenu-list-smart-toggle closes the sidebar whenever it shows, so the way
+  ;; into it was SPC w h. Here a press moves focus into an open sidebar, and
+  ;; only a press from inside it closes it.
+  (defun +outline/open-focus-or-close ()
+    "Open the outline sidebar; if it is open, focus it; if focused, close it."
+    (interactive)
+    (require 'imenu-list)
+    (let ((window (get-buffer-window imenu-list-buffer-name)))
+      (cond ((null window) (imenu-list-minor-mode 1))
+            ((eq window (selected-window)) (imenu-list-minor-mode -1))
+            (t (select-window window)))))
+  (map! :leader :desc "Outline sidebar" "o o" #'+outline/open-focus-or-close)
   :config
   (setq imenu-list-focus-after-activation nil)
   ;; Must come after the package loads: imenu-list installs its own placement
