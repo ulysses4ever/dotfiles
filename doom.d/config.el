@@ -313,3 +313,22 @@ nothing happens."
 (after! polymode-core
   (add-to-list 'polymode-move-these-vars-from-old-buffer
                'text-scale-mode-remapping))
+
+;; C and C++ use the tree-sitter modes, with grammars from home.nix. Emacs 30's
+;; cc-mode registers c-mode -> c-ts-mode remaps together with entries that keep
+;; them off, and Doom's :lang cc deletes those entries, so the switch used to
+;; happen only once cc-mode had loaded, grammar or not: later .c files and the
+;; ```c blocks of .qmd files got c-ts-mode, and with no grammar, no highlighting.
+;; Remapping from the start gives every C buffer the same mode.
+(dolist (remap '((c-mode . c-ts-mode)
+                 (c++-mode . c++-ts-mode)
+                 (c-or-c++-mode . c-or-c++-ts-mode)))
+  (add-to-list 'major-mode-remap-alist remap))
+
+;; K&R at 4 columns plus indented case labels: Doom's cc-mode "doom" style.
+(defun +c-ts-doom-indent-style ()
+  `(((node-is "case") parent-bol c-ts-mode-indent-offset)
+    ,@(alist-get 'k&r (c-ts-mode--indent-styles
+                       (if (derived-mode-p 'c++-ts-mode) 'cpp 'c)))))
+(setq c-ts-mode-indent-offset 4
+      c-ts-mode-indent-style #'+c-ts-doom-indent-style)

@@ -132,7 +132,12 @@
   # remove if controlled by nix-doom-emacs; cf. in flakes.nix
   programs.emacs.enable = true;
   programs.emacs.package = pkgs.emacs30-pgtk;
-  programs.emacs.extraPackages = epkgs: with epkgs; [ vterm pdf-tools ];
+  programs.emacs.extraPackages = epkgs: with epkgs; [
+    vterm pdf-tools
+    # tree-sitter grammars for c-ts-mode and c++-ts-mode, which doom.d/config.el
+    # uses for C and C++
+    (treesit-grammars.with-grammars (g: [ g.tree-sitter-c g.tree-sitter-cpp ]))
+  ];
 
   # My Doom Emacs config
   xdg.configFile."doom".source = ./doom.d;
