@@ -314,6 +314,13 @@ nothing happens."
   (add-to-list 'polymode-move-these-vars-from-old-buffer
                'text-scale-mode-remapping))
 
+;; In .qmd files, markdown-mode paints a whole code block with
+;; markdown-code-face while polymode paints the code with its own faint shade,
+;; and a block keeps whichever ran last: the first block of a file came up grey
+;; and the rest almost white. Have polymode paint markdown-code-face too.
+(after! poly-markdown
+  (oset poly-markdown-fenced-code-innermode adjust-face 'markdown-code-face))
+
 ;; C and C++ use the tree-sitter modes, with grammars from home.nix. Emacs 30's
 ;; cc-mode registers c-mode -> c-ts-mode remaps together with entries that keep
 ;; them off, and Doom's :lang cc deletes those entries, so the switch used to
