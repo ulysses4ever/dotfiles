@@ -76,6 +76,9 @@
     swaylock swaykbdd swayidle
     wdisplays
     adwaita-icon-theme
+    # MS Teams: Microsoft ships no Linux client (nixpkgs' `teams` is macOS-only),
+    # so this is the community Electron wrapper around the Teams web app.
+    teams-for-linux
   ];
   # Hopefully helps to screen-share under Wayland
   xdg = {
