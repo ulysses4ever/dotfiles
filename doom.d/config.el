@@ -339,3 +339,224 @@ nothing happens."
                        (if (derived-mode-p 'c++-ts-mode) 'cpp 'c)))))
 (setq c-ts-mode-indent-offset 4
       c-ts-mode-indent-style #'+c-ts-doom-indent-style)
+
+;; Claude Code sessions live in vterm buffers. Once a minute, the ones running
+;; there are recorded: buffer, directory, session id and flags. A session that
+;; stops while Emacs runs was ended on purpose and leaves the record; one that an
+;; Emacs restart or a reboot killed stays in it. SPC o C reopens the recorded
+;; sessions that aren't running, each resumed in a vterm buffer of its old name;
+;; SPC o c starts a new session, named once for both the buffer and Claude.
+(defvar +claude-program "claude")
+(defvar +claude-new-session-args
+  '("--model" "claude-opus-5-5" "--effort" "max" "--remote-control")
+  "Flags for a session started with `+claude/new-session'.")
+(defvar +claude-sessions-file (file-name-concat doom-data-dir "claude-sessions.eld"))
+(defvar +claude--seen nil "Ids of the sessions seen running in this Emacs.")
+(defvar +claude--missing nil "Ids seen before that weren't running at the last check.")
+(defvar +claude--timer nil)
+
+(defun +claude--parse-agents (buffer)
+  "The sessions listed in BUFFER, or `:failed' if it holds no listing."
+  (with-current-buffer buffer
+    (goto-char (point-min))
+    (condition-case nil
+        (json-parse-buffer :object-type 'plist :array-type 'list)
+      (error :failed))))
+
+(defun +claude--agents ()
+  "The running Claude sessions, as `claude agents --json' lists them."
+  (with-temp-buffer
+    (let ((sessions (if (zerop (call-process "sh" nil '(t nil) nil "-c"
+                                             "exec \"$0\" agents --json" +claude-program))
+                        (+claude--parse-agents (current-buffer))
+                      :failed)))
+      (when (eq sessions :failed)
+        (user-error "Couldn't list the running Claude sessions"))
+      sessions)))
+
+(defun +claude--agents-async (callback)
+  "Call CALLBACK with what `+claude--agents' returns, without blocking.
+A failed listing skips the call, so it can't pass for no sessions running."
+  (let ((buffer (generate-new-buffer " *claude-agents*")))
+    (make-process
+     :name "claude-agents" :buffer buffer :noquery t :connection-type 'pipe
+     :command (list "sh" "-c" "exec \"$0\" agents --json 2>/dev/null" +claude-program)
+     :sentinel (lambda (process _event)
+                 (unless (process-live-p process)
+                   (unwind-protect
+                       (let ((sessions (if (zerop (process-exit-status process))
+                                           (+claude--parse-agents buffer)
+                                         :failed)))
+                         (unless (eq sessions :failed)
+                           (funcall callback sessions)))
+                     (kill-buffer buffer)))))))
+
+(defun +claude--flags (pid)
+  "The flags process PID gave Claude, minus the ones a restore sets itself."
+  (let* ((argv (with-temp-buffer
+                 (insert-file-contents-literally (format "/proc/%d/cmdline" pid))
+                 (split-string (buffer-string) "\0" t)))
+         (args (cdr (or (cl-member-if (lambda (arg)
+                                        (member (file-name-nondirectory arg)
+                                                '("claude" ".claude-wrapped")))
+                                      argv)
+                        argv)))
+         flags)
+    (while args
+      (pcase (pop args)
+        ((or "-n" "--name" "--session-id") (pop args))
+        ((or "-r" "--resume")           ; optional value: an id or search term
+         (unless (string-prefix-p "-" (or (car args) "-")) (pop args)))
+        ((or "-c" "--continue" "--fork-session"))
+        (arg (push arg flags))))
+    (nreverse flags)))
+
+(defun +claude--in-vterms (sessions)
+  "The SESSIONS running in vterm buffers, in the form they are recorded in."
+  (let ((shells (cl-loop for buffer in (buffer-list)
+                         for process = (get-buffer-process buffer)
+                         when (and process (eq (buffer-local-value 'major-mode buffer)
+                                               'vterm-mode))
+                         collect (cons (process-id process) buffer))))
+    (cl-loop for session in sessions
+             for pid = (plist-get session :pid)
+             for buffer = (and pid (equal (plist-get session :kind) "interactive")
+                               (cl-loop repeat 8
+                                        for p = pid then (alist-get 'ppid (process-attributes p))
+                                        while (and p (> p 1))
+                                        thereis (alist-get p shells)))
+             when buffer
+             collect (list :session (plist-get session :sessionId)
+                           :name (plist-get session :name)
+                           :buffer (buffer-name buffer)
+                           :workspaces (+claude--workspaces-of buffer)
+                           :dir (plist-get session :cwd)
+                           :flags (+claude--flags pid)))))
+
+(defun +claude--workspaces-of (buffer)
+  "The names of the workspaces BUFFER belongs to."
+  (when (bound-and-true-p persp-mode)
+    (cl-loop for workspace in (+workspace-list)
+             when (persp-contain-buffer-p buffer workspace)
+             collect (persp-name workspace))))
+
+(defun +claude--into-workspaces (buffer names)
+  "Put BUFFER into the workspaces called NAMES, creating the missing ones, or
+into the current one when NAMES is empty. Take it out of the current one unless
+that is one of them, since Doom adds a buffer there once it shows up."
+  (when (bound-and-true-p persp-mode)
+    (let ((names (remove persp-nil-name (or names (list (+workspace-current-name))))))
+      (dolist (name names)
+        (persp-add-buffer buffer (or (+workspace-get name t) (+workspace-new name)) nil nil))
+      (unless (member (+workspace-current-name) names)
+        ;; Doom kills a buffer removed from its last workspace; this isn't one.
+        (let ((persp-autokill-buffer-on-remove nil))
+          (persp-remove-buffer buffer (+workspace-current)))))))
+
+(defun +claude--read-record ()
+  (ignore-errors
+    (with-temp-buffer
+      (insert-file-contents +claude-sessions-file)
+      (read (current-buffer)))))
+
+(defun +claude--write-record (record)
+  (with-temp-file +claude-sessions-file
+    (let ((print-length nil) (print-level nil))
+      (prin1 record (current-buffer)))))
+
+(defun +claude--record (running)
+  "Fold the RUNNING sessions into the record. A session seen running earlier
+leaves it once it has been missing at two checks in a row, so one dying with
+Emacs at shutdown can't cost the others their place."
+  (let ((ids (mapcar (lambda (s) (plist-get s :session)) running))
+        kept missing)
+    (dolist (session (+claude--read-record))
+      (let ((id (plist-get session :session)))
+        (cond ((member id ids))               ; running: recorded afresh below
+              ((not (member id +claude--seen)) (push session kept)) ; not reopened yet
+              ((member id +claude--missing))  ; missing twice: ended
+              (t (push id missing) (push session kept)))))
+    (setq +claude--seen (seq-union ids +claude--seen)
+          +claude--missing missing)
+    (+claude--write-record (append running (nreverse kept)))))
+
+(defun +claude--check ()
+  (when (executable-find +claude-program)
+    (+claude--agents-async
+     (lambda (sessions) (+claude--record (+claude--in-vterms sessions))))))
+
+(defun +claude--shell-command (args)
+  "The command line running Claude with ARGS, quoted for the vterm shell."
+  (mapconcat (lambda (arg)
+               (cond ((string-match-p "\\`[[:alnum:]_./:=@%+,-]+\\'" arg) arg)
+                     ((string-suffix-p "fish" vterm-shell)
+                      (concat "'" (replace-regexp-in-string "[\\']" "\\\\\\&" arg) "'"))
+                     (t (shell-quote-argument arg))))
+             (cons +claude-program args) " "))
+
+(defun +claude--launch (dir name args)
+  "Type `claude ARGS' into the shell of a new vterm buffer NAME, started in DIR."
+  (require 'vterm)                      ; a fresh Emacs hasn't loaded it yet
+  (let ((default-directory (file-name-as-directory (expand-file-name dir))))
+    (with-current-buffer (save-window-excursion (vterm (generate-new-buffer-name name)))
+      (vterm-send-string (+claude--shell-command args))
+      (vterm-send-return)
+      (current-buffer))))
+
+(defun +claude--label (session)
+  (format "%s  %s  [%s]" (plist-get session :name)
+          (abbreviate-file-name (plist-get session :dir))
+          (string-join (plist-get session :workspaces) ", ")))
+
+(defun +claude/restore-sessions (&optional pick)
+  "Reopen the recorded Claude sessions that aren't running, each resumed in a
+vterm buffer of its old name, or named after the session when the old name was
+a default `*vterm*' one, in the workspaces it was in. With a prefix argument,
+pick which to reopen; the rest are forgotten."
+  (interactive "P")
+  (let* ((live (mapcar (lambda (s) (plist-get s :sessionId)) (+claude--agents)))
+         (record (+claude--read-record))
+         (todo (seq-remove (lambda (s) (member (plist-get s :session) live)) record)))
+    (when pick
+      (let ((chosen (completing-read-multiple "Reopen: " (mapcar #'+claude--label todo) nil t)))
+        (+claude--write-record
+         (seq-remove (lambda (s) (and (member s todo)
+                                      (not (member (+claude--label s) chosen))))
+                     record))
+        (setq todo (seq-filter (lambda (s) (member (+claude--label s) chosen)) todo))))
+    (dolist (session todo)
+      (let ((flags (plist-get session :flags))
+            (old (plist-get session :buffer))
+            (name (plist-get session :name)))
+        (+claude--into-workspaces
+         (+claude--launch
+          (plist-get session :dir)
+          (if (and name (string-match-p "\\`\\*vterm\\*\\(<[0-9]+>\\)?\\'" old))
+              (concat "*vterm*" name)
+            old)
+          (append flags
+                  ;; all of them within reach of claude.ai and the phone
+                  (unless (member "--remote-control" flags) '("--remote-control"))
+                  (list "--resume" (plist-get session :session))
+                  (when name (list "--name" name))))
+         (plist-get session :workspaces))))
+    (message "Reopened %d Claude session%s" (length todo) (if (= (length todo) 1) "" "s"))))
+
+(defun +claude/new-session (dir name)
+  "Start a Claude session called NAME in DIR, in a vterm buffer named after it."
+  (interactive
+   (let ((dir (read-directory-name "Directory: " (or (doom-project-root) default-directory))))
+     (list dir (read-string "Session name: "
+                            (file-name-nondirectory (directory-file-name dir))))))
+  (let ((buffer (+claude--launch dir (concat "*vterm*" name)
+                                 (append +claude-new-session-args (list "--name" name)))))
+    (+claude--into-workspaces buffer nil)
+    (pop-to-buffer-same-window buffer))
+  (run-with-timer 15 nil #'+claude--check))
+
+(unless +claude--timer
+  (setq +claude--timer (run-with-timer 60 60 #'+claude--check)))
+
+(map! :leader
+      :desc "New Claude session" "o c" #'+claude/new-session
+      :desc "Reopen Claude sessions" "o C" #'+claude/restore-sessions)
