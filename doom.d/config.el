@@ -353,7 +353,8 @@ nothing happens."
 ;; Claude Code sessions live in vterm buffers, or in Claude's background daemon,
 ;; which a vterm buffer can show with `claude attach'. Once a minute, the
 ;; running ones are recorded, each with the buffer showing it, if one does, and
-;; that buffer's workspaces. A session that stops while Emacs runs was ended on
+;; that buffer's workspaces, and so are buffers with Claude's agent view, `claude
+;; agents'. A session that stops while Emacs runs was ended on
 ;; purpose and leaves the record; one that an Emacs restart or a reboot killed
 ;; stays in it. SPC o C reopens the recorded sessions that aren't running or
 ;; aren't shown, in buffers of their old names. It follows a conversation that
@@ -474,7 +475,7 @@ started, and what any of that but Claude started in turn, as `nix shell' does."
 A busy session whose terminal hangs up goes on in the background under a new
 id, and Claude marks the old transcript with that id. A turn after the mark
 means the old session was resumed after all, and the mark no longer holds."
-  (when-let* ((session)
+  (when-let* (((and session (string-match-p "\\`[0-9a-f-]+\\'" session)))
               (file (car (file-expand-wildcards
                           (expand-file-name (concat "projects/*/" session ".jsonl")
                                             +claude-dir))))
@@ -526,6 +527,18 @@ means the old session was resumed after all, and the mark no longer holds."
                                         ((not (equal now session))))
                               (plist-get (+claude--job now sessions) :id)))))
            when id collect (cons id buffer)))
+
+(defun +claude--agent-views (processes)
+  "The vterm PROCESSES running Claude's agent view, `claude agents', in the form
+they are recorded in. Showing no session of its own, one is known by its buffer."
+  (cl-loop for (pid . buffer) in processes
+           for args = (+claude--args pid)
+           when (and (equal (car args) "agents") (not (member "--json" args)))
+           collect (list :session (concat "agents:" (buffer-name buffer))
+                         :agents t
+                         :buffer (buffer-name buffer)
+                         :workspaces (+claude--workspaces-of buffer)
+                         :dir (buffer-local-value 'default-directory buffer))))
 
 (defun +claude--workspaces-of (buffer)
   "The names of the workspaces BUFFER belongs to."
@@ -661,7 +674,8 @@ none yet."
          (+claude--record
           (append (+claude--in-vterms sessions processes)
                   (+claude--in-background sessions
-                                          (+claude--viewers sessions processes)))))))))
+                                          (+claude--viewers sessions processes))
+                  (+claude--agent-views processes))))))))
 
 (defun +claude--shell-command (args)
   "The command line running Claude with ARGS, quoted for the vterm shell."
@@ -684,7 +698,7 @@ buffer NAME started in DIR, to run one after another."
       (current-buffer))))
 
 (defun +claude--label (entry)
-  (format "%s  %s  [%s]" (plist-get entry :name)
+  (format "%s  %s  [%s]" (or (plist-get entry :name) "agent view")
           (abbreviate-file-name (plist-get entry :dir))
           (if (plist-get entry :buffer)
               (string-join (plist-get entry :workspaces) ", ")
@@ -693,7 +707,13 @@ buffer NAME started in DIR, to run one after another."
 (defun +claude--plan (entry sessions shown)
   "What reopening the recorded ENTRY takes, given the listed SESSIONS and the
 ids of those SHOWN in vterm buffers: nil, (attach ID REVIVE), (respawn ID) or
-(resume SESSION)."
+(resume SESSION), or (agents KEY) for an agent view."
+  (if (plist-get entry :agents)
+      (unless (member (plist-get entry :session) shown)
+        (list 'agents (plist-get entry :session)))
+    (+claude--session-plan entry sessions shown)))
+
+(defun +claude--session-plan (entry sessions shown)
   (let* ((recorded (plist-get entry :session))
          (now (+claude--now recorded))
          (job (or (+claude--job now sessions)
@@ -733,25 +753,34 @@ respawn' if it isn't running; one without a buffer is just respawned. Claude's
 continued-in marks lead to where a conversation went on, so its latest form
 reopens, and no conversation starts twice. Buffers keep their old names, or
 take the session's in place of a default `*vterm*' one, and go back into their
-workspaces. With a prefix argument, pick which to reopen; the rest are
-forgotten."
+workspaces. A buffer that had Claude's agent view gets it again. With a prefix
+argument, pick which to reopen; the rest are forgotten."
   (interactive "P")
   (let* ((sessions (+claude--agents))
          (processes (+claude--in-vterm-buffers))
          (shown (append (mapcar #'car (+claude--viewers sessions processes))
                         (mapcar (lambda (s) (plist-get s :session))
-                                (+claude--in-vterms sessions processes))
+                                (append (+claude--in-vterms sessions processes)
+                                        (+claude--agent-views processes)))
                         (mapcar #'car (setq +claude--reopened
                                             (seq-filter #'+claude--reopening-p
                                                         +claude--reopened)))))
          (record (+claude--read-record))
-         ;; Of two entries for one conversation, one with a buffer wins.
+         ;; Of two entries for one conversation, one with a buffer wins; an
+         ;; agent view gives way to a session last seen in its buffer.
          (todo (cl-loop with targets = nil
-                        for entry in (seq-sort-by (lambda (e) (if (plist-get e :buffer) 0 1))
+                        with buffers = nil
+                        for entry in (seq-sort-by (lambda (e)
+                                                    (cond ((plist-get e :agents) 1)
+                                                          ((plist-get e :buffer) 0)
+                                                          (t 2)))
                                                   #'< record)
                         for plan = (+claude--plan entry sessions shown)
-                        when (and plan (not (member (cadr plan) targets)))
-                        do (push (cadr plan) targets)
+                        when (and plan
+                                  (not (member (cadr plan) targets))
+                                  (not (and (eq (car plan) 'agents)
+                                            (member (plist-get entry :buffer) buffers))))
+                        do (push (cadr plan) targets) (push (plist-get entry :buffer) buffers)
                         and collect (cons entry plan))))
     (when pick
       (let ((chosen (completing-read-multiple
@@ -780,6 +809,10 @@ forgotten."
                         (apply #'+claude--launch dir buffer
                                (append (when revive (list (list "respawn" id)))
                                        (list (list "attach" id))))
+                        (plist-get entry :workspaces)))
+                      (`(agents ,_)
+                       (+claude--into-workspaces
+                        (+claude--launch dir buffer (list "agents"))
                         (plist-get entry :workspaces)))
                       (`(resume ,session)
                        (+claude--into-workspaces
