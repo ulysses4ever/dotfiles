@@ -306,6 +306,11 @@ nothing happens."
         (ignore-errors (imenu-list-update t)))))
   (add-hook 'window-buffer-change-functions #'+outline-follow-buffer-h))
 
+;; Markdown buffers, .qmd ones too, hide their markup: the **, ` and the like.
+;; SPC m t m (or C-c C-x C-m) shows it again in a buffer. The variable is
+;; buffer-local, so only setq-default sets it for every buffer.
+(setq-default markdown-hide-markup t)
+
 ;; *.md opens in plain markdown-mode, which already highlights code blocks in
 ;; their own language. poly-markdown (pulled in by :lang ess) claims *.md from
 ;; its autoloads, and claims it again whenever it loads, since quarto-mode and
