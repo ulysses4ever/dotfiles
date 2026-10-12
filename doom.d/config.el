@@ -350,25 +350,37 @@ nothing happens."
 (setq c-ts-mode-indent-offset 4
       c-ts-mode-indent-style #'+c-ts-doom-indent-style)
 
-;; Claude Code sessions live in vterm buffers, or in Claude's background daemon
-;; once sent there. Once a minute, the running ones are recorded: a vterm one
-;; with its buffer, directory, session id and flags, a background one with its
-;; id. A session that stops while Emacs runs was ended on purpose and leaves the
-;; record; one that an Emacs restart or a reboot killed stays in it. SPC o C
-;; reopens the recorded sessions that aren't running, a vterm one resumed in a
-;; vterm buffer of its old name, a background one in the background again;
-;; SPC o c starts a new session, offering its name for the buffer's name too.
+;; Claude Code sessions live in vterm buffers, or in Claude's background daemon,
+;; which a vterm buffer can show with `claude attach'. Once a minute, the
+;; running ones are recorded, each with the buffer showing it, if one does, and
+;; that buffer's workspaces. A session that stops while Emacs runs was ended on
+;; purpose and leaves the record; one that an Emacs restart or a reboot killed
+;; stays in it. SPC o C reopens the recorded sessions that aren't running or
+;; aren't shown, in buffers of their old names. It follows a conversation that
+;; went on in another session, as a busy one does when its terminal hangs up,
+;; and it never starts a conversation twice. SPC o c starts a new session,
+;; offering its name for the buffer's name too.
 (defvar +claude-program "claude")
 (defvar +claude-new-session-args
   '("--model" "claude-opus-5-5" "--effort" "max" "--remote-control")
   "Flags for a session started with `+claude/new-session'.")
+(defvar +claude-dir "~/.claude"
+  "Claude's state: transcripts in projects/, a file per running Claude in sessions/.")
 ;; next to Doom's own state; the profile dir is doom-data-dir unless Doom runs
 ;; under a profile, as nix-doom-emacs-unstraightened does
 (defvar +claude-sessions-file
   (file-name-concat doom-profile-data-dir "claude-sessions.eld"))
 (defvar +claude--seen nil "Ids of the sessions seen running in this Emacs.")
+(defvar +claude--shown nil "Ids of the sessions seen in a vterm buffer in this Emacs.")
 (defvar +claude--missing nil "Ids seen before that weren't running at the last check.")
+(defvar +claude--reopened nil
+  "What SPC o C reopened in this Emacs, as (ID . BUFFER-OR-TIME), so a second
+press can't reopen it again: while its buffer lives, or for two minutes after a
+respawn, before Claude lists it as running.")
 (defvar +claude--timer nil)
+
+;; --all adds the background sessions that aren't running: stopped or done
+(defconst +claude--agents-command "exec \"$0\" agents --json --all 2>/dev/null")
 
 (defun +claude--parse-agents (buffer)
   "The sessions listed in BUFFER, or `:failed' if it holds no listing."
@@ -381,14 +393,14 @@ nothing happens."
       (error :failed))))
 
 (defun +claude--agents ()
-  "The running Claude sessions, as `claude agents --json' lists them."
+  "The Claude sessions, as `claude agents --json --all' lists them."
   (with-temp-buffer
-    (let ((sessions (if (zerop (call-process "sh" nil '(t nil) nil "-c"
-                                             "exec \"$0\" agents --json" +claude-program))
+    (let ((sessions (if (zerop (call-process "sh" nil t nil "-c"
+                                             +claude--agents-command +claude-program))
                         (+claude--parse-agents (current-buffer))
                       :failed)))
       (when (eq sessions :failed)
-        (user-error "Couldn't list the running Claude sessions"))
+        (user-error "Couldn't list the Claude sessions"))
       sessions)))
 
 (defun +claude--agents-async (callback)
@@ -397,7 +409,7 @@ A failed listing skips the call, so it can't pass for no sessions running."
   (let ((buffer (generate-new-buffer " *claude-agents*")))
     (make-process
      :name "claude-agents" :buffer buffer :noquery t :connection-type 'pipe
-     :command (list "sh" "-c" "exec \"$0\" agents --json 2>/dev/null" +claude-program)
+     :command (list "sh" "-c" +claude--agents-command +claude-program)
      :sentinel (lambda (process _event)
                  (unless (process-live-p process)
                    (unwind-protect
@@ -408,17 +420,39 @@ A failed listing skips the call, so it can't pass for no sessions running."
                            (funcall callback sessions)))
                      (kill-buffer buffer)))))))
 
-(defun +claude--flags (pid)
-  "The flags process PID gave Claude, minus the ones a restore sets itself."
-  (let* ((argv (with-temp-buffer
-                 (insert-file-contents-literally (format "/proc/%d/cmdline" pid))
-                 (split-string (buffer-string) "\0" t)))
-         (args (cdr (or (cl-member-if (lambda (arg)
-                                        (member (file-name-nondirectory arg)
-                                                '("claude" ".claude-wrapped")))
-                                      argv)
-                        argv)))
-         flags)
+(defun +claude--children (pid)
+  "The processes that process PID started."
+  (cl-loop for file in (file-expand-wildcards (format "/proc/%d/task/*/children" pid))
+           nconc (mapcar #'string-to-number
+                         (split-string (with-temp-buffer
+                                         (ignore-errors (insert-file-contents-literally file))
+                                         (buffer-string))))))
+
+(defun +claude--args (pid)
+  "The arguments of the Claude that process PID runs, if it runs one."
+  (let ((argv (with-temp-buffer
+                (ignore-errors
+                  (insert-file-contents-literally (format "/proc/%d/cmdline" pid)))
+                (split-string (buffer-string) "\0" t))))
+    (cdr (cl-member-if (lambda (arg)
+                         (member (file-name-nondirectory arg) '("claude" ".claude-wrapped")))
+                       argv))))
+
+(defun +claude--in-vterm-buffers ()
+  "The processes running in vterm buffers, as (PID . BUFFER): what the shells
+started, and what any of that but Claude started in turn, as `nix shell' does."
+  (cl-loop for buffer in (buffer-list)
+           for shell = (get-buffer-process buffer)
+           when (and shell (eq (buffer-local-value 'major-mode buffer) 'vterm-mode))
+           nconc (cl-loop for pid in (+claude--children (process-id shell))
+                          collect (cons pid buffer)
+                          unless (+claude--args pid)
+                          nconc (mapcar (lambda (child) (cons child buffer))
+                                        (+claude--children pid)))))
+
+(defun +claude--flags (args)
+  "The flags in Claude's ARGS, minus the ones a restore sets itself."
+  (let (flags)
     (while args
       (pcase (pop args)
         ((or "-n" "--name" "--session-id") (pop args))
@@ -428,36 +462,70 @@ A failed listing skips the call, so it can't pass for no sessions running."
         (arg (push arg flags))))
     (nreverse flags)))
 
-(defun +claude--in-vterms (sessions)
-  "The SESSIONS running in vterm buffers, in the form they are recorded in."
-  (let ((shells (cl-loop for buffer in (buffer-list)
-                         for process = (get-buffer-process buffer)
-                         when (and process (eq (buffer-local-value 'major-mode buffer)
-                                               'vterm-mode))
-                         collect (cons (process-id process) buffer))))
-    (cl-loop for session in sessions
-             for pid = (plist-get session :pid)
-             for buffer = (and pid (equal (plist-get session :kind) "interactive")
-                               (cl-loop repeat 8
-                                        for p = pid then (alist-get 'ppid (process-attributes p))
-                                        while (and p (> p 1))
-                                        thereis (alist-get p shells)))
-             when buffer
-             collect (list :session (plist-get session :sessionId)
-                           :name (plist-get session :name)
-                           :buffer (buffer-name buffer)
-                           :workspaces (+claude--workspaces-of buffer)
-                           :dir (plist-get session :cwd)
-                           :flags (+claude--flags pid)))))
+(defun +claude--registration (pid)
+  "What the Claude in process PID says about itself in Claude's sessions dir."
+  (ignore-errors
+    (with-temp-buffer
+      (insert-file-contents (expand-file-name (format "sessions/%d.json" pid) +claude-dir))
+      (json-parse-buffer :object-type 'plist :null-object nil :false-object nil))))
 
-(defun +claude--in-background (sessions)
-  "The SESSIONS Claude's daemon runs without a terminal, as recorded."
-  (cl-loop for session in sessions
-           when (equal (plist-get session :kind) "background")
-           collect (list :session (plist-get session :sessionId)
-                         :name (plist-get session :name)
-                         :dir (plist-get session :cwd)
-                         :background (plist-get session :id))))
+(defun +claude--continued-in (session)
+  "The session SESSION's conversation went on in, if its transcript says so.
+A busy session whose terminal hangs up goes on in the background under a new
+id, and Claude marks the old transcript with that id. A turn after the mark
+means the old session was resumed after all, and the mark no longer holds."
+  (when-let* ((session)
+              (file (car (file-expand-wildcards
+                          (expand-file-name (concat "projects/*/" session ".jsonl")
+                                            +claude-dir))))
+              (size (file-attribute-size (file-attributes file))))
+    (with-temp-buffer
+      ;; only a few bookkeeping entries follow the mark
+      (ignore-errors (insert-file-contents file nil (max 0 (- size 65536)) size))
+      (goto-char (point-max))
+      (catch 'found
+        (while (re-search-backward "^{" nil t)
+          (let ((entry (ignore-errors
+                         (json-parse-string (buffer-substring (point) (line-end-position))
+                                            :object-type 'plist :null-object nil
+                                            :false-object nil))))
+            (pcase (plist-get entry :type)
+              ("continued-in" (throw 'found (plist-get entry :continuedInSessionId)))
+              ((or "user" "assistant") (throw 'found nil)))))))))
+
+(defun +claude--now (session)
+  "The session SESSION's conversation lives in now, following continued-in."
+  (let ((hops 0) next)
+    (while (and (< hops 8) (setq next (+claude--continued-in session)))
+      (setq session next hops (1+ hops)))
+    session))
+
+(defun +claude--job (session sessions)
+  "The background session in SESSIONS whose conversation is SESSION."
+  (seq-find (lambda (s) (and (equal (plist-get s :kind) "background")
+                             (equal (plist-get s :sessionId) session)))
+            sessions))
+
+(defun +claude--viewers (sessions processes)
+  "The background SESSIONS that vterm PROCESSES show, as (ID . BUFFER): through
+`claude attach ID', or as the Claude whose session left it for the background."
+  (cl-loop for (pid . buffer) in processes
+           for args = (+claude--args pid)
+           for id = (if (equal (car args) "attach")
+                        (let ((arg (cadr args)))
+                          (if (and arg (string-match-p "\\`[0-9a-f]\\{8\\}\\'" arg))
+                              arg
+                            (plist-get (+claude--job arg sessions) :id)))
+                      ;; a Claude listed with its pid runs its own session
+                      (when-let* (((not (seq-find (lambda (s) (eql (plist-get s :pid) pid))
+                                                  sessions)))
+                                  (self (+claude--registration pid)))
+                        (or (plist-get self :parkedJobId)
+                            (when-let* ((session (plist-get self :sessionId))
+                                        (now (+claude--now session))
+                                        ((not (equal now session))))
+                              (plist-get (+claude--job now sessions) :id)))))
+           when id collect (cons id buffer)))
 
 (defun +claude--workspaces-of (buffer)
   "The names of the workspaces BUFFER belongs to."
@@ -466,10 +534,48 @@ A failed listing skips the call, so it can't pass for no sessions running."
              when (persp-contain-buffer-p buffer workspace)
              collect (persp-name workspace))))
 
+(defun +claude--in-vterms (sessions processes)
+  "The SESSIONS running in vterm PROCESSES, in the form they are recorded in."
+  (cl-loop for session in sessions
+           for pid = (plist-get session :pid)
+           for buffer = (and pid (equal (plist-get session :kind) "interactive")
+                             (alist-get pid processes))
+           when buffer
+           collect (list :session (plist-get session :sessionId)
+                         :name (plist-get session :name)
+                         :buffer (buffer-name buffer)
+                         :workspaces (+claude--workspaces-of buffer)
+                         :dir (plist-get session :cwd)
+                         :flags (+claude--flags (+claude--args pid)))))
+
+(defun +claude--in-background (sessions viewers)
+  "The background SESSIONS running or shown, in the form they are recorded in,
+with the vterm buffer that VIEWERS says shows one."
+  (cl-loop for session in sessions
+           for id = (plist-get session :id)
+           for viewer = (cdr (assoc id viewers))
+           when (and (equal (plist-get session :kind) "background")
+                     (or (plist-get session :pid)
+                         ;; Without a process, it counts if Claude takes it for
+                         ;; running, or if it's done but shown; not if stopped
+                         ;; on purpose, or if its conversation went on in
+                         ;; another session, as a hangup's leftover.
+                         (and (not (equal (plist-get session :state) "stopped"))
+                              (or viewer (not (equal (plist-get session :state) "done")))
+                              (not (+claude--continued-in (plist-get session :sessionId))))))
+           collect (append (list :session (plist-get session :sessionId)
+                                 :name (plist-get session :name)
+                                 :dir (plist-get session :cwd)
+                                 :background id)
+                           (when viewer
+                             (list :buffer (buffer-name viewer)
+                                   :workspaces (+claude--workspaces-of viewer))))))
+
 (defun +claude--into-workspaces (buffer names)
   "Put BUFFER into the workspaces called NAMES, creating the missing ones, or
 into the current one when NAMES is empty. Take it out of the current one unless
-that is one of them, since Doom adds a buffer there once it shows up."
+that is one of them, since Doom adds a buffer there once it shows up. Return
+BUFFER."
   (when (bound-and-true-p persp-mode)
     (let ((names (remove persp-nil-name (or names (list (+workspace-current-name))))))
       (dolist (name names)
@@ -477,7 +583,8 @@ that is one of them, since Doom adds a buffer there once it shows up."
       (unless (member (+workspace-current-name) names)
         ;; Doom kills a buffer removed from its last workspace; this isn't one.
         (let ((persp-autokill-buffer-on-remove nil))
-          (persp-remove-buffer buffer (+workspace-current)))))))
+          (persp-remove-buffer buffer (+workspace-current))))))
+  buffer)
 
 (defun +claude--read-record ()
   (ignore-errors
@@ -491,19 +598,58 @@ that is one of them, since Doom adds a buffer there once it shows up."
     (let ((print-length nil) (print-level nil))
       (prin1 record (current-buffer)))))
 
+(defun +claude--same-p (entry now running)
+  "Whether the recorded ENTRY, whose conversation lives in session NOW, is the
+RUNNING one's: the same session or background session, or an older session the
+conversation went on from."
+  (or (member (plist-get running :session) (list now (plist-get entry :session)))
+      (and (plist-get entry :background)
+           (equal (plist-get entry :background) (plist-get running :background)))))
+
+(defun +claude--shown-p (entry)
+  "Whether ENTRY's session was seen in a vterm buffer in this Emacs."
+  (or (member (plist-get entry :session) +claude--shown)
+      (and (plist-get entry :background)
+           (member (plist-get entry :background) +claude--shown))))
+
+(defun +claude--with-buffer (running old)
+  "The RUNNING session, given the buffer of its OLD record when it has none and
+had none in this Emacs: one that an Emacs restart closed, to be reopened. OLD
+holds the record as (NOW . ENTRY), NOW being the session ENTRY lives in now."
+  (if-let* (((not (plist-get running :buffer)))
+            ((not (+claude--shown-p running)))
+            (from (cl-loop for (now . entry) in old
+                           thereis (and (plist-get entry :buffer)
+                                        (not (+claude--shown-p entry))
+                                        (+claude--same-p entry now running)
+                                        entry))))
+      (append running (list :buffer (plist-get from :buffer)
+                            :workspaces (plist-get from :workspaces)))
+    running))
+
 (defun +claude--record (running)
   "Fold the RUNNING sessions into the record. A session seen running earlier
 leaves it once it has been missing at two checks in a row, so one dying with
-Emacs at shutdown can't cost the others their place."
-  (let ((ids (mapcar (lambda (s) (plist-get s :session)) running))
+Emacs at shutdown can't cost the others their place. An older form of a running
+session leaves it at once, its buffer passing on to the running one if that has
+none yet."
+  (let ((old (mapcar (lambda (entry) (cons (+claude--now (plist-get entry :session)) entry))
+                     (+claude--read-record)))
         kept missing)
-    (dolist (session (+claude--read-record))
-      (let ((id (plist-get session :session)))
-        (cond ((member id ids))               ; running: recorded afresh below
-              ((not (member id +claude--seen)) (push session kept)) ; not reopened yet
+    (setq +claude--shown (seq-union (cl-loop for r in running
+                                             when (plist-get r :buffer)
+                                             nconc (delq nil (list (plist-get r :session)
+                                                                   (plist-get r :background))))
+                                    +claude--shown)
+          running (mapcar (lambda (r) (+claude--with-buffer r old)) running))
+    (pcase-dolist (`(,now . ,entry) old)
+      (let ((id (plist-get entry :session)))
+        (cond ((seq-some (lambda (r) (+claude--same-p entry now r)) running)) ; recorded afresh
+              ((not (member id +claude--seen)) (push entry kept)) ; not reopened yet
               ((member id +claude--missing))  ; missing twice: ended
-              (t (push id missing) (push session kept)))))
-    (setq +claude--seen (seq-union ids +claude--seen)
+              (t (push id missing) (push entry kept)))))
+    (setq +claude--seen (seq-union (mapcar (lambda (r) (plist-get r :session)) running)
+                                   +claude--seen)
           +claude--missing missing)
     (+claude--write-record (append running (nreverse kept)))))
 
@@ -511,8 +657,11 @@ Emacs at shutdown can't cost the others their place."
   (when (executable-find +claude-program)
     (+claude--agents-async
      (lambda (sessions)
-       (+claude--record (append (+claude--in-vterms sessions)
-                                (+claude--in-background sessions)))))))
+       (let ((processes (+claude--in-vterm-buffers)))
+         (+claude--record
+          (append (+claude--in-vterms sessions processes)
+                  (+claude--in-background sessions
+                                          (+claude--viewers sessions processes)))))))))
 
 (defun +claude--shell-command (args)
   "The command line running Claude with ARGS, quoted for the vterm shell."
@@ -523,65 +672,127 @@ Emacs at shutdown can't cost the others their place."
                      (t (shell-quote-argument arg))))
              (cons +claude-program args) " "))
 
-(defun +claude--launch (dir name args)
-  "Type `claude ARGS' into the shell of a new vterm buffer NAME, started in DIR."
+(defun +claude--launch (dir name &rest commands)
+  "Type Claude COMMANDS, each a list of arguments, into the shell of a new vterm
+buffer NAME started in DIR, to run one after another."
   (require 'vterm)                      ; a fresh Emacs hasn't loaded it yet
-  (let ((default-directory (file-name-as-directory (expand-file-name dir))))
+  (let ((default-directory (file-name-as-directory
+                            (expand-file-name (if (and dir (file-directory-p dir)) dir "~")))))
     (with-current-buffer (save-window-excursion (vterm (generate-new-buffer-name name)))
-      (vterm-send-string (+claude--shell-command args))
+      (vterm-send-string (mapconcat #'+claude--shell-command commands "; "))
       (vterm-send-return)
       (current-buffer))))
 
-(defun +claude--label (session)
-  (format "%s  %s  [%s]" (plist-get session :name)
-          (abbreviate-file-name (plist-get session :dir))
-          (if (plist-get session :background)
-              "background"
-            (string-join (plist-get session :workspaces) ", "))))
+(defun +claude--label (entry)
+  (format "%s  %s  [%s]" (plist-get entry :name)
+          (abbreviate-file-name (plist-get entry :dir))
+          (if (plist-get entry :buffer)
+              (string-join (plist-get entry :workspaces) ", ")
+            "background")))
+
+(defun +claude--plan (entry sessions shown)
+  "What reopening the recorded ENTRY takes, given the listed SESSIONS and the
+ids of those SHOWN in vterm buffers: nil, (attach ID REVIVE), (respawn ID) or
+(resume SESSION)."
+  (let* ((recorded (plist-get entry :session))
+         (now (+claude--now recorded))
+         (job (or (+claude--job now sessions)
+                  (and (equal now recorded)
+                       (plist-get entry :background)
+                       (seq-find (lambda (s)
+                                   (and (equal (plist-get s :kind) "background")
+                                        (equal (plist-get s :id) (plist-get entry :background))))
+                                 sessions))))
+         (id (plist-get job :id)))
+    (cond
+     ((or (member now shown) (and id (member id shown))) nil)
+     ((null job)
+      (cond ((seq-find (lambda (s) (and (plist-get s :pid)
+                                        (equal (plist-get s :sessionId) now)))
+                       sessions)
+             nil)                       ; running in a terminal outside Emacs
+            ((plist-get entry :buffer) (list 'resume now))))
+     ((equal (plist-get job :state) "stopped") nil) ; stopped on purpose
+     ;; Reopen its buffer as a view of it, restarting it first if it isn't
+     ;; running, or else just restart it, in place either way: `--bg --resume'
+     ;; starts a copy of a session the daemon believes running.
+     ((plist-get entry :buffer) (list 'attach id (not (plist-get job :pid))))
+     ((not (plist-get job :pid)) (list 'respawn id)))))
+
+(defun +claude--reopening-p (reopened)
+  (let ((where (cdr reopened)))
+    (if (bufferp where)
+        (buffer-live-p where)
+      (< (float-time (time-since where)) 120))))
 
 (defun +claude/restore-sessions (&optional pick)
-  "Reopen the recorded Claude sessions that aren't running: a vterm one resumed
-in a vterm buffer of its old name, or named after the session when the old name
-was a default `*vterm*' one, in the workspaces it was in; a background one in
-the background again. With a prefix argument, pick which to reopen; the rest
-are forgotten."
+  "Reopen the recorded Claude sessions that aren't running or aren't shown.
+One that lived in a vterm resumes there. One in the background, sent there or
+moved there by a hangup, reopens its buffer as `claude attach', after `claude
+respawn' if it isn't running; one without a buffer is just respawned. Claude's
+continued-in marks lead to where a conversation went on, so its latest form
+reopens, and no conversation starts twice. Buffers keep their old names, or
+take the session's in place of a default `*vterm*' one, and go back into their
+workspaces. With a prefix argument, pick which to reopen; the rest are
+forgotten."
   (interactive "P")
-  ;; Running means having a process. After a hard kill, Claude's daemon still
-  ;; lists its background sessions as alive, process-less. And a conversation
-  ;; counts as running in either form: one resumed in a vterm isn't respawned
-  ;; in the background too.
-  (let* ((live (cl-loop for s in (+claude--agents)
-                        when (plist-get s :pid) collect (plist-get s :sessionId)))
+  (let* ((sessions (+claude--agents))
+         (processes (+claude--in-vterm-buffers))
+         (shown (append (mapcar #'car (+claude--viewers sessions processes))
+                        (mapcar (lambda (s) (plist-get s :session))
+                                (+claude--in-vterms sessions processes))
+                        (mapcar #'car (setq +claude--reopened
+                                            (seq-filter #'+claude--reopening-p
+                                                        +claude--reopened)))))
          (record (+claude--read-record))
-         (todo (seq-remove (lambda (s) (member (plist-get s :session) live)) record)))
+         ;; Of two entries for one conversation, one with a buffer wins.
+         (todo (cl-loop with targets = nil
+                        for entry in (seq-sort-by (lambda (e) (if (plist-get e :buffer) 0 1))
+                                                  #'< record)
+                        for plan = (+claude--plan entry sessions shown)
+                        when (and plan (not (member (cadr plan) targets)))
+                        do (push (cadr plan) targets)
+                        and collect (cons entry plan))))
     (when pick
-      (let ((chosen (completing-read-multiple "Reopen: " (mapcar #'+claude--label todo) nil t)))
+      (let ((chosen (completing-read-multiple
+                     "Reopen: " (mapcar (lambda (x) (+claude--label (car x))) todo) nil t)))
         (+claude--write-record
-         (seq-remove (lambda (s) (and (member s todo)
+         (seq-remove (lambda (s) (and (assq s todo)
                                       (not (member (+claude--label s) chosen))))
                      record))
-        (setq todo (seq-filter (lambda (s) (member (+claude--label s) chosen)) todo))))
-    (dolist (session todo)
-      (if (plist-get session :background)
-          ;; In place, same id; `--bg --resume' would start a copy of a session
-          ;; the daemon still believes alive. Returns at once.
-          (call-process +claude-program nil 0 nil
-                        "respawn" (plist-get session :background))
-        (let ((flags (plist-get session :flags))
-              (old (plist-get session :buffer))
-              (name (plist-get session :name)))
-          (+claude--into-workspaces
-           (+claude--launch
-            (plist-get session :dir)
-            (if (and name (string-match-p "\\`\\*vterm\\*\\(<[0-9]+>\\)?\\'" old))
-                (concat "*vterm*" name)
-              old)
-            (append flags
-                    ;; all of them within reach of claude.ai and the phone
-                    (unless (member "--remote-control" flags) '("--remote-control"))
-                    (list "--resume" (plist-get session :session))
-                    (when name (list "--name" name))))
-           (plist-get session :workspaces)))))
+        (setq todo (seq-filter (lambda (x) (member (+claude--label (car x)) chosen)) todo))))
+    (pcase-dolist (`(,entry . ,plan) todo)
+      (let* ((name (plist-get entry :name))
+             (old (plist-get entry :buffer))
+             (buffer (if (or (null old)
+                             (and name (string-match-p "\\`\\*vterm\\*\\(<[0-9]+>\\)?\\'" old)))
+                         (concat "*vterm*" name)
+                       old))
+             (dir (plist-get entry :dir))
+             (flags (plist-get entry :flags)))
+        (push (cons (cadr plan)
+                    (pcase plan
+                      (`(respawn ,id)     ; returns at once
+                       (call-process +claude-program nil 0 nil "respawn" id)
+                       (current-time))
+                      (`(attach ,id ,revive)
+                       (+claude--into-workspaces
+                        (apply #'+claude--launch dir buffer
+                               (append (when revive (list (list "respawn" id)))
+                                       (list (list "attach" id))))
+                        (plist-get entry :workspaces)))
+                      (`(resume ,session)
+                       (+claude--into-workspaces
+                        (+claude--launch
+                         dir buffer
+                         (append flags
+                                 ;; all of them within reach of claude.ai and the phone
+                                 (unless (member "--remote-control" flags)
+                                   '("--remote-control"))
+                                 (list "--resume" session)
+                                 (when name (list "--name" name))))
+                        (plist-get entry :workspaces)))))
+              +claude--reopened)))
     (message "Reopened %d Claude session%s" (length todo) (if (= (length todo) 1) "" "s"))))
 
 (defun +claude/new-session (dir name bufname)
