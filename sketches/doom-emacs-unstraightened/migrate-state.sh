@@ -35,6 +35,9 @@ MAP=(
   "etc/forge/forge-database.sqlite     $D/forge/forge-database.sqlite"
   "etc/transient/history               $D/transient/history"
   "etc/org-clock-save.el               $D/org-clock-save.el"
+  # the Claude sessions SPC o C reopens; without it, the sessions this cutover
+  # closes don't come back
+  "etc/claude-sessions.eld             $D/claude-sessions.eld"
 )
 
 for line in "${MAP[@]}"; do

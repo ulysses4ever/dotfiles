@@ -17,6 +17,19 @@ committed.**
 - Full um690 system toplevel built. All four hosts evaluated.
 - `migrate-state.sh` tested only as far as its safety check.
 
+Recovered 2026-10-11 onto branch `doom-unstraightened`, checked out as the
+worktree `~/dotfiles-unstraightened`, on top of main at `ef6c725`. The patch
+is applied there, uncommitted. Three things changed on main since it was
+parked, and the recovery carries them:
+
+- `packages.el` gained `imenu-list`. It is on MELPA, so it needs no pin.
+- `home.nix` gives Emacs the tree-sitter grammars for C and C++. They moved
+  from `programs.emacs.extraPackages` to `programs.doom-emacs.extraPackages`.
+- config.el records the Claude sessions running in vterm buffers for SPC o C,
+  in `doom-data-dir`. `migrate-state.sh` now copies that record too. The
+  cutover stops Emacs and with it every session in a vterm, and SPC o C in
+  the new Emacs reopens them.
+
 ## Files
 
 | File | What |
@@ -158,6 +171,7 @@ under `~/.config/emacs/.local/`.
 | `etc/{bookmarks,org-clock-save.el}`, `etc/workspaces/` | `~/.local/share/doom/nix/` |
 | `etc/forge/forge-database.sqlite` | `~/.local/share/doom/nix/forge/` |
 | `etc/transient/history` | `~/.local/share/doom/nix/transient/` |
+| `etc/claude-sessions.eld` | `~/.local/share/doom/nix/` |
 
 Nothing to carry for the aspell personal dictionary: aspell was pointed at
 `etc/ispell/.pws`, which was never created. The new location is

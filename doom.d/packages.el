@@ -62,10 +62,17 @@
 
 ;; Pyret's Emacs mode lives inside the pyret-lang monorepo, on the `drydock`
 ;; default branch. The file provides feature `pyret', not `pyret-mode'.
+;; The :pin is required, not decorative: pyret is not on MELPA, and
+;; nix-doom-emacs-unstraightened refuses to build a recipe package that
+;; emacs-overlay does not provide unless it is pinned. This is the commit
+;; straight.el had checked out when the mode was last known to work; the next
+;; one to touch pyret.el (6e62dcda52) only adds a lexical-binding cookie, which
+;; is worth taking but changes scoping for the whole file.
 (package! pyret
   :recipe (:host github :repo "brownplt/pyret-lang"
            :branch "drydock"
-           :files ("lang/tools/emacs/pyret.el")))
+           :files ("lang/tools/emacs/pyret.el"))
+  :pin "99c834686b40f93fd1273e29f3af3d759a1fda4a")
 
 ;; Outline sidebar; see the use-package! block in config.el.
 (package! imenu-list)

@@ -177,6 +177,16 @@ nothing happens."
 ;; Moving over camelCase graciously
 (global-subword-mode 1)
 
+;; The emoji module turns on global-emojify-mode with the first buffer, and the
+;; +github style needs an image set that emojify fetches on first use. Left at
+;; its default ('ask) it asks with yes-or-no-p, which in the daemon -- before
+;; any frame exists -- waits on a keyboard there isn't and wedges the whole
+;; daemon. That surfaced moving to nix-doom-emacs-unstraightened, whose data
+;; dir starts out empty. Fetch without asking: a failed download errors out
+;; instead of hanging.
+(after! emojify
+  (setq emojify-download-emojis-p t))
+
 ;; jk stopped working suddenly in Spring 2025.
 ;; Trying to bring it back using the advice how to disable it:
 ;; https://discourse.doomemacs.org/t/59

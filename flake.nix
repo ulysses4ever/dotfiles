@@ -8,6 +8,12 @@
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
     disko.url = github:nix-community/disko;
     disko.inputs.nixpkgs.follows = "nixpkgs";
+    # Doom Emacs built by Nix instead of straight.el: `doom sync` goes away and
+    # every package is pinned by this flake's lock. The home-manager module
+    # builds against home-manager's own pkgs, so its nixpkgs input is never
+    # read; pointing it at nothing saves fetching a second nixpkgs.
+    nix-doom-emacs-unstraightened.url = "github:marienz/nix-doom-emacs-unstraightened";
+    nix-doom-emacs-unstraightened.inputs.nixpkgs.follows = "";
   };
 
   outputs = { home-manager, nixpkgs, disko, ... }@inputs: {
@@ -30,9 +36,10 @@
             # used to be mutable state doesn't require hand-deleting it first.
             home-manager.backupFileExtension = "hm-bak";
             home-manager.users.artem = { pkgs, ... }: {
-              imports = [ 
-                ./home.nix 
-                { 
+              imports = [
+                ./home.nix
+                inputs.nix-doom-emacs-unstraightened.homeModule
+                {
                   xdg.configFile."sway/machine-dependent".source = ./machines + "/${mname}" +
                   "/sway/machine-dependent";  
                 }

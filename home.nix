@@ -128,19 +128,47 @@
   };
 
   # emacs
+  #
+  # Doom Emacs built by nix-doom-emacs-unstraightened (flake input; its
+  # home-manager module is imported in flake.nix). The module installs `emacs`
+  # and `emacsclient` itself and sets services.emacs.package, so programs.emacs
+  # has to stay off -- both would put an `emacs` into the profile and collide.
+  #
+  # ./doom.d is baked into the store rather than symlinked to ~/.config/doom,
+  # so a config edit takes a rebuild plus an Emacs restart; `doom sync` and
+  # `doom/reload` no longer apply. vterm and pdf-tools used to be added here by
+  # hand: Doom's :term vterm and :tools pdf modules pull them now, with their
+  # native halves (libvterm, epdfinfo) built by Nix.
   services.emacs.enable = true;
-  # remove if controlled by nix-doom-emacs; cf. in flakes.nix
-  programs.emacs.enable = true;
-  programs.emacs.package = pkgs.emacs30-pgtk;
-  programs.emacs.extraPackages = epkgs: with epkgs; [
-    vterm pdf-tools
+  programs.doom-emacs = {
+    enable = true;
+    doomDir = ./doom.d;
+    emacs = pkgs.emacs30-pgtk;
+    # Fetch pinned packages as GitHub tarballs instead of full-history git
+    # clones. That matters for pyret, whose mode lives in the ~650M pyret-lang
+    # monorepo, and it sidesteps the "Cannot find Git revision" fetchGit
+    # failures upstream reports on Nix newer than 2.18.
+    experimentalFetchTree = true;
     # tree-sitter grammars for c-ts-mode and c++-ts-mode, which doom.d/config.el
     # uses for C and C++
-    (treesit-grammars.with-grammars (g: [ g.tree-sitter-c g.tree-sitter-cpp ]))
-  ];
-
-  # My Doom Emacs config
-  xdg.configFile."doom".source = ./doom.d;
+    extraPackages = epkgs: [
+      (epkgs.treesit-grammars.with-grammars (g: [ g.tree-sitter-c g.tree-sitter-cpp ]))
+    ];
+    # copilot.el now ships its own copilot-chat.el, and so does the separate
+    # copilot-chat package (chep) that packages.el pulls in. Both
+    # `(provide 'copilot-chat)`, so whichever sits first on load-path is the
+    # only one that can ever load. Under straight.el that was chep's, which is
+    # what the `SPC l` bindings in config.el call into; here copilot's would
+    # win and break them (copilot-chat-add-current-buffer lives in chep's
+    # copilot-chat-command.el, which requires chep's copilot-chat). The fix has
+    # to be here: Unstraightened ignores a recipe's :files for packages that
+    # emacs-overlay already provides.
+    emacsPackageOverrides = eself: esuper: {
+      copilot = esuper.copilot.overrideAttrs (old: {
+        files = ''(:defaults "dist" (:exclude "copilot-chat.el"))'';
+      });
+    };
+  };
 
   # Dropbox
   # defunct as of end of 2023
