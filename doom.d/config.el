@@ -350,17 +350,19 @@ nothing happens."
 (setq c-ts-mode-indent-offset 4
       c-ts-mode-indent-style #'+c-ts-doom-indent-style)
 
-;; Claude Code sessions live in vterm buffers, or in Claude's background daemon,
-;; which a vterm buffer can show with `claude attach'. Once a minute, the
-;; running ones are recorded, each with the buffer showing it, if one does, and
-;; that buffer's workspaces, and so are buffers with Claude's agent view, `claude
-;; agents'. A session that stops while Emacs runs was ended on
-;; purpose and leaves the record; one that an Emacs restart or a reboot killed
-;; stays in it. SPC o C reopens the recorded sessions that aren't running or
-;; aren't shown, in buffers of their old names. It follows a conversation that
-;; went on in another session, as a busy one does when its terminal hangs up,
-;; and it never starts a conversation twice. SPC o c starts a new session,
-;; offering its name for the buffer's name too.
+;; Claude Code sessions run in Claude's background daemon, and vterm buffers only
+;; show them, through `claude attach': closing a buffer or restarting Emacs
+;; leaves a session running, and after a reboot attaching wakes it. SPC o c
+;; starts a session that way, offering its name for the buffer's name too. ←
+;; in a session Claude runs in the terminal itself moves it there as well.
+;; Once a minute, the sessions are recorded, each with the vterm buffer showing
+;; it, if one does, and that buffer's workspaces, and so are buffers with
+;; Claude's agent view, `claude agents'. A session that stops while Emacs runs
+;; was ended on purpose and leaves the record; one that an Emacs restart or a
+;; reboot killed stays in it. SPC o C reopens the buffers, in their workspaces,
+;; and restarts what the record has that isn't running, in the background. It
+;; follows a conversation that went on in another session, as a busy one does
+;; when its terminal hangs up, and it never starts a conversation twice.
 (defvar +claude-program "claude")
 (defvar +claude-new-session-args
   '("--model" "claude-opus-5-5" "--effort" "max" "--remote-control")
@@ -470,6 +472,15 @@ started, and what any of that but Claude started in turn, as `nix shell' does."
       (insert-file-contents (expand-file-name (format "sessions/%d.json" pid) +claude-dir))
       (json-parse-buffer :object-type 'plist :null-object nil :false-object nil))))
 
+(defun +claude--open-p (session)
+  "Whether some running Claude has SESSION open, by Claude's sessions dir: one
+in a terminal Emacs can't see, say."
+  (cl-loop for file in (file-expand-wildcards (expand-file-name "sessions/*.json" +claude-dir))
+           for pid = (string-to-number (file-name-base file))
+           thereis (and (> pid 0)
+                        (+claude--args pid) ; alive, and still Claude
+                        (equal (plist-get (+claude--registration pid) :sessionId) session))))
+
 (defun +claude--continued-in (session)
   "The session SESSION's conversation went on in, if its transcript says so.
 A busy session whose terminal hangs up goes on in the background under a new
@@ -539,6 +550,25 @@ they are recorded in. Showing no session of its own, one is known by its buffer.
                          :buffer (buffer-name buffer)
                          :workspaces (+claude--workspaces-of buffer)
                          :dir (buffer-local-value 'default-directory buffer))))
+
+(defun +claude--views (sessions processes record)
+  "What the vterm PROCESSES show, as (VIEWERS . AGENT-VIEWS): VIEWERS as (ID .
+BUFFER) for background SESSIONS, AGENT-VIEWS in recorded form. A buffer switched
+to the agent list, with ← in a session, still shows the session it showed
+before, by RECORD, while no other buffer does."
+  (let* ((viewers (+claude--viewers sessions processes))
+         sticky
+         (views (cl-loop for view in (+claude--agent-views processes)
+                         for name = (plist-get view :buffer)
+                         for id = (plist-get (seq-find (lambda (e)
+                                                         (and (plist-get e :background)
+                                                              (equal (plist-get e :buffer) name)))
+                                                       record)
+                                             :background)
+                         if (and id (not (assoc id viewers)) (not (assoc id sticky)))
+                         do (push (cons id (get-buffer name)) sticky)
+                         else collect view)))
+    (cons (append viewers (nreverse sticky)) views)))
 
 (defun +claude--workspaces-of (buffer)
   "The names of the workspaces BUFFER belongs to."
@@ -670,12 +700,12 @@ none yet."
   (when (executable-find +claude-program)
     (+claude--agents-async
      (lambda (sessions)
-       (let ((processes (+claude--in-vterm-buffers)))
-         (+claude--record
-          (append (+claude--in-vterms sessions processes)
-                  (+claude--in-background sessions
-                                          (+claude--viewers sessions processes))
-                  (+claude--agent-views processes))))))))
+       (pcase-let* ((processes (+claude--in-vterm-buffers))
+                    (`(,viewers . ,views)
+                     (+claude--views sessions processes (+claude--read-record))))
+         (+claude--record (append (+claude--in-vterms sessions processes)
+                                  (+claude--in-background sessions viewers)
+                                  views)))))))
 
 (defun +claude--shell-command (args)
   "The command line running Claude with ARGS, quoted for the vterm shell."
@@ -697,6 +727,26 @@ buffer NAME started in DIR, to run one after another."
       (vterm-send-return)
       (current-buffer))))
 
+(defun +claude--start-background (dir args)
+  "Start Claude with ARGS in the background, in DIR, and return the session's id.
+`--bg --resume' copies a session that turns out to be running already; such a
+copy, brand new, is deleted again, and nothing is returned."
+  (let ((default-directory (file-name-as-directory (expand-file-name dir))))
+    (with-temp-buffer
+      (apply #'call-process +claude-program nil t nil "--bg" args)
+      (let* ((output (string-trim (ansi-color-filter-apply (buffer-string))))
+             (id (and (string-match "backgrounded\\W+\\([0-9a-f]\\{8\\}\\)" output)
+                      (match-string 1 output))))
+        (cond
+         ;; e.g. in a folder Claude doesn't trust yet: `claude' there once asks
+         ((null id) (user-error "Claude: %s" output))
+         ((string-match "started a copy \\(?:of that conversation \\)?as \\([0-9a-f]\\{8\\}\\)"
+                        output)
+          (when (equal (match-string 1 output) id)
+            (call-process +claude-program nil nil nil "rm" id))
+          (user-error "Claude: %s" output))
+         (t id))))))
+
 (defun +claude--label (entry)
   (format "%s  %s  [%s]" (or (plist-get entry :name) "agent view")
           (abbreviate-file-name (plist-get entry :dir))
@@ -706,8 +756,8 @@ buffer NAME started in DIR, to run one after another."
 
 (defun +claude--plan (entry sessions shown)
   "What reopening the recorded ENTRY takes, given the listed SESSIONS and the
-ids of those SHOWN in vterm buffers: nil, (attach ID REVIVE), (respawn ID) or
-(resume SESSION), or (agents KEY) for an agent view."
+ids of those SHOWN in vterm buffers: nil, (attach ID), (respawn ID) or (resume
+SESSION), or (agents KEY) for an agent view."
   (if (plist-get entry :agents)
       (unless (member (plist-get entry :session) shown)
         (list 'agents (plist-get entry :session)))
@@ -727,16 +777,17 @@ ids of those SHOWN in vterm buffers: nil, (attach ID REVIVE), (respawn ID) or
     (cond
      ((or (member now shown) (and id (member id shown))) nil)
      ((null job)
-      (cond ((seq-find (lambda (s) (and (plist-get s :pid)
-                                        (equal (plist-get s :sessionId) now)))
-                       sessions)
+      (cond ((or (seq-find (lambda (s) (and (plist-get s :pid)
+                                            (equal (plist-get s :sessionId) now)))
+                           sessions)
+                 (+claude--open-p now))
              nil)                       ; running in a terminal outside Emacs
             ((plist-get entry :buffer) (list 'resume now))))
      ((equal (plist-get job :state) "stopped") nil) ; stopped on purpose
-     ;; Reopen its buffer as a view of it, restarting it first if it isn't
-     ;; running, or else just restart it, in place either way: `--bg --resume'
-     ;; starts a copy of a session the daemon believes running.
-     ((plist-get entry :buffer) (list 'attach id (not (plist-get job :pid))))
+     ;; Reopen its buffer as a view of it, which wakes it if it isn't running,
+     ;; or else just restart it, in place either way: `--bg --resume' starts a
+     ;; copy of a session the daemon believes running.
+     ((plist-get entry :buffer) (list 'attach id))
      ((not (plist-get job :pid)) (list 'respawn id)))))
 
 (defun +claude--reopening-p (reopened)
@@ -747,41 +798,44 @@ ids of those SHOWN in vterm buffers: nil, (attach ID REVIVE), (respawn ID) or
 
 (defun +claude/restore-sessions (&optional pick)
   "Reopen the recorded Claude sessions that aren't running or aren't shown.
-One that lived in a vterm resumes there. One in the background, sent there or
-moved there by a hangup, reopens its buffer as `claude attach', after `claude
-respawn' if it isn't running; one without a buffer is just respawned. Claude's
-continued-in marks lead to where a conversation went on, so its latest form
-reopens, and no conversation starts twice. Buffers keep their old names, or
-take the session's in place of a default `*vterm*' one, and go back into their
+A session's vterm buffer reopens as `claude attach', which wakes the session if
+it isn't running. One that Claude ran in the terminal itself, and that died
+with Emacs, goes on in the background first, under the same id; one in the
+background without a buffer is just respawned. Claude's continued-in marks lead
+to where a conversation went on, so its latest form reopens, and no
+conversation starts twice. Buffers keep their old names, or take the
+session's in place of a default `*vterm*' one, and go back into their
 workspaces. A buffer that had Claude's agent view gets it again. With a prefix
 argument, pick which to reopen; the rest are forgotten."
   (interactive "P")
-  (let* ((sessions (+claude--agents))
-         (processes (+claude--in-vterm-buffers))
-         (shown (append (mapcar #'car (+claude--viewers sessions processes))
-                        (mapcar (lambda (s) (plist-get s :session))
-                                (append (+claude--in-vterms sessions processes)
-                                        (+claude--agent-views processes)))
-                        (mapcar #'car (setq +claude--reopened
-                                            (seq-filter #'+claude--reopening-p
-                                                        +claude--reopened)))))
-         (record (+claude--read-record))
-         ;; Of two entries for one conversation, one with a buffer wins; an
-         ;; agent view gives way to a session last seen in its buffer.
-         (todo (cl-loop with targets = nil
-                        with buffers = nil
-                        for entry in (seq-sort-by (lambda (e)
-                                                    (cond ((plist-get e :agents) 1)
-                                                          ((plist-get e :buffer) 0)
-                                                          (t 2)))
-                                                  #'< record)
-                        for plan = (+claude--plan entry sessions shown)
-                        when (and plan
-                                  (not (member (cadr plan) targets))
-                                  (not (and (eq (car plan) 'agents)
-                                            (member (plist-get entry :buffer) buffers))))
-                        do (push (cadr plan) targets) (push (plist-get entry :buffer) buffers)
-                        and collect (cons entry plan))))
+  (pcase-let*
+      ((sessions (+claude--agents))
+       (processes (+claude--in-vterm-buffers))
+       (record (+claude--read-record))
+       (`(,viewers . ,views) (+claude--views sessions processes record))
+       (shown (append (mapcar #'car viewers)
+                      (mapcar (lambda (s) (plist-get s :session))
+                              (append (+claude--in-vterms sessions processes) views))
+                      (mapcar #'car (setq +claude--reopened
+                                          (seq-filter #'+claude--reopening-p
+                                                      +claude--reopened)))))
+       ;; Of two entries for one conversation, one with a buffer wins; an agent
+       ;; view gives way to a session last seen in its buffer.
+       (todo (cl-loop with targets = nil
+                      with buffers = nil
+                      for entry in (seq-sort-by (lambda (e)
+                                                  (cond ((plist-get e :agents) 1)
+                                                        ((plist-get e :buffer) 0)
+                                                        (t 2)))
+                                                #'< record)
+                      for plan = (+claude--plan entry sessions shown)
+                      when (and plan
+                                (not (member (cadr plan) targets))
+                                (not (and (eq (car plan) 'agents)
+                                          (member (plist-get entry :buffer) buffers))))
+                      do (push (cadr plan) targets) (push (plist-get entry :buffer) buffers)
+                      and collect (cons entry plan)))
+       (failed nil))
     (when pick
       (let ((chosen (completing-read-multiple
                      "Reopen: " (mapcar (lambda (x) (+claude--label (car x))) todo) nil t)))
@@ -798,46 +852,51 @@ argument, pick which to reopen; the rest are forgotten."
                          (concat "*vterm*" name)
                        old))
              (dir (plist-get entry :dir))
-             (flags (plist-get entry :flags)))
-        (push (cons (cadr plan)
-                    (pcase plan
-                      (`(respawn ,id)     ; returns at once
-                       (call-process +claude-program nil 0 nil "respawn" id)
-                       (current-time))
-                      (`(attach ,id ,revive)
-                       (+claude--into-workspaces
-                        (apply #'+claude--launch dir buffer
-                               (append (when revive (list (list "respawn" id)))
-                                       (list (list "attach" id))))
-                        (plist-get entry :workspaces)))
-                      (`(agents ,_)
-                       (+claude--into-workspaces
-                        (+claude--launch dir buffer (list "agents"))
-                        (plist-get entry :workspaces)))
-                      (`(resume ,session)
-                       (+claude--into-workspaces
-                        (+claude--launch
-                         dir buffer
-                         (append flags
-                                 ;; all of them within reach of claude.ai and the phone
-                                 (unless (member "--remote-control" flags)
-                                   '("--remote-control"))
-                                 (list "--resume" session)
-                                 (when name (list "--name" name))))
-                        (plist-get entry :workspaces)))))
-              +claude--reopened)))
-    (message "Reopened %d Claude session%s" (length todo) (if (= (length todo) 1) "" "s"))))
+             (flags (plist-get entry :flags))
+             (show (lambda (args)
+                     (+claude--into-workspaces (+claude--launch dir buffer args)
+                                               (plist-get entry :workspaces)))))
+        (condition-case err
+            (push (cons (cadr plan)
+                        (pcase plan
+                          (`(respawn ,id) ; returns at once
+                           (call-process +claude-program nil 0 nil "respawn" id)
+                           (current-time))
+                          (`(attach ,id) (funcall show (list "attach" id)))
+                          (`(agents ,_) (funcall show (list "agents")))
+                          (`(resume ,session)
+                           (funcall show
+                                    (list "attach"
+                                          (+claude--start-background
+                                           dir
+                                           (append
+                                            flags
+                                            ;; all of them within reach of claude.ai and the phone
+                                            (unless (member "--remote-control" flags)
+                                              '("--remote-control"))
+                                            (list "--resume" session)
+                                            (when name (list "--name" name)))))))))
+                  +claude--reopened)
+          (user-error (push (format "%s: %s" (or name "?") (error-message-string err))
+                            failed)))))
+    (let ((n (- (length todo) (length failed))))
+      (message "Reopened %d Claude session%s%s" n (if (= n 1) "" "s")
+               (if failed (concat "; not: " (string-join (nreverse failed) "; ")) "")))))
 
 (defun +claude/new-session (dir name bufname)
-  "Start a Claude session called NAME in DIR, in a vterm buffer called BUFNAME.
-Interactively, BUFNAME starts out as *vterm*NAME, to keep or edit."
+  "Start a Claude session called NAME in DIR, in the background, and show it in a
+vterm buffer called BUFNAME. Interactively, BUFNAME starts out as *vterm*NAME,
+to keep or edit."
   (interactive
    (let* ((dir (read-directory-name "Directory: " (or (doom-project-root) default-directory)))
           (name (read-string "Session name: "
                              (file-name-nondirectory (directory-file-name dir)))))
      (list dir name (read-string "Buffer name: " (concat "*vterm*" name)))))
   (let ((buffer (+claude--launch dir bufname
-                                 (append +claude-new-session-args (list "--name" name)))))
+                                 (list "attach"
+                                       (+claude--start-background
+                                        dir (append +claude-new-session-args
+                                                    (list "--name" name)))))))
     (+claude--into-workspaces buffer nil)
     (pop-to-buffer-same-window buffer))
   (run-with-timer 15 nil #'+claude--check))
