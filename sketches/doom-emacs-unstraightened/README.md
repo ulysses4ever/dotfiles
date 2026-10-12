@@ -152,13 +152,22 @@ for `setopt`.
 
 Order matters. The old Emacs must stop so its state is final. The new one must
 not start before the copy lands, or it writes empty history over it on exit.
+And the rebuild comes first, while the old Emacs still runs: a switch starts
+any stopped user service that should be running, and it does so before
+home-manager swaps in the new emacs.service. That is how um690's cutover on
+2026-10-11 came back up in the old Doom. The switch never restarts a running
+Emacs (X-RestartIfChanged is false), so rebuilding first is safe.
 
 ```
+sudo nixos-rebuild switch --flake ~/dotfiles#<host>   # Emacs keeps running
 systemctl --user stop emacs        # closes every frame: save buffers first
 ~/dotfiles/sketches/doom-emacs-unstraightened/migrate-state.sh
-sudo nixos-rebuild switch --flake ~/dotfiles#um690
-systemctl --user start emacs
+systemctl --user start emacs       # the new Doom; then SPC o C
 ```
+
+On a laptop the rebuild downloads Doom from the artem-dotfiles cache, which
+um690 pushes to, rather than compiling it, once um690 has built and pushed
+that same version.
 
 The state map, read out of the built Emacs rather than guessed. Old paths are
 under `~/.config/emacs/.local/`.
