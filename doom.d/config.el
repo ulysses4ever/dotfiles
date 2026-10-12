@@ -345,12 +345,15 @@ nothing happens."
 ;; stops while Emacs runs was ended on purpose and leaves the record; one that an
 ;; Emacs restart or a reboot killed stays in it. SPC o C reopens the recorded
 ;; sessions that aren't running, each resumed in a vterm buffer of its old name;
-;; SPC o c starts a new session, named once for both the buffer and Claude.
+;; SPC o c starts a new session, offering its name for the buffer's name too.
 (defvar +claude-program "claude")
 (defvar +claude-new-session-args
   '("--model" "claude-opus-5-5" "--effort" "max" "--remote-control")
   "Flags for a session started with `+claude/new-session'.")
-(defvar +claude-sessions-file (file-name-concat doom-data-dir "claude-sessions.eld"))
+;; next to Doom's own state; the profile dir is doom-data-dir unless Doom runs
+;; under a profile, as nix-doom-emacs-unstraightened does
+(defvar +claude-sessions-file
+  (file-name-concat doom-profile-data-dir "claude-sessions.eld"))
 (defvar +claude--seen nil "Ids of the sessions seen running in this Emacs.")
 (defvar +claude--missing nil "Ids seen before that weren't running at the last check.")
 (defvar +claude--timer nil)
@@ -460,6 +463,7 @@ that is one of them, since Doom adds a buffer there once it shows up."
       (read (current-buffer)))))
 
 (defun +claude--write-record (record)
+  (make-directory (file-name-directory +claude-sessions-file) t) ; new hosts lack it
   (with-temp-file +claude-sessions-file
     (let ((print-length nil) (print-level nil))
       (prin1 record (current-buffer)))))
@@ -542,13 +546,15 @@ pick which to reopen; the rest are forgotten."
          (plist-get session :workspaces))))
     (message "Reopened %d Claude session%s" (length todo) (if (= (length todo) 1) "" "s"))))
 
-(defun +claude/new-session (dir name)
-  "Start a Claude session called NAME in DIR, in a vterm buffer named after it."
+(defun +claude/new-session (dir name bufname)
+  "Start a Claude session called NAME in DIR, in a vterm buffer called BUFNAME.
+Interactively, BUFNAME starts out as *vterm*NAME, to keep or edit."
   (interactive
-   (let ((dir (read-directory-name "Directory: " (or (doom-project-root) default-directory))))
-     (list dir (read-string "Session name: "
-                            (file-name-nondirectory (directory-file-name dir))))))
-  (let ((buffer (+claude--launch dir (concat "*vterm*" name)
+   (let* ((dir (read-directory-name "Directory: " (or (doom-project-root) default-directory)))
+          (name (read-string "Session name: "
+                             (file-name-nondirectory (directory-file-name dir)))))
+     (list dir name (read-string "Buffer name: " (concat "*vterm*" name)))))
+  (let ((buffer (+claude--launch dir bufname
                                  (append +claude-new-session-args (list "--name" name)))))
     (+claude--into-workspaces buffer nil)
     (pop-to-buffer-same-window buffer))
