@@ -350,11 +350,13 @@ nothing happens."
 (setq c-ts-mode-indent-offset 4
       c-ts-mode-indent-style #'+c-ts-doom-indent-style)
 
-;; Claude Code sessions live in vterm buffers. Once a minute, the ones running
-;; there are recorded: buffer, directory, session id and flags. A session that
-;; stops while Emacs runs was ended on purpose and leaves the record; one that an
-;; Emacs restart or a reboot killed stays in it. SPC o C reopens the recorded
-;; sessions that aren't running, each resumed in a vterm buffer of its old name;
+;; Claude Code sessions live in vterm buffers, or in Claude's background daemon
+;; once sent there. Once a minute, the running ones are recorded: a vterm one
+;; with its buffer, directory, session id and flags, a background one with its
+;; id. A session that stops while Emacs runs was ended on purpose and leaves the
+;; record; one that an Emacs restart or a reboot killed stays in it. SPC o C
+;; reopens the recorded sessions that aren't running, a vterm one resumed in a
+;; vterm buffer of its old name, a background one in the background again;
 ;; SPC o c starts a new session, offering its name for the buffer's name too.
 (defvar +claude-program "claude")
 (defvar +claude-new-session-args
@@ -373,7 +375,9 @@ nothing happens."
   (with-current-buffer buffer
     (goto-char (point-min))
     (condition-case nil
-        (json-parse-buffer :object-type 'plist :array-type 'list)
+        ;; a null pid must read as no process, not as the true-ish :null
+        (json-parse-buffer :object-type 'plist :array-type 'list
+                           :null-object nil :false-object nil)
       (error :failed))))
 
 (defun +claude--agents ()
@@ -446,6 +450,15 @@ A failed listing skips the call, so it can't pass for no sessions running."
                            :dir (plist-get session :cwd)
                            :flags (+claude--flags pid)))))
 
+(defun +claude--in-background (sessions)
+  "The SESSIONS Claude's daemon runs without a terminal, as recorded."
+  (cl-loop for session in sessions
+           when (equal (plist-get session :kind) "background")
+           collect (list :session (plist-get session :sessionId)
+                         :name (plist-get session :name)
+                         :dir (plist-get session :cwd)
+                         :background (plist-get session :id))))
+
 (defun +claude--workspaces-of (buffer)
   "The names of the workspaces BUFFER belongs to."
   (when (bound-and-true-p persp-mode)
@@ -497,7 +510,9 @@ Emacs at shutdown can't cost the others their place."
 (defun +claude--check ()
   (when (executable-find +claude-program)
     (+claude--agents-async
-     (lambda (sessions) (+claude--record (+claude--in-vterms sessions))))))
+     (lambda (sessions)
+       (+claude--record (append (+claude--in-vterms sessions)
+                                (+claude--in-background sessions)))))))
 
 (defun +claude--shell-command (args)
   "The command line running Claude with ARGS, quoted for the vterm shell."
@@ -520,15 +535,23 @@ Emacs at shutdown can't cost the others their place."
 (defun +claude--label (session)
   (format "%s  %s  [%s]" (plist-get session :name)
           (abbreviate-file-name (plist-get session :dir))
-          (string-join (plist-get session :workspaces) ", ")))
+          (if (plist-get session :background)
+              "background"
+            (string-join (plist-get session :workspaces) ", "))))
 
 (defun +claude/restore-sessions (&optional pick)
-  "Reopen the recorded Claude sessions that aren't running, each resumed in a
-vterm buffer of its old name, or named after the session when the old name was
-a default `*vterm*' one, in the workspaces it was in. With a prefix argument,
-pick which to reopen; the rest are forgotten."
+  "Reopen the recorded Claude sessions that aren't running: a vterm one resumed
+in a vterm buffer of its old name, or named after the session when the old name
+was a default `*vterm*' one, in the workspaces it was in; a background one in
+the background again. With a prefix argument, pick which to reopen; the rest
+are forgotten."
   (interactive "P")
-  (let* ((live (mapcar (lambda (s) (plist-get s :sessionId)) (+claude--agents)))
+  ;; Running means having a process. After a hard kill, Claude's daemon still
+  ;; lists its background sessions as alive, process-less. And a conversation
+  ;; counts as running in either form: one resumed in a vterm isn't respawned
+  ;; in the background too.
+  (let* ((live (cl-loop for s in (+claude--agents)
+                        when (plist-get s :pid) collect (plist-get s :sessionId)))
          (record (+claude--read-record))
          (todo (seq-remove (lambda (s) (member (plist-get s :session) live)) record)))
     (when pick
@@ -539,21 +562,26 @@ pick which to reopen; the rest are forgotten."
                      record))
         (setq todo (seq-filter (lambda (s) (member (+claude--label s) chosen)) todo))))
     (dolist (session todo)
-      (let ((flags (plist-get session :flags))
-            (old (plist-get session :buffer))
-            (name (plist-get session :name)))
-        (+claude--into-workspaces
-         (+claude--launch
-          (plist-get session :dir)
-          (if (and name (string-match-p "\\`\\*vterm\\*\\(<[0-9]+>\\)?\\'" old))
-              (concat "*vterm*" name)
-            old)
-          (append flags
-                  ;; all of them within reach of claude.ai and the phone
-                  (unless (member "--remote-control" flags) '("--remote-control"))
-                  (list "--resume" (plist-get session :session))
-                  (when name (list "--name" name))))
-         (plist-get session :workspaces))))
+      (if (plist-get session :background)
+          ;; In place, same id; `--bg --resume' would start a copy of a session
+          ;; the daemon still believes alive. Returns at once.
+          (call-process +claude-program nil 0 nil
+                        "respawn" (plist-get session :background))
+        (let ((flags (plist-get session :flags))
+              (old (plist-get session :buffer))
+              (name (plist-get session :name)))
+          (+claude--into-workspaces
+           (+claude--launch
+            (plist-get session :dir)
+            (if (and name (string-match-p "\\`\\*vterm\\*\\(<[0-9]+>\\)?\\'" old))
+                (concat "*vterm*" name)
+              old)
+            (append flags
+                    ;; all of them within reach of claude.ai and the phone
+                    (unless (member "--remote-control" flags) '("--remote-control"))
+                    (list "--resume" (plist-get session :session))
+                    (when name (list "--name" name))))
+           (plist-get session :workspaces)))))
     (message "Reopened %d Claude session%s" (length todo) (if (= (length todo) 1) "" "s"))))
 
 (defun +claude/new-session (dir name bufname)
