@@ -23,6 +23,8 @@
     ./course-status.nix
     ./exam-ide.nix
     ./brightspace-keepalive.nix
+    # The three courses' Journals and hand-ins, fetched on a timer (2026-10-13).
+    ./edu-fetch.nix
     ./brightspace-web.nix
     ./vb-update.nix
   ];
