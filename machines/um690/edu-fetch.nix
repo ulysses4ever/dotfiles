@@ -1,17 +1,19 @@
-# edu-fetch.nix — the three courses' Journals and hand-ins, fetched on a timer:
-# ~/edu/scripts/fetch.py every fifteen minutes through the day. A run fetches
-# the Journal of each class that ended twenty minutes ago or more, and each
-# assignment past its deadline -- Brightspace folders in 120 and 240, Classroom
-# 50 repositories in 230 -- and skips whatever it already has; fetch.py's own
-# docstring says what, where it lands and why. Artem, 2026-10-13: a script on a
-# timer rather than `claude -p`, with the Journal right after class.
+# edu-fetch.nix — the three courses' Journals and hand-ins, fetched as they
+# come due, and each course's standing Claude session told what came in:
+# ~/edu/scripts/fetch.py --serve, which sleeps until twenty minutes after a
+# class ends or five minutes after a deadline, reading both off the course
+# sites, then fetches what is due and skips what it already has; fetch.py's
+# own docstring says what, where it lands and why. Artem, 2026-10-13: a script
+# rather than `claude -p` for the fetching, the Journal right after class, and
+# "Why not just at the times when class or deadline passed?" -- until then this
+# was a timer every fifteen minutes from 7:00 to midnight.
 #
 # It runs as artem, for the reason brightspace-keepalive.nix gives, and leans
 # on the Brightspace session that unit keeps alive. A dead session is a failed
 # run: a journal line (`journalctl -u edu-fetch -n 20`), a FAILED line at the
 # top of the status report, and a retry fifteen minutes later, which the
 # keep-alive's repair from Firefox usually makes good.
-{ config, lib, pkgs, ... }:
+{ config, lib, pkgs, pkgsUnstable, ... }:
 
 let
   edu = "/home/artem/edu";
@@ -22,44 +24,37 @@ let
 in
 {
   systemd.services.edu-fetch = {
-    description = "Fetch the courses' Journals and hand-ins";
+    description = "Fetch the courses' Journals and hand-ins as they come due, and tell the class sessions";
+    wantedBy = [ "multi-user.target" ];
     wants = [ "network-online.target" ];
     after = [ "network-online.target" ];
 
     # `gh teacher download` clones through gh and git. gh-teacher itself is a
     # static binary among artem's gh extensions, found under his HOME; fetch.py
     # turns GitHub's ssh URLs into HTTPS for its own runs, since a unit has no
-    # ssh agent, and git's credential helper there is gh.
-    path = [ pkgs.gh pkgs.git pkgs.openssh ];
+    # ssh agent, and git's credential helper there is gh. claude carries each
+    # message to a class session (`claude -p` with SendMessage) and finds the
+    # session (`claude agents --json`): the same package packages.nix installs.
+    path = [ pkgs.gh pkgs.git pkgs.openssh pkgsUnstable.claude-code ];
 
     serviceConfig = {
-      Type = "oneshot";
+      Type = "simple";
       User = "artem";
-      Environment = [ "HOME=/home/artem" ];
-      ExecStart = "${python}/bin/python3 ${edu}/scripts/fetch.py";
+      # XDG_RUNTIME_DIR is where Claude sessions keep the sockets a message
+      # reaches them by, and a system unit is given none of its own.
+      Environment = [ "HOME=/home/artem" "XDG_RUNTIME_DIR=/run/user/1000" ];
+      ExecStart = "${python}/bin/python3 -u ${edu}/scripts/fetch.py --serve";
+      # An edit to fetch.py is taken up by the script itself, at its next
+      # wake; a crash comes back a minute later and catches up what it missed.
+      Restart = "always";
+      RestartSec = "1min";
       # The checkouts are working data and the script is edited by hand, so the
       # unit cannot write to them. What it fetches goes through each course's
-      # dropbox link into ~/Dropbox, outside this path, and its state into
-      # ~/.local/state/edu-fetch.
+      # dropbox link into ~/Dropbox, outside this path, its state into
+      # ~/.local/state/edu-fetch, and the messenger's transcripts into ~/.claude.
       ReadOnlyPaths = [ edu ];
       NoNewPrivileges = true;
       PrivateTmp = true;
-      # A first download of a big assignment, or of every repository of one.
-      TimeoutStartSec = "20min";
-    };
-  };
-
-  systemd.timers.edu-fetch = {
-    wantedBy = [ "timers.target" ];
-    timerConfig = {
-      # Through the day only: the last class ends at 3:50, the Journal is
-      # fetched twenty minutes after a class, and a deadline at 23:59 is
-      # fetched by the first run of the morning.
-      OnCalendar = "*-*-* 07..23:00/15";
-      AccuracySec = "1min";
-      # A missed run is caught up by the next: fetch.py looks back over the
-      # last three days' classes and the last week's deadlines.
-      Persistent = false;
     };
   };
 }
