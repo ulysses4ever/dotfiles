@@ -68,6 +68,13 @@
 ;; Please, just quit
 (setq confirm-kill-emacs nil)
 
+;; SPC SPC lists a project's files afresh each time. Doom caches the list and
+;; keeps it on disk with no expiry, and only files opened in Emacs ever join
+;; it, so ones that Claude, git or a shell created never showed up. A fresh
+;; list takes under 0.1 s in most projects here, half a second in ghc's.
+(after! projectile
+  (setq projectile-enable-caching nil))
+
 ;; Proof General window layout that makes most sense
 (customize-set-variable 'proof-three-window-mode-policy 'hybrid)
 
