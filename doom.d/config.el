@@ -162,7 +162,7 @@ nothing happens."
 
 ;; ob-haskell (Org Babel for Haskell) breaks on custom prompts that I put in my .ghci
 (after! haskell
-        (setq! haskell-process-args-ghci '("-ferror-spans" "-ignore-dot-ghci")))
+        (setopt haskell-process-args-ghci '("-ferror-spans" "-ignore-dot-ghci")))
 
 ;; org mode: align tags to the right margin
 (after! org
