@@ -91,6 +91,7 @@
     # so this is the community Electron wrapper around the Teams web app.
     teams-for-linux
     xournalpp
+    pandoc
   ];
   # Hopefully helps to screen-share under Wayland
   xdg = {
