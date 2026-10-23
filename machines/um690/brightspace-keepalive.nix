@@ -44,6 +44,22 @@ let
   # with no expiry and Firefox keeps those out of cookies.sqlite. mozlz4 is that
   # file's container.
   python = pkgs.python3.withPackages (ps: [ ps.lz4 ]);
+
+  # The autograder reads Brightspace with these same sessions, and since
+  # 2026-10-23 it runs on artemserver, while this machine stays where they are
+  # kept alive and renewed: Artem's from Firefox, Julia's by hand. So after each
+  # run the file and Artem's session directory are copied there, over the
+  # tailnet, and a renewed session reaches the grader within the quarter hour.
+  # `artemserver-tailnet` is ~/.ssh/config's; a copy that fails is a journal
+  # line, and the next run tries again.
+  sync = pkgs.writeShellScript "brightspace-sessions-to-artemserver" ''
+    set -e
+    ssh="${pkgs.openssh}/bin/ssh -o BatchMode=yes -o ConnectTimeout=20"
+    ${pkgs.rsync}/bin/rsync -a --chmod=D700,F600 -e "$ssh" \
+      ${keepalive} artemserver-tailnet:.config/brightspace/keepalive.ini
+    ${pkgs.rsync}/bin/rsync -a --chmod=D700,F600 -e "$ssh" \
+      /home/artem/.local/state/brightspace/ artemserver-tailnet:.local/state/brightspace/
+  '';
 in
 {
   systemd.services.brightspace-keepalive = {
@@ -75,6 +91,8 @@ in
       # --quiet says nothing for a session that is alive, so the journal holds
       # failures only, one line per session, by its name in the file.
       ExecStart = "${python}/bin/python3 ${edu}/brightspace-cli/brightspace.py keepalive --quiet";
+      # After every run, a session that died included: the grader's copies.
+      ExecStopPost = "-${sync}";
 
       # The checkouts are live working data and the script is edited by hand, so
       # the unit is given no way to write to them. The session directory stays

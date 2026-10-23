@@ -16,10 +16,10 @@
     # tailnet-serve.nix owns `tailscale serve` for the whole node;
     # course-status.nix contributes its port rather than running its own reset.
     ./tailnet-serve.nix
-    # The autograder, students' and instructors': grader.cu-cs-classes.site.
-    # pyret-grader.nix, the instructors-only one at grader.pelenitsyn.site,
-    # was decommissioned 2026-10-04, when the student-facing one became v2.0.
-    ./cu-cs-grader.nix
+    # The autograder, grader.cu-cs-classes.site, runs on artemserver since
+    # 2026-10-23: deploy/artemserver/ in cu-cs-courses/pyret-grader has its
+    # unit. This machine still keeps its Brightspace sessions alive, and copies
+    # them there: brightspace-keepalive.nix.
     ./course-status.nix
     ./exam-ide.nix
     ./brightspace-keepalive.nix
