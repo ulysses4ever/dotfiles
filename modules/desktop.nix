@@ -68,13 +68,17 @@
     grim slurp # screenshot functionality
     wl-clipboard # wl-copy and wl-paste for copy/paste from stdin / stdout
     mako # notification system developed by swaywm maintainer
-    # sway/language touched GTK from its IPC thread and segfaulted on output
-    # hotplug (Waybar #3702); fixed upstream after 0.15.0.
+    # Two output-hotplug bugs fixed upstream after 0.15.0: sway/language touched
+    # GTK from its IPC thread and segfaulted (Waybar #3702); sway/workspaces
+    # took a workspace event for its subscribe reply and disabled itself.
     (waybar.overrideAttrs (old:
       assert lib.assertMsg (old.version == "0.15.0")
-        "waybar is now ${old.version}: check whether it includes upstream c0a26104a5, then drop or rebase patches/waybar-sway-language-main-thread.patch";
+        "waybar is now ${old.version}: check whether it includes upstream c0a26104a5 and 6e0b50567e, then drop or rebase patches/waybar-sway-*.patch";
       {
-      patches = (old.patches or [ ]) ++ [ ../patches/waybar-sway-language-main-thread.patch ];
+      patches = (old.patches or [ ]) ++ [
+        ../patches/waybar-sway-language-main-thread.patch
+        ../patches/waybar-sway-ipc-subscribe-reply.patch
+      ];
     }))
     wlsunset
     theme-sh
