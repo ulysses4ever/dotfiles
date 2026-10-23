@@ -343,6 +343,31 @@ nothing happens."
 (after! poly-markdown
   (oset poly-markdown-fenced-code-innermode adjust-face 'markdown-code-face))
 
+;; HTML preview (, p in web-mode and Dired): eww-open-file prompts for a
+;; file and lands in Doom's bottom popup. This renders the buffer's file, or
+;; the one at point in Dired, in a window to the right, reused on later calls.
+;; With C-u, the system browser (Firefox) gets it instead.
+(defun +html/preview (&optional external)
+  "Render the current buffer's file, or the Dired file at point, in EWW.
+With prefix arg EXTERNAL, open it in the system browser instead."
+  (interactive "P")
+  (let ((file (if (derived-mode-p 'dired-mode)
+                  (dired-get-file-for-visit)
+                (or buffer-file-name (user-error "Buffer is not visiting a file")))))
+    (when (and buffer-file-name (buffer-modified-p))
+      (save-buffer))
+    (if external
+        (browse-url-of-file file)
+      ;; The overriding action outranks display-buffer-alist, popup rules too.
+      (let ((display-buffer-overriding-action
+             '((display-buffer-reuse-window display-buffer-in-direction)
+               (direction . right))))
+        (eww-open-file file)))))
+(after! web-mode
+  (map! :map web-mode-map :localleader :desc "Preview" "p" #'+html/preview))
+(after! dired
+  (map! :map dired-mode-map :localleader :desc "Preview HTML" "p" #'+html/preview))
+
 ;; C and C++ use the tree-sitter modes, with grammars from home.nix. Emacs 30's
 ;; cc-mode registers c-mode -> c-ts-mode remaps together with entries that keep
 ;; them off, and Doom's :lang cc deletes those entries, so the switch used to
