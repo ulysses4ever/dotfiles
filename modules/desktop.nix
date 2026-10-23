@@ -90,6 +90,7 @@
     # MS Teams: Microsoft ships no Linux client (nixpkgs' `teams` is macOS-only),
     # so this is the community Electron wrapper around the Teams web app.
     teams-for-linux
+    xournalpp
   ];
   # Hopefully helps to screen-share under Wayland
   xdg = {
