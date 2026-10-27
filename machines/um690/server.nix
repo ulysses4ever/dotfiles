@@ -8,6 +8,9 @@
     # an Options change which it merely reloads -- so apply this with
     # `nixos-rebuild boot` and a reboot, never a live `switch`.
     bindMount = dev: { device = dev; options = [ "bind" "nofail" ]; fsType = "none"; };
+    # Jellyfin's remux and transcode segments: on the data SSD, not the 96G
+    # root (see the Jellyfin section).
+    jellyfinTranscodes = "/mnt/data/jellyfin-transcodes";
   in
 {
   imports = [
@@ -38,6 +41,55 @@
   #
   services.jellyfin = {
     enable = true;
+  };
+  # On 2026-10-25 a remux of a 16.5G 4K episode filled / and cut playback off
+  # eight minutes before the end. A remux only copies streams, so with
+  # throttling off ffmpeg races through the whole file at ~37x real time, and
+  # with segment deletion off every segment stays on disk until playback
+  # stops. The segments now go to the data SSD, which has room for any episode.
+  #
+  # Throttling and segment deletion, the usual cure, stay off: on 2026-10-26
+  # the LG TV's webOS app kept failing while they were on. It failed the same
+  # way with them off -- resuming mid-episode makes Jellyfin restart ffmpeg
+  # at the resume point, and the app loops on the new segments -- so they were
+  # not the cause, but nothing is gained by turning them back on either.
+  #
+  # The module's transcoding.* options cannot say this: it writes
+  # encoding.xml only when hardwareAcceleration is enabled, only as a
+  # whole-file replacement (forceEncodingConfig) that would wipe the
+  # dashboard's other settings, and it never writes deleteSegments at all.
+  # So just these three keys are patched in on every start and the rest of
+  # the file stays the dashboard's -- which also means that turning them off
+  # there only lasts until the next restart.
+  systemd.services.jellyfin = {
+    serviceConfig.ExecStartPre = [
+      (lib.getExe (pkgs.writeShellApplication {
+        name = "jellyfin-encoding-options";
+        runtimeInputs = [ pkgs.xmlstarlet ];
+        text = ''
+          f=${config.services.jellyfin.configDir}/encoding.xml
+          # Absent only before the very first start, which writes the defaults.
+          [ -e "$f" ] || exit 0
+          set_opt() {
+            [ "$(xml sel -t -v "/EncodingOptions/$1" "$f")" = "$2" ] && return
+            if xml sel -Q -t -c "/EncodingOptions/$1" "$f"; then
+              xml ed -L -u "/EncodingOptions/$1" -v "$2" "$f"
+            else
+              # Keys left at their default (null) are missing from the file.
+              xml ed -L -s /EncodingOptions -t elem -n "$1" -v "$2" "$f"
+            fi
+          }
+          set_opt EnableThrottling false
+          set_opt EnableSegmentDeletion false
+          set_opt TranscodingTempPath ${jellyfinTranscodes}
+        '';
+      }))
+    ];
+    unitConfig.RequiresMountsFor = [ jellyfinTranscodes ];
+  };
+  systemd.tmpfiles.settings.jellyfinTranscodes.${jellyfinTranscodes}.d = {
+    mode = "0700";
+    inherit (config.services.jellyfin) user group;
   };
 
   ##############################################################################
