@@ -29,6 +29,8 @@
     # The three courses' Journals and hand-ins, fetched on a timer (2026-10-13).
     ./edu-fetch.nix
     ./brightspace-web.nix
+    # ~/Dropbox on the web, mostly for the iPhone, behind Access (2026-10-31).
+    ./dropbox-web.nix
   ];
 
   # Disable IPv6 in the hope to recover torrent access / XFinity port forwarding.
