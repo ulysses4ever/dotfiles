@@ -31,6 +31,9 @@
     ./brightspace-web.nix
     # ~/Dropbox on the web, mostly for the iPhone, behind Access (2026-10-31).
     ./dropbox-web.nix
+    # The family's books (hledger-web) and receipts (Paperless) at money. and
+    # paperless.pelenitsyn.site, replacing AndroMoney (2026-10-17).
+    ./finance.nix
   ];
 
   # Disable IPv6 in the hope to recover torrent access / XFinity port forwarding.

@@ -14,6 +14,11 @@
     # read; pointing it at nothing saves fetching a second nixpkgs.
     nix-doom-emacs-unstraightened.url = "github:marienz/nix-doom-emacs-unstraightened";
     nix-doom-emacs-unstraightened.inputs.nixpkgs.follows = "";
+    # hledger-web with the phone layout, from the local checkout of our fork
+    # until upstream has it (machines/um690/finance.nix). The lock pins the
+    # commit; `nix flake update hledger-src` takes the branch's latest.
+    hledger-src.url = "git+file:///home/artem/Dev/hledger?ref=web-mobile";
+    hledger-src.flake = false;
   };
 
   outputs = { home-manager, nixpkgs, disko, ... }@inputs: {
