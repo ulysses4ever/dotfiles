@@ -31,6 +31,10 @@ let
   paperlessHost = "paperless.pelenitsyn.site";
   repo = "/home/artem/data/finance";
   socket = "/run/hledger-web/web.sock";
+  # The showroom: the fork on fictional books, open to the world.
+  showroomHost = "showroom.pelenitsyn.site";
+  showroomDir = "/home/artem/data/showroom";
+  showroomSocket = "/run/hledger-showroom/web.sock";
 
   # The CLI: both nixpkgs pins (26.05 and unstable) ship 1.52.0. 1.52.2 and
   # 1.52.3 fix two XSS holes in hledger-web's add form and stop a newline in a
@@ -141,6 +145,8 @@ in
     # Until the entry page exists. Then this becomes the entry page's socket,
     # and the entry page forwards everything but its own pages to hledger-web.
     ${host} = { service = "unix:${socket}"; };
+    # The showroom is public: no Access application covers this hostname.
+    ${showroomHost} = { service = "unix:${showroomSocket}"; };
     # Paperless has its own login on top of Access, so local reachability on
     # its port is not the open door hledger-web's would be.
     ${paperlessHost} = { service = "http://localhost:${toString config.services.paperless.port}"; };
@@ -248,6 +254,70 @@ in
     wantedBy = [ "timers.target" ];
     timerConfig = {
       OnCalendar = "22:30";
+      Persistent = true;
+    };
+  };
+
+  # The showroom at showroom.pelenitsyn.site: the same hledger-web build on
+  # fictional books (showroom-sample.py), for showing the fork to people.
+  # It runs with --showroom, which shows everything, the forms included,
+  # and saves nothing; the hostname has no Access application, so anyone
+  # can look. Like the family's instance it listens on a socket in the
+  # finance-web group, which the tunnel is in. The books are made up to
+  # today, and made afresh every night, so the month view always has
+  # entries; hledger-web reads the file again when it changes.
+  systemd.services.hledger-showroom = {
+    description = "hledger-web showroom at ${showroomHost}: the fork on fictional books, saving nothing";
+    wantedBy = [ "multi-user.target" ];
+    after = [ "local-fs.target" ];
+    unitConfig.RequiresMountsFor = showroomDir;
+    serviceConfig = {
+      User = "artem";
+      Group = "finance-web";
+      UMask = "0007";
+      RuntimeDirectory = "hledger-showroom";
+      RuntimeDirectoryMode = "0750";
+      Environment = [ "XDG_CACHE_HOME=/run/hledger-showroom/cache" ];
+      ExecStartPre = [
+        "${pkgs.coreutils}/bin/install -d -m 0700 /run/hledger-showroom/cache"
+        # the books, if they are not there yet
+        "${pkgs.bash}/bin/sh -c 'test -s ${showroomDir}/showroom.journal || ${pkgs.python3}/bin/python3 ${./showroom-sample.py} ${showroomDir}/showroom.journal'"
+      ];
+      ExecStart = lib.escapeShellArgs [
+        "${hledgerWeb}/bin/hledger-web"
+        "--serve"
+        "--allow=add"
+        "--showroom"
+        "--socket=${showroomSocket}"
+        "--base-url=https://${showroomHost}"
+        "--file=${showroomDir}/showroom.journal"
+      ];
+      Restart = "on-failure";
+      RestartSec = 5;
+
+      ProtectHome = "tmpfs";
+      BindPaths = [ showroomDir ];
+      ProtectSystem = "strict";
+      PrivateTmp = true;
+      PrivateDevices = true;
+      NoNewPrivileges = true;
+      RestrictAddressFamilies = [ "AF_UNIX" ];
+      IPAddressDeny = "any";
+    };
+  };
+  systemd.services.showroom-sample = {
+    description = "Make the showroom's books afresh, up to today";
+    unitConfig.RequiresMountsFor = showroomDir;
+    serviceConfig = {
+      Type = "oneshot";
+      User = "artem";
+    };
+    script = "${pkgs.python3}/bin/python3 ${./showroom-sample.py} ${showroomDir}/showroom.journal";
+  };
+  systemd.timers.showroom-sample = {
+    wantedBy = [ "timers.target" ];
+    timerConfig = {
+      OnCalendar = "03:15";
       Persistent = true;
     };
   };
