@@ -162,6 +162,21 @@ def main():
                     'Wavelength Mobile', 'Streamly', 'Iron Works Gym', 'Open Shelter', 'First Trust Bank', 'Aunt Vera',
                     'Dr Okafor', 'Harbour Hotel', 'Skyline Air', 'Farmers market'}, key=str.lower)
     out += [f'payee {p}' for p in payees] + ['']
+    # the rules the fixed lines come from, as the Recurring page shows them
+    first = (today.replace(day=1) - timedelta(days=1)).replace(day=1)   # from last month
+    def rule(n, expr, desc, acct, amt, other):
+        return f'~ {expr}  {desc}  ; recurring:{n}\n    {acct:<36}{amt:>12}\n    {other}\n'
+    out += [
+        rule(1, f'monthly from {first}', 'Hillside Properties | rent', 'expenses:housing:rent', money(1650), 'assets:bank:checking'),
+        rule(2, f'every 2 weeks from {first}', 'Acme Robotics | salary', 'assets:bank:checking', money(2150), 'income:salary'),
+        rule(3, f'monthly from {first.replace(day=6)}', 'Northwind Power', 'expenses:utilities:power', money(105), 'assets:bank:checking'),
+        rule(4, f'monthly from {first.replace(day=12)}', 'Fibre Fast', 'expenses:utilities:internet', money(59.99), 'liabilities:card:visa'),
+        rule(5, f'monthly from {first.replace(day=18)}', 'Wavelength Mobile', 'expenses:utilities:phone', money(45), 'liabilities:card:visa'),
+        rule(6, f'monthly from {first.replace(day=9)}', 'Streamly', 'expenses:entertainment:streaming', money(12.99), 'liabilities:card:visa'),
+        rule(7, f'monthly from {first.replace(day=3)}', 'Iron Works Gym', 'expenses:entertainment:gym', money(39), 'liabilities:card:visa'),
+        rule(8, f'monthly from {first.replace(day=20)}', 'Open Shelter | monthly gift', 'expenses:social:charity', '25.00 EUR', 'liabilities:card:visa'),
+        rule(9, f'monthly from {first.replace(day=16)}', 'To savings', 'assets:bank:savings', money(300), 'assets:bank:checking'),
+    ]
     out.append('\n\n'.join(render(e) for e in kept) + '\n')
     open(a.out, 'w', encoding='utf-8').write('\n'.join(out))
     print(f'{len(kept)} entries, {start} .. {end}, written to {a.out}')
