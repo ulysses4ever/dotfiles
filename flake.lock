@@ -95,11 +95,11 @@
     "hledger-src": {
       "flake": false,
       "locked": {
-        "lastModified": 1793843118,
-        "narHash": "sha256-f2BOrVnpvU8WDCyVTp7fqAqAtQBZ1dFVuG6X4gdbXWc=",
+        "lastModified": 1793936613,
+        "narHash": "sha256-snkuu+XgXC9ca3SlFoP34cGKjsSTRG6wDzOqwibCNZc=",
         "ref": "web-mobile",
-        "rev": "b92f722187d62fda8d903894e99dbd4a4396be09",
-        "revCount": 16546,
+        "rev": "6b0f1bbd1b402781886d157458d65ad51bd3fafc",
+        "revCount": 16547,
         "type": "git",
         "url": "file:///home/artem/Dev/hledger"
       },
