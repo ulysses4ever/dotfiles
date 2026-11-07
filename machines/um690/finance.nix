@@ -55,36 +55,56 @@ let
       install -Dm644 -t $out/share/man/man1 *.1
     '';
   };
-  # hledger-web itself comes from our fork (~/Dev/hledger, branch web-mobile,
-  # pinned by the flake input hledger-src): upstream's main line (1.99) plus a
-  # phone layout, which the family will not do without. hledger-lib and hledger
-  # are built from the same commit. Each package directory is copied under its
-  # own name, as ~/Dev/accounting/hosting/hledger-from-source.nix does, so the
-  # builds are shared with that recipe's. The git tree lacks the command docs
-  # the CLI embeds; they are stubbed, which only matters to `hledger help`.
-  hledgerWeb =
-    let
-      hlib = pkgs.haskell.lib;
-      relax = p: hlib.dontCheck (hlib.doJailbreak p);
-      dir = name: builtins.path { path = "${inputs.hledger-src}/${name}"; inherit name; };
-      stubDocs = p: hlib.overrideCabal p (o: {
-        postPatch = (o.postPatch or "") + ''
-          for f in $(grep -o 'embeddedfiles/[^"]*' Hledger/Cli/DocFiles.hs | sort -u); do
-            mkdir -p "$(dirname "$f")"
-            if [ ! -e "$f" ]; then rm -f "$f"; echo "Documentation is not generated in this build." > "$f"; fi
-          done
-        '';
-      });
-      hp = pkgs.haskellPackages.extend (self: super: {
-        hledger-lib = relax (self.callCabal2nix "hledger-lib" (dir "hledger-lib") { });
-        hledger = stubDocs (relax (self.callCabal2nix "hledger" (dir "hledger") { }));
-        hledger-web = relax (self.callCabal2nix "hledger-web" (dir "hledger-web") { });
-      });
-    in
-    hp.hledger-web;
+  # hledger-web itself comes from our fork (hledger-web.nix). The services
+  # run the build in the profile below, which `hledger-deploy` sets from the
+  # checkout and restarts them for, without a system rebuild; the build
+  # from the flake input hledger-src only seeds the profile when there is
+  # none yet (a fresh machine), so the flake input need not follow every
+  # commit. Rolling back is the profile's: see hledger-deploy.
+  hledgerWeb = import ./hledger-web.nix { inherit pkgs; src = inputs.hledger-src; };
+  hledgerProfile = "/nix/var/nix/profiles/hledger-web";
+  hledgerDeploy = pkgs.writeShellApplication {
+    name = "hledger-deploy";
+    runtimeInputs = [ pkgs.nix pkgs.git pkgs.coreutils pkgs.systemd ];
+    text = ''
+      # hledger-deploy [CHECKOUT]: build hledger-web from the fork's checkout
+      # (~/Dev/hledger unless given), run its own tests, make it the build
+      # the services run, and restart them. Takes the nixpkgs of the running
+      # system, so the build matches what the tests saw and nothing else is
+      # built. To go back one build:
+      #   sudo nix-env -p ${hledgerProfile} --rollback
+      #   sudo systemctl restart hledger-web-family hledger-showroom
+      src=$(realpath "''${1:-/home/artem/Dev/hledger}")
+      echo "hledger-deploy: building from $src ($(git -C "$src" log --oneline -1 2>/dev/null || echo "not a git checkout"))"
+      out=$(nix-build --no-out-link --expr "import ${./hledger-web.nix} { pkgs = import ${pkgs.path} {}; src = \"$src\"; }")
+      log=$(mktemp)
+      echo "hledger-deploy: testing $out"
+      if ! "$out/bin/hledger-web" --test >"$log" 2>&1; then
+        tail -n 40 "$log"
+        echo "hledger-deploy: the tests failed; nothing deployed (log: $log)"
+        exit 1
+      fi
+      grep -c '✔' "$log" | sed 's/^/hledger-deploy: tests passed: /'
+      rm -f "$log"
+      sudo nix-env -p ${hledgerProfile} --set "$out"
+      sudo nix-env -p ${hledgerProfile} --delete-generations +5 >/dev/null 2>&1 || true
+      sudo systemctl restart hledger-web-family hledger-showroom
+      sleep 1
+      systemctl is-active hledger-web-family hledger-showroom | sed 's/^/hledger-deploy: /'
+      echo "hledger-deploy: running $(readlink -f ${hledgerProfile})"
+    '';
+  };
 in
 {
-  environment.systemPackages = [ hledger ];
+  environment.systemPackages = [ hledger hledgerDeploy ];
+
+  # The build the services run, seeded from the flake input until
+  # hledger-deploy has set it (see hledgerWeb above).
+  system.activationScripts.hledgerWebProfile.text = ''
+    if [ ! -e ${hledgerProfile} ]; then
+      ${config.nix.package}/bin/nix-env -p ${hledgerProfile} --set ${hledgerWeb}
+    fi
+  '';
 
   users.groups.finance-web = { };
 
@@ -110,7 +130,7 @@ in
       Environment = [ "XDG_CACHE_HOME=/run/hledger-web/cache" ];
       ExecStartPre = "${pkgs.coreutils}/bin/install -d -m 0700 /run/hledger-web/cache";
       ExecStart = lib.escapeShellArgs [
-        "${hledgerWeb}/bin/hledger-web"
+        "${hledgerProfile}/bin/hledger-web"   # (the profile: see hledgerWeb above)
         "--serve"                      # web UI and JSON API
         "--allow=add"                  # family members can only append
         "--socket=${socket}"
@@ -284,7 +304,7 @@ in
         "${pkgs.bash}/bin/sh -c 'test -s ${showroomDir}/showroom.journal || ${pkgs.python3}/bin/python3 ${./showroom-sample.py} ${showroomDir}/showroom.journal'"
       ];
       ExecStart = lib.escapeShellArgs [
-        "${hledgerWeb}/bin/hledger-web"
+        "${hledgerProfile}/bin/hledger-web"
         "--serve"
         "--allow=add"
         "--showroom"
