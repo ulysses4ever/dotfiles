@@ -10,6 +10,8 @@
       ./hardware-configuration.nix # Include the results of the hardware scan.
       ./syncthing.nix
       ./server.nix
+      # The Arturia MicroLab mk3 plays a grand piano, live (2026-11-07).
+      ./piano.nix
       ../../modules/standard.nix
       ../../modules/bluetooth.nix
       ../../modules/docker.nix
