@@ -76,10 +76,11 @@ let
     until [[ -r /dev/snd/seq && -w /dev/snd/seq ]]; do ${pkgs.coreutils}/bin/sleep 5; done
 
     # -z 256: 5.3 ms blocks at 48 kHz, the graph's rate.
-    # -g 0.4: the loudest the keyboard plays, ten keys at velocity 127 and then
-    #   a glissando over all 25, the hold on throughout, peaks at -0.5 dBFS with
-    #   the reverb, so nothing clips even at full volume. The default, 0.2, is
-    #   6 dB quieter.
+    # -g 1.0: on rendered two-hand passages, forte playing comes out at about
+    #   -15 LUFS, near the -14 YouTube brings music to, and mezzo-forte at -19.
+    #   The hardest playing would then peak at +6 dBFS, which the limiter
+    #   (below) holds at -1. At 0.4, safe without one, the piano was quieter
+    #   than YouTube at the same volume (2026-11-08).
     # -C 0: a piano has no chorus.
     # midi.autoconnect subscribes to every MIDI port there is, and to each one
     # that appears later: the keyboard, whenever it comes up after this starts.
@@ -92,9 +93,51 @@ let
     exec ${fluidsynth}/bin/fluidsynth \
       -a pipewire -z 256 -r 48000 \
       -m alsa_seq -o midi.autoconnect=1 -o midi.alsa_seq.id=piano \
-      -g 0.4 -C 0 -f ${commands} \
+      -g 1.0 -C 0 -f ${commands} \
       "${salamander}/share/soundfonts/SalamanderGrandPiano-V3+20200602.sf2" \
       < <(exec ${pkgs.coreutils}/bin/sleep infinity)
+  '';
+
+  # A peak limiter between FluidSynth and the speakers, in a PipeWire process
+  # of its own: x42's digital peak limiter, 64 samples (1.3 ms) of
+  # look-ahead at 48 kHz. swh's fast look-ahead limiter takes 5 ms. PipeWire
+  # has no limiter of its own; its clamp would clip.
+  #
+  # Its input is a capture stream that connects to nothing by itself, and not
+  # a sink: a sink can become the default output whenever it is the only one,
+  # as when the monitor sleeps and its HDMI audio goes, and then every other
+  # stream would play through the piano's limiter. FluidSynth reaches the
+  # input by name (PIPEWIRE_NODE). The output follows the default sink.
+  limiter = pkgs.writeText "piano-limiter.conf" ''
+    context.properties = { log.level = 0 }
+    context.spa-libs = {
+      audio.convert.* = audioconvert/libspa-audioconvert
+      support.*       = support/libspa-support
+    }
+    context.modules = [
+      { name = libpipewire-module-rt, flags = [ ifexists nofail ] }
+      { name = libpipewire-module-protocol-native }
+      { name = libpipewire-module-client-node }
+      { name = libpipewire-module-adapter }
+      { name = libpipewire-module-filter-chain
+        args = {
+          node.description = "Piano limiter"
+          media.name       = "Piano limiter"
+          filter.graph = {
+            nodes = [ {
+              type    = lv2
+              name    = dpl
+              plugin  = "http://gareus.org/oss/lv2/dpl#stereo"
+              control = { threshold = -1.0, release = 0.05 }
+            } ]
+          }
+          audio.channels = 2
+          audio.position = [ FL FR ]
+          capture.props  = { node.name = "piano_limiter", node.autoconnect = false }
+          playback.props = { node.name = "piano_limiter.output", node.passive = true }
+        }
+      }
+    ]
   '';
 in
 {
@@ -119,7 +162,8 @@ in
       Description = "Grand piano on the MicroLab mk3 (FluidSynth)";
       # No [Install]: only the keyboard starts it, and it stops with the keyboard.
       BindsTo = [ "sys-subsystem-sound-devices-microlab.device" ];
-      After = [ "sys-subsystem-sound-devices-microlab.device" "pipewire.service" ];
+      Requires = [ "piano-limiter.service" ];
+      After = [ "sys-subsystem-sound-devices-microlab.device" "pipewire.service" "piano-limiter.service" ];
       # FluidSynth never reconnects its stream, so restart along with PipeWire.
       PartOf = [ "pipewire.service" ];
     };
@@ -132,7 +176,34 @@ in
       # portal drops the request without a trace, and the synth would render at
       # normal priority, while rtkit, asked directly, grants it (2026-11-07). With
       # no session bus to reach, PipeWire asks rtkit; nothing else here uses it.
-      Environment = [ "DBUS_SESSION_BUS_ADDRESS=unix:path=/nonexistent" ];
+      #
+      # The stream goes to the limiter, and if the limiter is not there it
+      # waits for it rather than reach the speakers unlimited, where the
+      # hardest playing would clip.
+      Environment = [
+        "DBUS_SESSION_BUS_ADDRESS=unix:path=/nonexistent"
+        "PIPEWIRE_NODE=piano_limiter"
+        "PIPEWIRE_PROPS={node.dont-fallback=true}"
+      ];
+    };
+  };
+
+  home-manager.users.artem.systemd.user.services.piano-limiter = {
+    Unit = {
+      Description = "Peak limiter after the MicroLab piano (x42-dpl)";
+      # Up while the piano is, which requires it.
+      StopWhenUnneeded = true;
+      After = [ "pipewire.service" ];
+      PartOf = [ "pipewire.service" ];
+    };
+    Service = {
+      ExecStart = "${config.services.pipewire.package}/bin/pipewire -c ${limiter}";
+      Restart = "on-failure";
+      # Realtime through rtkit, as for the piano above.
+      Environment = [
+        "LV2_PATH=${pkgs.x42-plugins}/lib/lv2"
+        "DBUS_SESSION_BUS_ADDRESS=unix:path=/nonexistent"
+      ];
     };
   };
 }
