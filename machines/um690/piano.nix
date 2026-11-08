@@ -6,7 +6,8 @@
 # 1.2 GiB of samples. The sound goes to the default output, whichever that is at
 # the moment: the monitor over HDMI, or headphones once they are in the jack.
 # `systemctl --user status piano` says whether it is up, and
-# `journalctl --user -u piano` what it made of the keyboard.
+# `journalctl --user -u piano` what it made of the keyboard. PianoBooster and
+# Neothesia, for practice, play through the same piano (2026-11-08).
 { config, lib, pkgs, ... }:
 
 let
@@ -139,6 +140,37 @@ let
       }
     ]
   '';
+
+  # Practice apps (2026-11-08). PianoBooster plays a song, waits for the right
+  # notes, scores them, a hand at a time, and plays the other parts itself;
+  # Neothesia shows any MIDI song as falling notes. Neither should sound your
+  # keys: the piano already does, straight from the keyboard and without an
+  # app's delay, so an app doing it too would mean every note twice.
+  #
+  # PianoBooster's output is the piano, so the parts it plays come out of the
+  # same piano, and its right- and wrong-note sounds, which are your keys
+  # played back, are None. Neothesia has no such switch: it plays the song's
+  # notes for the part you play along with the rest, so with the piano as its
+  # output your part would sound twice. Its output is No Output instead: you
+  # hear what you play, and the falling notes wait for it, but it plays no
+  # other parts. Both are only first settings; either app can change them.
+  #
+  # The apps find these ports by names that change (piano-apps.py says how),
+  # so each starts through a wrapper that writes the current names first.
+  midiPorts = pkgs.runCommandCC "midi-ports" { buildInputs = [ pkgs.alsa-lib ]; } ''
+    mkdir -p $out/bin
+    $CC -O2 -Wall -o $out/bin/midi-ports ${./midi-ports.c} -lasound
+  '';
+  practiceApp = pkg: pkgs.symlinkJoin {
+    inherit (pkg) name;
+    paths = [ pkg ];
+    nativeBuildInputs = [ pkgs.makeWrapper ];
+    # The wrapper stops at a command that fails, and the app with it.
+    postBuild = ''
+      wrapProgram $out/bin/${pkg.pname} \
+        --run '${pkgs.python3}/bin/python3 ${./piano-apps.py} ${pkg.pname} ${midiPorts}/bin/midi-ports || true'
+    '';
+  };
 in
 {
   # The keyboard's arrival pulls the service in, through the user manager, and
@@ -187,6 +219,8 @@ in
       ];
     };
   };
+
+  home-manager.users.artem.home.packages = map practiceApp [ pkgs.pianobooster pkgs.neothesia ];
 
   home-manager.users.artem.systemd.user.services.piano-limiter = {
     Unit = {
