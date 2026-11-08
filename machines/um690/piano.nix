@@ -46,8 +46,27 @@ let
   # At 100 the reverb sits 15 dB under the piano, measured on a rendered
   # phrase; 127 is the most a send goes, 13 dB under. All sixteen channels, so
   # it holds on whichever one the keyboard sends.
-  commands = pkgs.writeText "piano.cmd"
-    (lib.concatMapStrings (ch: "cc ${toString ch} 91 100\n") (lib.range 0 15));
+  #
+  # Then the touch. Velocity straight from the keys spans too much for these
+  # short keys and small speakers: a tap at 16 peaked 54 dB under one at 127
+  # and never rose above -55 dBFS, so soft notes came out faint and gone at
+  # once while firmer ones rang on, which on 2026-11-07 sounded "quite low,
+  # with a strangely varying length". The MIDI router maps velocity v to
+  # 57 + 0.55 v instead: 127 stays 127, 16 becomes 66, and taps from 16 to 127
+  # now peak between -29 and -12 dBFS and ring 0.4 to 1.1 s. Clearing the
+  # router also drops its pass-through rules, so the other kinds of event
+  # get theirs back.
+  commands = pkgs.writeText "piano.cmd" (
+    lib.concatMapStrings (ch: "cc ${toString ch} 91 100\n") (lib.range 0 15)
+    + ''
+      router_clear
+      router_begin note
+      router_par2 0 127 0.55 57
+      router_end
+    ''
+    + lib.concatMapStrings (type: "router_begin ${type}\nrouter_end\n")
+      [ "cc" "prog" "pbend" "cpress" "kpress" ]
+  );
 
   piano = pkgs.writeShellScript "piano" ''
     # The user manager lingers, so at boot it starts this before anyone has
