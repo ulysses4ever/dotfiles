@@ -32,6 +32,14 @@ let
     '';
   };
 
+  # Every other instrument, and the drums, for the parts of a song that
+  # PianoBooster plays: GeneralUser GS, a General MIDI set of 30 MB. Without
+  # it they all came out as the piano, and the drums not at all (2026-11-08).
+  # FluidSynth asks the SoundFont loaded last first, so with the Salamander
+  # loaded after this one, the piano (bank 0, program 0, which is also what
+  # the keyboard plays) is still the Salamander.
+  generalMidi = "${pkgs.soundfont-generaluser-gs}/share/soundfonts/GeneralUser-GS.sf2";
+
   # nixpkgs builds FluidSynth without its PipeWire driver, the one that keeps
   # the delay between key and sound short: the synth renders in PipeWire's
   # realtime thread and asks the graph for its own block size (-z). The stock
@@ -95,7 +103,7 @@ let
       -a pipewire -z 256 -r 48000 \
       -m alsa_seq -o midi.autoconnect=1 -o midi.alsa_seq.id=piano \
       -g 1.0 -C 0 -f ${commands} \
-      "${salamander}/share/soundfonts/SalamanderGrandPiano-V3+20200602.sf2" \
+      ${generalMidi} "${salamander}/share/soundfonts/SalamanderGrandPiano-V3+20200602.sf2" \
       < <(exec ${pkgs.coreutils}/bin/sleep infinity)
   '';
 
