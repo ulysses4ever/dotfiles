@@ -65,12 +65,23 @@ let
   # now peak between -29 and -12 dBFS and ring 0.4 to 1.1 s. Clearing the
   # router also drops its pass-through rules, so the other kinds of event
   # get theirs back.
+  #
+  # Only for the keyboard's own channel: the MicroLab sends on channel 15, 14
+  # counting from 0 as FluidSynth does (seen 2026-11-08). The parts a song
+  # brings, the other hand from PianoBooster and its backing, are on other
+  # channels and keep the dynamics they were written with. "15 13" is the
+  # router's inverted window: every channel but 14. If the keyboard is ever
+  # set to send on another channel, the 14s here follow it.
   commands = pkgs.writeText "piano.cmd" (
     lib.concatMapStrings (ch: "cc ${toString ch} 91 100\n") (lib.range 0 15)
     + ''
       router_clear
       router_begin note
+      router_chan 14 14 1 0
       router_par2 0 127 0.55 57
+      router_end
+      router_begin note
+      router_chan 15 13 1 0
       router_end
     ''
     + lib.concatMapStrings (type: "router_begin ${type}\nrouter_end\n")

@@ -59,9 +59,15 @@ def pianobooster(listed, config):
     # PianoBooster plays each key you press back out, as a "right note" or
     # "wrong note" sound. The piano already hears the keyboard, so that would
     # be every note twice. 0 is "None" for both; set once, then left alone.
-    for key in ("RightSound", "WrongSound"):
+    #
+    # The MicroLab's 25 keys at its usual octave are notes 48 to 72, C3 to C5
+    # (pressed and read off 2026-11-08). PianoBooster asks only for the notes
+    # in that range and leaves the rest to itself. Set once too: the octave
+    # buttons move the keys, and the app's keyboard setup moves this.
+    defaults = {"RightSound": "0", "WrongSound": "0", "LowestNote": "48", "HighestNote": "72"}
+    for key, value in defaults.items():
         if not ini.has_option("Keyboard", key):
-            ini.set("Keyboard", key, "0")
+            ini.set("Keyboard", key, value)
 
     path.parent.mkdir(parents=True, exist_ok=True)
     with open(path, "w") as f:
