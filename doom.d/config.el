@@ -368,6 +368,10 @@ With prefix arg EXTERNAL, open it in the system browser instead."
 (after! dired
   (map! :map dired-mode-map :localleader :desc "Preview HTML" "p" #'+html/preview))
 
+;; Walking from A down to A/B/C/D left a buffer behind for A, A/B and A/B/C.
+;; Entering a directory, or going up, now replaces the Dired buffer instead.
+(setq dired-kill-when-opening-new-dired-buffer t)
+
 ;; C and C++ use the tree-sitter modes, with grammars from home.nix. Emacs 30's
 ;; cc-mode registers c-mode -> c-ts-mode remaps together with entries that keep
 ;; them off, and Doom's :lang cc deletes those entries, so the switch used to
