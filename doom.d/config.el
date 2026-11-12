@@ -84,6 +84,88 @@
  :localleader
  :desc "View" "v" #'TeX-view)
 
+;; SPC c d in LaTeX: find where a macro, environment, label or BibTeX key is
+;; defined with one rg over the project. dumb-jump only knows \newcommand (not
+;; \DeclareRobustCommand, \def, \NewDocumentCommand) and nothing about labels,
+;; and Emacs 30's etags backend asks for a TAGS file when there is none; C-g at
+;; that prompt aborts the whole lookup. This backend comes first in LaTeX
+;; buffers, so neither is reached unless it finds nothing.
+(defun +latex--key-at-point ()
+  "The macro name (sans backslash) or the label/cite key at point."
+  (save-excursion
+    (when (eq (char-after) ?\\) (forward-char))
+    (skip-chars-backward "[:alpha:]@")
+    (if (eq (char-before) ?\\)
+        (let ((beg (point)))
+          (skip-chars-forward "[:alpha:]@")
+          (and (> (point) beg) (buffer-substring-no-properties beg (point))))
+      (skip-chars-backward "-[:alnum:]:_./+")
+      (let ((beg (point)))
+        (skip-chars-forward "-[:alnum:]:_./+")
+        (and (> (point) beg) (buffer-substring-no-properties beg (point)))))))
+
+(defun +latex--definition-regexps (name)
+  "rg regexps for the places that define NAME."
+  (let ((n (replace-regexp-in-string "[][.+*?(){}|^$\\]" "\\\\\\&" name)))
+    (list
+     ;; macros
+     (concat "\\\\(?:(?:re)?newcommand|providecommand|DeclareRobustCommand"
+             "|(?:New|Renew|Provide|Declare)(?:Expandable)?DocumentCommand"
+             "|DeclareMathOperator|newrobustcmd)\\*?\\s*\\{?\\s*\\\\" n "(?:[^A-Za-z@]|$)")
+     (concat "\\\\(?:[gex]?def|let)\\s*\\\\" n "(?:[^A-Za-z@]|$)")
+     ;; environments
+     (concat "\\\\(?:(?:re)?newenvironment|(?:New|Renew|Declare)DocumentEnvironment)"
+             "\\*?\\s*\\{" n "\\}")
+     ;; labels and BibTeX entries
+     (concat "\\\\label\\s*\\{" n "\\}")
+     (concat "^\\s*@\\w+\\s*\\{\\s*" n "\\s*,"))))
+
+(defun +latex-xref-backend () '+latex)
+
+(cl-defmethod xref-backend-identifier-at-point ((_ (eql +latex)))
+  (+latex--key-at-point))
+
+(defun +latex--rg-definitions (name dir)
+  (let ((default-directory dir))
+    (with-temp-buffer
+      (apply #'process-file "rg" nil t nil
+             "--no-heading" "--with-filename" "--line-number" "--column"
+             "--no-messages" "-g" "*.{tex,sty,cls,ltx,dtx,bib}"
+             (append (mapcan (lambda (re) (list "-e" re))
+                             (+latex--definition-regexps name))
+                     (list ".")))
+      (goto-char (point-min))
+      (let (xrefs)
+        (while (re-search-forward "^\\(.+?\\):\\([0-9]+\\):\\([0-9]+\\):\\(.*\\)$" nil t)
+          (push (xref-make (string-trim (match-string 4))
+                           (xref-make-file-location
+                            (expand-file-name (match-string 1) dir)
+                            (string-to-number (match-string 2))
+                            (1- (string-to-number (match-string 3)))))
+                xrefs))
+        (nreverse xrefs)))))
+
+(cl-defmethod xref-backend-definitions ((_ (eql +latex)) identifier)
+  ;; Doom's lookup passes the symbol at point, which stops at the `:' in
+  ;; lst:haskell-list; take the whole key when it contains that symbol.
+  (let* ((key (+latex--key-at-point))
+         (name (if (and key (string-search identifier key)) key identifier))
+         (root (file-truename (or (doom-project-root) default-directory)))
+         (dir (file-truename default-directory))
+         xrefs)
+    ;; A paper repo often holds several copies of the same paper (submitted,
+    ;; arXiv, archived), so search outward from this file's directory and stop
+    ;; at the first one with a definition, rather than list every copy.
+    (while (and (null xrefs) dir)
+      (setq xrefs (+latex--rg-definitions name dir))
+      (setq dir (unless (or (file-equal-p dir root)
+                            (not (string-prefix-p root dir)))
+                  (file-name-directory (directory-file-name dir)))))
+    xrefs))
+
+(add-hook! 'LaTeX-mode-hook
+  (add-hook 'xref-backend-functions #'+latex-xref-backend nil t))
+
 ;; recompile-on-save-mode
 (defun compile-on-save-start ()
   (let ((buffer (compilation-find-buffer)))
