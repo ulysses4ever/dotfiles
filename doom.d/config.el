@@ -466,6 +466,10 @@ With prefix arg EXTERNAL, open it in the system browser instead."
 ;; Entering a directory, or going up, now replaces the Dired buffer instead.
 (setq dired-kill-when-opening-new-dired-buffer t)
 
+;; Magit diffs soft-wrap long lines. Doom's word-wrap only reaches text-mode
+;; buffers, and magit's aren't. magit-diff-mode covers revisions and stashes.
+(add-hook! '(magit-diff-mode-hook magit-status-mode-hook) #'visual-line-mode)
+
 ;; C and C++ use the tree-sitter modes, with grammars from home.nix. Emacs 30's
 ;; cc-mode registers c-mode -> c-ts-mode remaps together with entries that keep
 ;; them off, and Doom's :lang cc deletes those entries, so the switch used to
