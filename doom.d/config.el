@@ -344,6 +344,9 @@ nothing happens."
         :desc "Copilot Chat Go To Input"
         "l g" #'copilot-chat-goto-input))
 
+;; F9 recompiles, as SPC c C does, without the leader.
+(map! "<f9>" #'recompile)
+
 ;; remove the pesky -k from the default compile command
 (setq compile-command "make")
 ;; build latex with latexmk into _build directory by default
