@@ -478,6 +478,12 @@ With prefix arg EXTERNAL, open it in the system browser instead."
                 ".el")
         nil t))
 
+;; C-j and C-k flip PDF pages, as PgDn and PgUp do. Nothing in pdf-view
+;; claims them, so they fell through to newline and kill-line.
+(map! :after pdf-view :map pdf-view-mode-map
+      :n "C-j" #'pdf-view-next-page-command
+      :n "C-k" #'pdf-view-previous-page-command)
+
 ;; Walking from A down to A/B/C/D left a buffer behind for A, A/B and A/B/C.
 ;; Entering a directory, or going up, now replaces the Dired buffer instead.
 (setq dired-kill-when-opening-new-dired-buffer t)
