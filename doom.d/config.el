@@ -450,6 +450,15 @@ With prefix arg EXTERNAL, open it in the system browser instead."
 (after! dired
   (map! :map dired-mode-map :localleader :desc "Preview HTML" "p" #'+html/preview))
 
+;; y in a PDF failed with (invalid-function pdf-view-assert-active-region): Nix
+;; byte-compiles evil-collection without pdf-tools, so that pdf-tools macro got
+;; compiled as a function call. Loading the source, beside the .elc, expands it.
+(after! evil-collection-pdf
+  (load (concat (file-name-sans-extension
+                 (symbol-file 'evil-collection-pdf-yank))
+                ".el")
+        nil t))
+
 ;; Walking from A down to A/B/C/D left a buffer behind for A, A/B and A/B/C.
 ;; Entering a directory, or going up, now replaces the Dired buffer instead.
 (setq dired-kill-when-opening-new-dired-buffer t)
