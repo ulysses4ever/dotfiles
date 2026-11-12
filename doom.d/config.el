@@ -396,7 +396,23 @@ nothing happens."
                  (not (minibufferp))
                  (not (derived-mode-p 'imenu-list-major-mode)))
         (ignore-errors (imenu-list-update t)))))
-  (add-hook 'window-buffer-change-functions #'+outline-follow-buffer-h))
+  (add-hook 'window-buffer-change-functions #'+outline-follow-buffer-h)
+  ;; A click on an entry acts as RET does there: jumps to it, or folds a +
+  ;; heading. In normal state evil's down-mouse-1 drag ate the click; and a
+  ;; quick mouse-1 on a button turns into mouse-2, which the button's own
+  ;; keymap sends to push-button with the event, which runs the entry's action
+  ;; from the wrong window ("Invalid function").
+  (defun +outline/mouse-ret (event)
+    "Act on the outline entry under the mouse as RET (push-button) does."
+    (interactive "e")
+    (mouse-set-point event)
+    (push-button (point)))
+  (map! :map imenu-list-major-mode-map
+        :n [mouse-1] #'+outline/mouse-ret
+        :n [mouse-2] #'+outline/mouse-ret
+        :n [down-mouse-1] #'ignore)
+  (add-hook! 'imenu-list-major-mode-hook
+    (setq-local mouse-1-click-follows-link nil)))
 
 ;; Markdown buffers, .qmd ones too, hide their markup: the **, ` and the like.
 ;; SPC m t m (or C-c C-x C-m) shows it again in a buffer. The variable is
