@@ -388,13 +388,20 @@ With prefix arg EXTERNAL, open it in the system browser instead."
   (map! :map dired-mode-map :localleader :desc "Preview HTML" "p" #'+html/preview))
 
 ;; y in a PDF failed with (invalid-function pdf-view-assert-active-region): Nix
-;; byte-compiles evil-collection without pdf-tools, so that pdf-tools macro got
-;; compiled as a function call. Loading the source, beside the .elc, expands it.
+;; compiles evil-collection without pdf-tools, so that pdf-tools macro got
+;; compiled as a function call. Evaluating the source's defun, once pdf-tools
+;; is loaded, expands it. (Reloading the whole .el instead re-provided the
+;; feature, re-ran this block until "Recursive load", and lost the PDF keys.)
 (after! evil-collection-pdf
-  (load (concat (file-name-sans-extension
-                 (symbol-file 'evil-collection-pdf-yank))
-                ".el")
-        nil t))
+  (with-temp-buffer
+    (insert-file-contents
+     (concat (file-name-sans-extension
+              (symbol-file 'evil-collection-pdf-yank))
+             ".el"))
+    (goto-char (point-min))
+    (re-search-forward "^(defun evil-collection-pdf-yank")
+    (goto-char (match-beginning 0))
+    (eval (read (current-buffer)) t)))
 
 ;; C-j and C-k flip PDF pages, as PgDn and PgUp do. Nothing in pdf-view
 ;; claims them, so they fell through to newline and kill-line.
