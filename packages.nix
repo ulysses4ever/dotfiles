@@ -76,6 +76,7 @@ with pkgs; [
          ;
      })
      pplatex
+     texlab # LaTeX language server for (latex +lsp): SPC c d follows the \input tree
      biber
      ott
      libreoffice-fresh
