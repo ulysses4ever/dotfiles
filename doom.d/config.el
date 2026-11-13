@@ -84,6 +84,11 @@
  :localleader
  :desc "View" "v" #'TeX-view)
 
+;; LaTeX outlines (imenu, the Ilist sidebar) come from AUCTeX, not texlab.
+;; lsp-mode's are a blocking request: while texlab was busy, as after a save,
+;; each idle Ilist refresh froze Emacs until its 10 s timeout.
+(setq-hook! 'LaTeX-mode-hook lsp-enable-imenu nil)
+
 ;; recompile-on-save-mode
 (defun compile-on-save-start ()
   (let ((buffer (compilation-find-buffer)))
