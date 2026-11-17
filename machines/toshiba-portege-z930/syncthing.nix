@@ -10,12 +10,14 @@
       configDir = "/home/artem/.config/syncthing";
       settings = {
         devices = {
-          "pixel7a" = { id = "B2UK2TS-WJQ224N-MZ6UUSL-AHRZ6Z5-VMJWTFV-KZGWIJD-T66PZAS-OFPHUA2"; };
         };
         folders = {
           "Dropbox" = {
             path = "/home/artem/Dropbox";
-            devices = [ "pixel7a" ];
+            # Its one peer was Artem's Pixel 7a, gone since about 2026-09, so
+            # this Dropbox syncs with nothing until another device is added
+            # here (um690, say, as lenovo-p14s has).
+            devices = [ ];
           };
         };
       };

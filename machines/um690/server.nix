@@ -99,31 +99,16 @@
 
   ##############################################################################
   #
-  #  Low-tech galery in local network.
-  #  It serves phone photos (obtained via Syncthing) through a simple HTML/JS page
+  #  Low-tech gallery in local network: the HomeV archive folder, served for a
+  #  simple HTML/JS page. The phone-photo one at /artem-pics went with Artem's
+  #  Pixel 7a (2026-11-17); its ThinGallery page is in Dropbox/scripts.
   #
-
-  # Nginx is cool but I can't figure out permissions: getting 403
-  #
-  # services.nginx = {
-  #   enable = true;
-  #   virtualHosts."127.0.0.1".locations."/artem-pics/" = {
-  #     alias = "/home/artem/Pictures/Cell/pixel7a/Camera/";
-  #     extraConfig = ''
-  #       autoindex on;
-  #     '';
-  #   };
-  # };
 
   services.httpd = {
     enable = true;
     virtualHosts."127.0.0.1" = {
       servedDirs =
         [
-          {
-            dir = "/home/artem/data/Pictures/pixel7a-artem/Camera";
-            urlPath = "/artem-pics";
-          }
           {
             dir = "/home/artem/data/Pictures/archive/HomeV";
             urlPath = "/hv";
@@ -149,13 +134,9 @@
   systemd.user.tmpfiles.rules = [
     "d /media/immich/data 0755 immich users"
     "d /media/immich/archive 0755 immich users"
-    "d /media/immich/cell 0755 immich users"
     "d /home/artem 0755 artem users"
     "d /home/artem/public_html 0755 artem users"
     "d /home/artem/Pictures 0755 artem users"
-    "d /home/artem/Pictures/Cell 0755 artem users"
-    "d /home/artem/Pictures/Cell/pixel7a 0755 artem users"
-    "d /home/artem/Pictures/Cell/pixel7a/Camera 0755 artem users"
   ];
 
   # Open ports in the firewall.
@@ -186,7 +167,6 @@
   };
   fileSystems."/media/immich/data" = bindMount "/home/artem/data/Pictures/immich-data";
   fileSystems."/media/immich/archive" = bindMount "/home/artem/data/Pictures/archive";
-  fileSystems."/media/immich/cell" = bindMount "/home/artem/data/Pictures//pixel7a-artem/Camera";
   # Immich's own files, browsable without sudo. With the storage template
   # (on since 2026-11-16, set in Immich's admin) the library reads as
   # library/<user>/<year>/<original name>, but the module keeps the media
