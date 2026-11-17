@@ -187,6 +187,20 @@
   fileSystems."/media/immich/data" = bindMount "/home/artem/data/Pictures/immich-data";
   fileSystems."/media/immich/archive" = bindMount "/home/artem/data/Pictures/archive";
   fileSystems."/media/immich/cell" = bindMount "/home/artem/data/Pictures//pixel7a-artem/Camera";
+  # Immich's own files, browsable without sudo. With the storage template
+  # (on since 2026-11-16, set in Immich's admin) the library reads as
+  # library/<user>/<year>/<original name>, but the module keeps the media
+  # folder 0700 and the service writes with UMask 0077, so every file is
+  # immich's alone. bindfs shows the library as artem's, and strictly
+  # read-only: a file renamed or deleted behind Immich's back breaks it.
+  # A FUSE mount of its own, so `rsync -x` and `du -x` of /mnt/data skip it.
+  fileSystems."/home/artem/data/Pictures/immich" = {
+    device = "/mnt/data/artem/Pictures/immich-data/library";
+    fsType = "fuse.bindfs";
+    options = [ "ro" "perms=a=rD" "force-user=artem" "force-group=users"
+                "x-systemd.requires-mounts-for=/mnt/data" "nofail" ];
+  };
+  system.fsPackages = [ pkgs.bindfs ];
   fileSystems."/home/artem/data" = bindMount "/mnt/data/artem";
   # Keeps the daemon's own path at /var/lib/docker, so nothing in docker's
   # config or in any compose file has to know the store moved. Done as a bind
