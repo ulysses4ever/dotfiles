@@ -52,28 +52,12 @@ let
   accessAud = "9b874199a5a5942c171ee66716ec5fb73a3ee5008937c80b2c663ee67f091bf8";
   accessTeam = "ulysses4ever";
 
-  # 0.47.0, while 26.05 has 0.45.0 and unstable 0.46.0. Between them: a path
-  # ACL bypass through filesystem name aliases closed, symlinks kept inside the
-  # served root, panics that could abort the server removed, a unix socket
-  # bound only once, and Safari's upload progress fixed. Drop this once
-  # unstable has 0.47.0 or later.
-  dufs = pkgsUnstable.dufs.overrideAttrs (final: prev:
-    assert lib.assertMsg (lib.versionOlder prev.version "0.47.0")
-      "unstable's dufs is ${prev.version} now: use it as it is";
-    {
-      version = "0.47.0";
-      src = pkgs.fetchFromGitHub {
-        owner = "sigoden";
-        repo = "dufs";
-        rev = "v${final.version}";
-        hash = "sha256-wGRu0E4uAlNtBIZ7C9O0S9VAjQjdn2M0/KV8mqgQWDU=";
-      };
-      cargoDeps = pkgsUnstable.rustPlatform.fetchCargoVendor {
-        inherit (final) src;
-        name = "${final.pname}-${final.version}";
-        hash = "sha256-DFJjJ8e3EdNC+4AcSXwNPOvJ6rbb7wZR44gmyZzDI2o=";
-      };
-    });
+  # From unstable, which has 0.47.0 while 26.05 has 0.45.0. Between them: a
+  # path ACL bypass through filesystem name aliases closed, symlinks kept
+  # inside the served root, panics that could abort the server removed, a unix
+  # socket bound only once, and Safari's upload progress fixed. Until unstable
+  # had it (2026-11-18), 0.47.0 was built here from source.
+  dufs = pkgsUnstable.dufs;
 
   # dufs's own page with ours on top (dropbox-web.css and dropbox-web.js say
   # what). --assets serves all its files from here, so they are its own,
