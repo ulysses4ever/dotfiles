@@ -239,6 +239,23 @@ in
     };
   };
 
+  # A switch to a new PipeWire stops it, and the piano with it (PartOf above),
+  # then leaves PipeWire to its sockets: it starts again on the next
+  # connection, but nothing starts the piano, which only the keyboard's
+  # arrival does, and it stayed silent (2026-11-18). So each start of PipeWire
+  # brings the piano back, when the keyboard is there.
+  home-manager.users.artem.systemd.user.services.piano-after-pipewire = {
+    Unit = {
+      Description = "Start the piano again with PipeWire, if the MicroLab is plugged in";
+      After = [ "pipewire.service" ];
+    };
+    Service = {
+      Type = "oneshot";
+      ExecStart = "${pkgs.bash}/bin/sh -c '${config.systemd.package}/bin/systemctl --user is-active -q sys-subsystem-sound-devices-microlab.device && ${config.systemd.package}/bin/systemctl --user start --no-block piano.service || true'";
+    };
+    Install.WantedBy = [ "pipewire.service" ];
+  };
+
   home-manager.users.artem.home.packages = map practiceApp [ pkgs.pianobooster pkgs.neothesia ];
 
   home-manager.users.artem.systemd.user.services.piano-limiter = {
