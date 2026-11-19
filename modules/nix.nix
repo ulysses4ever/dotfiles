@@ -13,6 +13,17 @@
   _module.args.pkgsUnstable = import inputs.nixpkgs-unstable {
     inherit (pkgs.stdenv.hostPlatform) system;
     inherit (config.nixpkgs) config;
+    overlays = [
+      (final: prev: {
+        # claude-code's wrapper puts alsa-lib on LD_LIBRARY_PATH (for voice
+        # input), and every command Claude runs inherits it. Unstable's
+        # alsa-lib needs glibc 2.43, so after the 2026-11 bump any stable
+        # program that loads ALSA died at start when Claude ran it: Chromium
+        # from nix-shell, aplay ("version `GLIBC_2.43' not found (required by
+        # .../libasound.so.2)"). Stable's needs glibc 2.38, which they all have.
+        claude-code = prev.claude-code.override { inherit (pkgs) alsa-lib; };
+      })
+    ];
   };
 
   nixpkgs.config = {
