@@ -140,12 +140,23 @@
   # hand: Doom's :term vterm and :tools pdf modules pull them now, with their
   # native halves (libvterm, epdfinfo) built by Nix.
   services.emacs.enable = true;
-  # Stopping Emacs signals Emacs alone, not everything in its cgroup. Claude's
-  # background-session daemon is started by a Claude session in a vterm and so
-  # lands in this cgroup; the default control-group mode killed it, and every
-  # background session with it, on each Emacs restart. Emacs still takes its
-  # vterm shells down: they hang up when it closes their terminals.
-  systemd.user.services.emacs.Service.KillMode = "process";
+  systemd.user.services.emacs.Service = {
+    # Stopping Emacs signals Emacs alone, not everything in its cgroup. Claude's
+    # background-session daemon is started by a Claude session in a vterm and so
+    # lands in this cgroup; the default control-group mode killed it, and every
+    # background session with it, on each Emacs restart. Emacs still takes its
+    # vterm shells down: they hang up when it closes their terminals.
+    KillMode = "process";
+    # A pgtk Emacs exits (status 1) when its Wayland display goes, so the end of
+    # the desktop session ends Emacs, and the module's Restart=on-failure used
+    # to start a new one at once. On the 2026-11-18 reboot that new Emacs then
+    # ignored the stop and held the reboot for the full 90 s. A reboot reaches
+    # this service a few seconds after the desktop goes, so the pause lets it
+    # cancel the restart, while a logout alone still gets Emacs back; the
+    # timeout cuts short any stop that hangs anyway.
+    RestartSec = "15s";
+    TimeoutStopSec = "15s";
+  };
   programs.doom-emacs = {
     enable = true;
     doomDir = ./doom.d;
