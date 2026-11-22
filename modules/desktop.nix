@@ -68,17 +68,26 @@
     grim slurp # screenshot functionality
     wl-clipboard # wl-copy and wl-paste for copy/paste from stdin / stdout
     mako # notification system developed by swaywm maintainer
-    # Two output-hotplug bugs fixed upstream after 0.15.0: sway/language touched
-    # GTK from its IPC thread and segfaulted (Waybar #3702); sway/workspaces
-    # took a workspace event for its subscribe reply and disabled itself.
+    # waybar 0.16.0, built against 26.05's libraries (6M; unstable's pulls
+    # 98M). It fixes three crashes or breakages 0.15.0 has: on output hotplug,
+    # sway/language touched GTK from its IPC thread and segfaulted (#3702) and
+    # sway/workspaces took a workspace event for its subscribe reply and
+    # disabled itself; and the pulseaudio backend aborted when the sound server
+    # restarted, as on a rebuild. 0.16.0 makes WWAN (ModemManager) required and
+    # wants libcava >= 1.0, newer than 26.05's; the bar uses neither.
     (waybar.overrideAttrs (old:
       assert lib.assertMsg (old.version == "0.15.0")
-        "waybar is now ${old.version}: check whether it includes upstream c0a26104a5 and 6e0b50567e, then drop or rebase patches/waybar-sway-*.patch";
+        "nixpkgs' waybar is now ${old.version}: drop this override if it is >= 0.16.0";
       {
-      patches = (old.patches or [ ]) ++ [
-        ../patches/waybar-sway-language-main-thread.patch
-        ../patches/waybar-sway-ipc-subscribe-reply.patch
-      ];
+      version = "0.16.0";
+      src = fetchFromGitHub {
+        owner = "Alexays";
+        repo = "Waybar";
+        rev = "0.16.0";
+        hash = "sha256-mHBaRnquV9tSt8FuaAU9/HG7B8gditQX6p3NgwiLmMY=";
+      };
+      patches = [ ];
+      mesonFlags = (old.mesonFlags or [ ]) ++ [ "-Dwwan=disabled" "-Dcava=disabled" ];
     }))
     wlsunset
     theme-sh

@@ -123,7 +123,7 @@
 	"disk": {
 		"interval": 5,
 		"format": "SSD {percentage_used:2}%",
-		"path": "/"
+		"paths": ["/"]
 	},
 	"tray": {
 		"icon-size": 20
