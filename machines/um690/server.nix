@@ -28,6 +28,8 @@
     ./brightspace-keepalive.nix
     # The three courses' Journals and hand-ins, fetched on a timer (2026-10-13).
     ./edu-fetch.nix
+    # The weekly job sweep, started on Friday night and checked on Saturday (2026-11-22).
+    ./job-sweep.nix
     ./brightspace-web.nix
     # ~/Dropbox on the web, mostly for the iPhone, behind Access (2026-10-31).
     ./dropbox-web.nix
