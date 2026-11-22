@@ -38,6 +38,15 @@ in
   boot.initrd.checkJournalingFS = false;
   hardware.enableAllFirmware = true;
   services.fwupd.enable = true;
+  # Goodix 27c6:658c fingerprint reader (libfprint's goodixmoc driver). GDM
+  # runs it alongside the password prompt; polkit and su try it first. A
+  # fingerprint login leaves GNOME Keyring locked, as only the password opens
+  # it. Enroll with fprintd-enroll.
+  services.fprintd.enable = true;
+  # Every PAM service gets fprintAuth by default, sshd included: an SSH
+  # password login would wait on a finger at this laptop's sensor, and a touch
+  # there would let the remote session in.
+  security.pam.services.sshd.fprintAuth = false;
   powerManagement.enable = true;
 
   #######################################################################################
