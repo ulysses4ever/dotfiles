@@ -3,7 +3,10 @@
 # empty shell to copy into several sections, copied, and each course's quiz
 # defaults. For Artem and Julia at https://brightspace.cu-cs-classes.site/, behind
 # its own Cloudflare Access application, "brightspace web" (2026-10-04; at
-# brightspace.pelenitsyn.site until 2026-10-07).
+# brightspace.pelenitsyn.site until 2026-10-07). Since 2026-11-24 a quiz made from
+# its file goes in whole, as `setup-quiz --go` does from a terminal: bs-drive, a
+# headless Chromium on the quiz's pages, puts in its questions, blanks, shuffled
+# options, LockDown and visibility, in a job the page shows as it runs.
 #
 # It acts in Brightspace as one of the sessions in keepalive.ini. Access signs a
 # token naming whoever signed in, the page checks that token itself against the
@@ -24,10 +27,12 @@ let
   clone = "/home/artem/edu/brightspace-cli";
   port = 8140;
   # lz4 for re-reading Artem's session out of Firefox's session store, as in
-  # brightspace-keepalive.nix, and PyYAML for a quiz's YAML file, which the page
+  # brightspace-keepalive.nix, PyYAML for a quiz's YAML file, which the page
   # makes a quiz from with setup-quiz, and for a checklist's Markdown, which is
-  # bs-yaml-quiz's; every command it runs uses this interpreter.
-  python = pkgs.python3.withPackages (ps: [ ps.lz4 ps.pyyaml ]);
+  # bs-yaml-quiz's, and websocket-client for bs-drive, which speaks to its
+  # Chromium over the DevTools protocol; every command it runs uses this
+  # interpreter.
+  python = pkgs.python3.withPackages (ps: [ ps.lz4 ps.pyyaml ps.websocket-client ]);
 in
 {
   systemd.services.brightspace-web = {
@@ -35,6 +40,11 @@ in
     wantedBy = [ "multi-user.target" ];
     wants = [ "network-online.target" ];
     after = [ "network-online.target" ];
+    # bs-drive's browser: setup-quiz looks for chromium on PATH, and leaves the
+    # steps printed for a person when there is none. It runs headless with
+    # --no-sandbox, its profile a fresh directory in the unit's private /tmp, so
+    # NoNewPrivileges and PrivateTmp below stand.
+    path = [ pkgs.chromium ];
 
     serviceConfig = {
       # artem's, like course-status.nix and the keep-alive: the sessions, the
